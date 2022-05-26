@@ -60,3 +60,18 @@ module Board =
         )
         printfn "  \\________________________/"
         printfn "    a  b  c  d  e  f  g  h"
+    let getPossibleMoves (colour: colour) (board: board) : board list =
+        board |> Array2D.filter (fun (square: square) ->
+            match square.piece with
+            | Some piece when piece.colour = colour -> true
+            | _ -> false
+        )
+        |> List.ofArray
+        |> List.map (fun square ->
+            square
+            |> Square.getMoves board
+            |> List.map (fun newSquare ->
+                Board.movePiece square newSquare board
+            )
+        )
+        |> List.concat

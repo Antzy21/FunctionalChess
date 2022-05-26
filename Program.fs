@@ -4,6 +4,6 @@ open Chess
 [<EntryPoint>]
 let main args =
     Board.Create.starting ()
-    |> Board.print
-
+    |> Board.getPossibleMoves White
+    |> List.iter Board.print
     0
