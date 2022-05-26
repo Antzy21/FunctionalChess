@@ -8,4 +8,8 @@
     <Compile Include="board.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Checkerboard\Checkerboard.fsproj" />
+    <ProjectReference Include="..\FSharp.Extensions\FSharp.Extensions.fsproj" />
+  </ItemGroup>
 </Project>
