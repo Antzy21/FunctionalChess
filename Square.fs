@@ -18,7 +18,6 @@ module Square =
         +
         (Square.getName newSquare)
         
-
     let getMoves (board: board<piece>) (square: square) : square list=
         let piece = square |> Square.getPiece
         let stopAt = Some (fun (otherPiece: piece) -> true)

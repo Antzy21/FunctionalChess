@@ -45,6 +45,26 @@ module Board =
             board.[7,7] <- Square.updateWithPiece {pieceType = Rook; colour = Black} board.[7,7]
 
             board
+        let fromFen (fen: string) : board =
+            let board = Board.Create.empty 8
+            fen.Split('/')
+            |> Array.rev
+            |> Array.iteri (fun (j: int) (row: string) ->
+                row
+                |> Seq.map (fun (c: char) ->
+                    if (System.Char.IsNumber c) then
+                        Seq.init (int $"{c}") (fun _ -> None)
+                    else
+                        seq { Some c }
+                )
+                |> Seq.concat
+                |> Seq.iteri (fun (i: int) (c: char option) ->
+                    if Option.isSome c then
+                        let piece = c |> Option.get |> Piece.getFromLetter
+                        board.[i,j] <- Square.updateWithPiece piece board.[i,j]
+                )
+            )
+            board
     let print (board : board) : unit =
         printfn "   ________________________"
         printfn "  /                        \\"

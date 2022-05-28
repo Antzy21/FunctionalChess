@@ -7,6 +7,7 @@
     <Compile Include="Piece.fs" />
     <Compile Include="Square.fs" />
     <Compile Include="Board.fs" />
+    <Compile Include="Game.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
