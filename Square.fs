@@ -10,6 +10,15 @@ module Square =
         | Some piece -> Piece.getLetter piece
         | None -> '.'
     
+    let getMoveNotation (old: square) (newSquare: square) : string =
+        let piece = Square.getPiece old
+        match piece.pieceType with
+        | Pawn -> ""
+        | pieceType -> PieceType.getLetter pieceType |> sprintf "%c"
+        +
+        (Square.getName newSquare)
+        
+
     let getMoves (board: board<piece>) (square: square) : square list=
         let piece = square |> Square.getPiece
         let stopAt = Some (fun (otherPiece: piece) -> true)

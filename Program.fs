@@ -5,5 +5,5 @@ open Chess
 let main args =
     Board.Create.starting ()
     |> Board.getPossibleMoves White
-    |> List.iter Board.print
+    |> List.iter (printfn "%s")
     0
