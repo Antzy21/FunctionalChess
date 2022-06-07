@@ -9,15 +9,12 @@ module Square =
         match square.piece with
         | Some piece -> Piece.getLetter piece
         | None -> '.'
-    
-    let getMoveNotation (old: square) (newSquare: square) : string =
-        let piece = Square.getPiece old
-        match piece.pieceType with
-        | Pawn -> ""
-        | pieceType -> PieceType.getLetter pieceType |> sprintf "%c"
-        +
-        (Square.getName newSquare)
-        
+    let getDescription (square: square) =
+        let pieceTypeLetter = 
+            match square.piece with
+            | None -> ' '
+            | Some piece -> PieceType.getLetter piece.pieceType
+        $"{pieceTypeLetter}{(Square.getName square)}"
     let getMoves (board: board<piece>) (square: square) : square list=
         let piece = square |> Square.getPiece
         let stopAt = Some (fun (otherPiece: piece) -> true)
