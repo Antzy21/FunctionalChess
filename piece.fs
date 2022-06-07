@@ -33,6 +33,12 @@ type colour =
     | White
     | Black
 
+module Colour =
+    let opposite (colour: colour) : colour =
+        match colour with
+        | White -> Black
+        | Black -> White
+
 type piece = {pieceType: pieceType; colour: colour}
 
 type pieceMoveGenerator = (int * int) -> (int * int) list
