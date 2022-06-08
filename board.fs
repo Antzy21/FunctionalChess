@@ -104,6 +104,28 @@ module Board =
             | Some piece when piece.pieceType = King -> true
             | _ -> false
         )
+    let getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
+        match enpassantSquareOption with
+        | None -> []
+        | Some enpassantSquare -> 
+            let direction =
+                match colour with
+                | White -> -1
+                | Black -> 1
+            let pos = enpassantSquare.coordinates
+            [
+                (fst pos-1, snd pos+direction);
+                (fst pos+1, snd pos+direction);
+            ]
+            |> List.map (fun position -> board[fst position, snd position])
+            |> List.filter (fun square -> 
+                match square.piece with
+                | Some piece when piece.pieceType = Pawn && piece.colour = colour -> true
+                | _ -> false
+            )
+            |> List.map (fun square ->
+                (square, board.[fst pos, snd pos])
+            )
     let getLegalMoves (colour: colour) (board: board) : move list =
         getPossibleMoves colour board
         |> List.filter (fun move ->
