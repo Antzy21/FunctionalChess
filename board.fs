@@ -104,7 +104,7 @@ module Board =
             | Some piece when piece.pieceType = King -> true
             | _ -> false
         )
-    let getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
+    let internal getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
         match enpassantSquareOption with
         | None -> []
         | Some enpassantSquare -> 
@@ -113,11 +113,7 @@ module Board =
                 | White -> -1
                 | Black -> 1
             let pos = enpassantSquare.coordinates
-            [
-                (fst pos-1, snd pos+direction);
-                (fst pos+1, snd pos+direction);
-            ]
-            |> List.map (fun position -> board[fst position, snd position])
+            Board.getSquares.afterShifts pos board [(-1, direction);(+1, direction);]
             |> List.filter (fun square -> 
                 match square.piece with
                 | Some piece when piece.pieceType = Pawn && piece.colour = colour -> true
@@ -126,6 +122,16 @@ module Board =
             |> List.map (fun square ->
                 (square, board.[fst pos, snd pos])
             )
+    let private enpassantMove (move: move) (board: board) : board =
+        let board = Board.movePiece (fst move) (snd move) board
+        let i, j = (snd move).coordinates |> fst, (fst move).coordinates |> snd
+        board[i,j] <- Square.removePiece board[i,j]
+        board
+    let makeMove (move: move) (board: board) : board = 
+        if Move.isEnpassant move then
+            enpassantMove move board
+        else
+            Board.movePiece (fst move) (snd move) board
     let getLegalMoves (colour: colour) (board: board) : move list =
         getPossibleMoves colour board
         |> List.filter (fun move ->
