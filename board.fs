@@ -80,18 +80,33 @@ module Board =
         )
         printfn "  \\________________________/"
         printfn "    a  b  c  d  e  f  g  h"
-    let getPossibleMoves (colour: colour) (board: board) : string list =
+    let getPossibleMoves (colour: colour) (board: board) : move list =
         board |> Array2D.filter (fun (square: square) ->
             match square.piece with
             | Some piece when piece.colour = colour -> true
             | _ -> false
         )
         |> List.ofArray
-        |> List.map (fun square ->
-            square
+        |> List.map (fun oldSquare ->
+            oldSquare
             |> Square.getMoves board
             |> List.map (fun newSquare ->
-                Square.getMoveNotation square newSquare
+                (oldSquare, newSquare)
             )
         )
         |> List.concat
+    let isInCheck (colour: colour) (board: board) : bool =
+        let opponentColour = Colour.opposite colour
+        let moves = getPossibleMoves opponentColour board
+        moves
+        |> List.exists (fun move ->
+            match Move.getTakenPiece move with
+            | Some piece when piece.pieceType = King -> true
+            | _ -> false
+        )
+    let getLegalMoves (colour: colour) (board: board) : move list =
+        getPossibleMoves colour board
+        |> List.filter (fun move ->
+            let newBoardState = Board.movePiece (fst move) (snd move) board
+            not <| isInCheck colour newBoardState
+        )
