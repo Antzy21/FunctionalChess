@@ -46,30 +46,15 @@ module Board =
         )
         printfn "  \\________________________/"
         printfn "    a  b  c  d  e  f  g  h"
-    let getPossibleMoves (colour: colour) (board: board) : move list =
-        board |> Array2D.filter (fun (square: square) ->
-            match square.piece with
-            | Some piece when piece.colour = colour -> true
-            | _ -> false
-        )
-        |> List.ofArray
-        |> List.map (fun oldSquare ->
-            oldSquare
-            |> Square.getMoves board
-            |> List.map (fun newSquare ->
-                (oldSquare, newSquare)
-            )
-        )
-        |> List.concat
-    let isInCheck (colour: colour) (board: board) : bool =
-        let opponentColour = Colour.opposite colour
-        let moves = getPossibleMoves opponentColour board
+    let playerHasVisionOnSquare (colour: colour) (square: square) (board: board) : bool =
+        let moves = Move.getPossibleMoves colour board
         moves
-        |> List.exists (fun move ->
-            match Move.getTakenPiece move with
-            | Some piece when piece.pieceType = King -> true
-            | _ -> false
-        )
+        |> List.exists (fun move -> snd move |> (=) square)
+    let isInCheck (colour: colour) (board: board) : bool =
+        board
+        |> Array2D.tryFind (fun square -> square.piece = Some {pieceType = King; colour = colour})
+        |> Option.failOnNone "No king found on the board"
+        |> fun square -> playerHasVisionOnSquare (Colour.opposite colour) square board
     let internal getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
         match enpassantSquareOption with
         | None -> []
@@ -89,7 +74,7 @@ module Board =
                 (square, board.[fst pos, snd pos])
             )
     let private enpassantMove (move: move) (board: board) : board =
-        let board = Board.movePiece (fst move) (snd move) board
+        let board = Board.movePiece move board
         let i, j = (snd move).coordinates |> fst, (fst move).coordinates |> snd
         board[i,j] <- Square.removePiece board[i,j]
         board
@@ -97,10 +82,10 @@ module Board =
         if Move.isEnpassant move then
             enpassantMove move board
         else
-            Board.movePiece (fst move) (snd move) board
+            Board.movePiece move board
     let getLegalMoves (colour: colour) (board: board) : move list =
-        getPossibleMoves colour board
+        Move.getPossibleMoves colour board
         |> List.filter (fun move ->
-            let newBoardState = Board.movePiece (fst move) (snd move) board
+            let newBoardState = Board.movePiece move board
             not <| isInCheck colour newBoardState
         )
