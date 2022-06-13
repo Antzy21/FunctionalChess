@@ -8,7 +8,6 @@ type pieceType =
     | King
     | Queen
 
-
 module PieceType =
     let private pieceTypeLetterMap : Map<pieceType, char> =
         [
@@ -31,4 +30,4 @@ module PieceType =
     let getLetter (piece: pieceType) : char =
         Map.find piece pieceTypeLetterMap
     let fromLetter (letter: char) : pieceType =
-        Map.findKey (fun _ l -> letter = l) pieceTypeLetterMap
+        Map.findKey (fun _ l -> System.Char.ToUpper letter = l) pieceTypeLetterMap
