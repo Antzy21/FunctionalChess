@@ -8,7 +8,18 @@ type pieceType =
     | King
     | Queen
 
+
 module PieceType =
+    let private pieceTypeLetterMap : Map<pieceType, char> =
+        [
+            (Pawn, 'P');
+            (Rook, 'R');
+            (Knight, 'N');
+            (Bishop, 'B');
+            (King, 'K');
+            (Queen, 'Q');
+        ]
+        |> Map.ofList
     let getValue (piece: pieceType) : int option =
         match piece with
         | Pawn -> Some 1
@@ -18,10 +29,6 @@ module PieceType =
         | King -> None
         | Queen -> Some 9
     let getLetter (piece: pieceType) : char =
-        match piece with
-        | Pawn -> 'P'
-        | Rook -> 'R'
-        | Knight -> 'N'
-        | Bishop -> 'B'
-        | King -> 'K'
-        | Queen -> 'Q'
+        Map.find piece pieceTypeLetterMap
+    let fromLetter (letter: char) : pieceType =
+        Map.findKey (fun _ l -> letter = l) pieceTypeLetterMap

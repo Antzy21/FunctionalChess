@@ -17,20 +17,12 @@ module Piece =
         else
             letter
     let getFromLetter (letter: char) : piece =
-        match letter with
-        | 'P' -> {pieceType = Pawn; colour = White}
-        | 'p' -> {pieceType = Pawn; colour = Black}
-        | 'R' -> {pieceType = Rook; colour = White}
-        | 'r' -> {pieceType = Rook; colour = Black}
-        | 'N' -> {pieceType = Knight; colour = White}
-        | 'n' -> {pieceType = Knight; colour = Black}
-        | 'B' -> {pieceType = Bishop; colour = White}
-        | 'b' -> {pieceType = Bishop; colour = Black}
-        | 'K' -> {pieceType = King; colour = White}
-        | 'k' -> {pieceType = King; colour = Black}
-        | 'Q' -> {pieceType = Queen; colour = White}
-        | 'q' -> {pieceType = Queen; colour = Black}
-        | c -> failwith (sprintf "No piece matches letter %c" c)
+        let colour = 
+            if letter = System.Char.ToUpper letter then
+                White
+            else
+                Black
+        {pieceType = PieceType.fromLetter letter; colour = colour}
 
     let getPawnMoveFunction (start: square<piece>) (board: board<piece>) (piece: piece) =
         let direction, startingRow =
