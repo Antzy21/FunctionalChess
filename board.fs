@@ -46,15 +46,11 @@ module Board =
         )
         printfn "  \\________________________/"
         printfn "    a  b  c  d  e  f  g  h"
-    let playerHasVisionOnSquare (colour: colour) (square: square) (board: board) : bool =
-        let moves = Move.getPossibleMoves colour board
-        moves
-        |> List.exists (fun move -> snd move |> (=) square)
     let isInCheck (colour: colour) (board: board) : bool =
         board
         |> Array2D.tryFind (fun square -> square.piece = Some {pieceType = King; colour = colour})
         |> Option.failOnNone "No king found on the board"
-        |> fun square -> playerHasVisionOnSquare (Colour.opposite colour) square board
+        |> Square.playerHasVisionOnSquare (Colour.opposite colour) board
     let internal getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
         match enpassantSquareOption with
         | None -> []

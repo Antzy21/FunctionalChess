@@ -23,12 +23,7 @@ module Move =
         | None -> ""
         + $"{(move |> snd |> Square.getName)}"
     let getPossibleMoves (colour: colour) (board: board<piece>) : move list =
-        board |> Array2D.filter (fun (square: square) ->
-            match square.piece with
-            | Some piece when piece.colour = colour -> true
-            | _ -> false
-        )
-        |> List.ofArray
+        Square.getFromBoardWithPiecesOfColour colour board
         |> List.map (fun oldSquare ->
             oldSquare
             |> Square.getMoves board

@@ -1,6 +1,7 @@
 namespace Chess
 
 open Checkerboard
+open FSharp.Extensions
 
 type square = square<piece>
 
@@ -32,3 +33,20 @@ module Square =
             | King -> Board.getSquares.adjacent square board
             | Pawn -> Piece.getPawnMoveFunction square board piece 
         |> List.filter blockSelfTaking
+    let getFromBoardWithPiecesOfColour (colour: colour) (board: board<piece>) : square list =
+        board |> Array2D.filter (fun (square: square) ->
+            match square.piece with
+            | Some piece when piece.colour = colour -> true
+            | _ -> false
+        )
+        |> List.ofArray
+    let playerVision (colour: colour) (board: board<piece>) : square list =
+        getFromBoardWithPiecesOfColour colour board
+        |> List.map (fun oldSquare ->
+            oldSquare
+            |> getMoves board
+        )
+        |> List.concat
+    let playerHasVisionOnSquare (colour: colour) (board: board<piece>) (square: square) : bool =
+        playerVision colour board
+        |> List.contains square
