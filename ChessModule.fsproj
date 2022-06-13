@@ -4,11 +4,13 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="side.fs" />
     <Compile Include="PieceType.fs" />
     <Compile Include="Colour.fs" />
     <Compile Include="Piece.fs" />
     <Compile Include="Square.fs" />
     <Compile Include="Move.fs" />
+    <Compile Include="CastlingAllowance.fs" />
     <Compile Include="Board.fs" />
     <Compile Include="Game.fs" />
     <Compile Include="Program.fs" />
