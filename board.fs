@@ -6,6 +6,8 @@ open Checkerboard
 
 type board = board<piece>
 
+type castlingAllowance = {whiteKingside: bool; whiteQueenside: bool; blackKingside: bool; blackQueenside: bool;}
+
 module Board =
     module Create =
         let fromFen (fen: string) : board =
@@ -69,14 +71,82 @@ module Board =
             |> List.map (fun square ->
                 (square, board.[fst pos, snd pos])
             )
+    let internal getCastlingMoves (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
+        let row, kingSide, queenSide = 
+            match colour with
+            | White -> 0, castlingOptions.whiteKingside, castlingOptions.whiteQueenside
+            | Black -> 7, castlingOptions.blackKingside, castlingOptions.blackQueenside
+        let k = 
+            if kingSide then
+                let castlingThroughCheck =
+                    [$"e{row}"; $"f{row}"; $"g{row}"]
+                    |> List.map (fun name -> Board.getSquareFromCoordinatesName name board)
+                    |> List.fold (fun s sqr ->
+                        s && 
+                        not <| Square.playerHasVisionOnSquare (Colour.opposite colour) board sqr
+                    ) false
+                let squaresAreEmpty =
+                    [$"f{row}"; $"g{row}"]
+                    |> List.exists (fun name -> 
+                        let square = Board.getSquareFromCoordinatesName name board
+                        Option.isSome square.piece
+                    ) |> not
+                if (not castlingThroughCheck) && squaresAreEmpty then
+                    [((Board.getSquareFromCoordinatesName $"e{row}" board), (Board.getSquareFromCoordinatesName $"g{row}" board))]
+                else 
+                    []
+            else
+                []
+        let q =
+            if queenSide then
+                let castlingThroughCheck =
+                    [$"e{row}"; $"d{row}"; $"c{row}"]
+                    |> List.map (fun name -> Board.getSquareFromCoordinatesName name board)
+                    |> List.fold (fun s sqr ->
+                        s &&
+                        not <| Square.playerHasVisionOnSquare (Colour.opposite colour) board sqr
+                    ) false
+                let squaresAreEmpty =
+                    [$"d{row}"; $"c{row}"; $"b{row}"]
+                    |> List.exists (fun name -> 
+                        let square = Board.getSquareFromCoordinatesName name board
+                        Option.isSome square.piece
+                    ) |> not
+                if (not castlingThroughCheck) && squaresAreEmpty  then
+                    [((Board.getSquareFromCoordinatesName $"e{row}" board), (Board.getSquareFromCoordinatesName $"c{row}" board))]
+                else 
+                    []
+            else
+                []
+        List.append k q
     let private enpassantMove (move: move) (board: board) : board =
         let board = Board.movePiece move board
         let i, j = (snd move).coordinates |> fst, (fst move).coordinates |> snd
         board[i,j] <- Square.removePiece board[i,j]
         board
+    let private castlingMove (move: move) (board: board) : board =
+        let i, j = snd move |> Square.getCoordinates
+        let board = Board.movePiece move board
+        if j = 0 && i = 2 then
+            Board.removePiece (0,0) board
+            |> Board.updateWithPiece (0,2) {pieceType = Rook; colour = White}
+        elif j = 0 && i = 6 then
+            Board.removePiece (0,7) board
+            |> Board.updateWithPiece (0,6) {pieceType = Rook; colour = White}
+        elif j = 7 && i = 2 then
+            Board.removePiece (7,0) board
+            |> Board.updateWithPiece (7,2) {pieceType = Rook; colour = Black}
+        elif j = 7 && i = 6 then
+            Board.removePiece (7,7) board
+            |> Board.updateWithPiece (7,6) {pieceType = Rook; colour = Black}
+        else
+            failwith $"Invalid Castling attempted with move {Move.getMoveNotation move}"
+        |> Board.removePiece (i,j)
     let makeMove (move: move) (board: board) : board = 
         if Move.isEnpassant move then
             enpassantMove move board
+        elif Move.isCastling move then
+            castlingMove move board
         else
             Board.movePiece move board
     let getLegalMoves (colour: colour) (board: board) : move list =

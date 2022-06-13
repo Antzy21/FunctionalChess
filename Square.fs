@@ -15,7 +15,7 @@ module Square =
             match square.piece with
             | None -> ' '
             | Some piece -> PieceType.getLetter piece.pieceType
-        $"{pieceTypeLetter}{(Square.getName square)}"
+        $"{pieceTypeLetter}{(Square.getCoordinatesName square)}"
     let getMoves (board: board<piece>) (square: square) : square list=
         let piece = square |> Square.getPiece
         let stopAt = Some (fun (otherPiece: piece) -> true)
@@ -26,7 +26,7 @@ module Square =
             | Some oldPiece -> oldPiece.colour <> piece.colour
             | None -> true
         match piece.pieceType with
-            | Knight -> Board.getSquares.afterAllShiftDirections square 1 2 board
+            | Knight -> Board.getSquares.afterAllShiftDirections square (1,2) board
             | Bishop -> Board.getSquares.getDiagonals square stopAt board
             | Rook -> Board.getSquares.getRowAndFile square stopAt board
             | Queen -> List.append (Board.getSquares.getRowAndFile square stopAt board) (Board.getSquares.getDiagonals square stopAt board)
