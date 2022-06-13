@@ -20,13 +20,7 @@ module GameState =
             | "w" -> White
             | "b" -> Black
             | c -> failwith $"Error in FEN: Cannot determine player turn from {c}" 
-        let castlingAllowance = 
-            {
-                whiteKingside = parts[2].Contains('K');
-                whiteQueenside = parts[2].Contains('Q');
-                blackKingside = parts[2].Contains('k');
-                blackQueenside = parts[2].Contains('q')
-            }
+        let castlingAllowance = CastlingAllowance.fromFen parts[2]
         let enpassantSquare = 
             match parts[3] with
             | "-" -> None
@@ -46,3 +40,19 @@ module GameState =
         Board.getLegalMoves player board
         |> List.append <| Board.getEnpassantMoves player game.enpassantSquare board
         |> List.append <| Board.getCastlingMoves player game.castlingAllowance board
+    let makeMove (move: move) (game: gameState) : gameState =
+        {
+            board = Board.makeMove move game.board
+            playerTurn = Colour.opposite game.playerTurn
+            castlingAllowance = 
+                if Move.isCastling move then
+                    CastlingAllowance.removeBasedOnMove move game.castlingAllowance
+                else
+                    game.castlingAllowance
+            enpassantSquare = None;
+            halfMoveClock = game.halfMoveClock + 1
+            fullMoveClock = 
+                match game.playerTurn with 
+                | White -> game.fullMoveClock + 1
+                | Black -> game.fullMoveClock
+        }
