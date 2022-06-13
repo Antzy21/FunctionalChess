@@ -6,8 +6,6 @@ open Checkerboard
 
 type board = board<piece>
 
-type castlingAllowance = {whiteKingside: bool; whiteQueenside: bool; blackKingside: bool; blackQueenside: bool;}
-
 module Board =
     module Create =
         let fromFen (fen: string) : board =
