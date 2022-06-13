@@ -5,8 +5,6 @@ open FSharp.Extensions
 
 type piece = {pieceType: pieceType; colour: colour}
 
-type pieceMoveGenerator = (int * int) -> (int * int) list
-
 module Piece =
     let getValue (piece: piece) : int option =
         PieceType.getValue piece.pieceType
