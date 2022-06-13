@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="PieceType.fs" />
     <Compile Include="Colour.fs" />
     <Compile Include="Piece.fs" />
     <Compile Include="Square.fs" />
