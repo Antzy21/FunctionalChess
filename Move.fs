@@ -25,11 +25,11 @@ module Move =
     let getMoveNotation (move: move) : string =
         match Move.getTakenPiece move with
         | Some takenPiece ->
-            $"{move |> fst |> Square.getDescription} ->" +
+            $"{move |> fst |> Square.getDescription} -> " +
             $"x{(PieceType.getLetter takenPiece.pieceType)}" +
             $"{(move |> snd |> Square.getCoordinatesName)}"
         | None when isEnpassant move -> 
-            $"{move |> fst |> Square.getDescription} ->" +
+            $"{move |> fst |> Square.getDescription} -> " +
             $"x" +
             match (Move.getMovedPiece move).colour with 
             | White -> "p"
@@ -40,7 +40,7 @@ module Move =
             | Kingside -> "0-0"
             | Queenside -> "0-0-0"
         | None -> 
-            $"{move |> fst |> Square.getDescription} ->" +
+            $"{move |> fst |> Square.getDescription} -> " +
             $"{(move |> snd |> Square.getCoordinatesName)}"
     let getPossibleMoves (colour: colour) (board: board<piece>) : move list =
         Square.getFromBoardWithPiecesOfColour colour board
