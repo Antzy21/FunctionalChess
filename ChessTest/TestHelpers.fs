@@ -3,6 +3,12 @@
 open Chess
 open Checkerboard
 
+let getPossibleMoves (fen: string) : string list =
+    fen
+    |> GameState.fromFen
+    |> GameState.getMovesForPlayer
+    |> List.map Move.getMoveNotation
+
 let getPossibleMovesForPieceType (pieceType: pieceType) (fen: string) : string list =
     fen
     |> GameState.fromFen

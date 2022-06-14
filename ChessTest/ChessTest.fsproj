@@ -12,6 +12,7 @@
   </ItemGroup>
 	
   <ItemGroup>
+    <Compile Include="Moves.fs" />
     <Compile Include="Check.fs" />
     <Compile Include="Castling.fs" />
     <Compile Include="Enpassant.fs" />
