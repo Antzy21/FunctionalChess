@@ -16,6 +16,12 @@ module White =
         "4k3/8/8/b7/8/2P5/8/4K3 w KQkq - 1 2"
         |> getPossibleMovesForPieceType Pawn
         |> Assert.Empty
+
+    [<Fact>]
+    let ``White can't move King into check`` () =
+        "3q1r2/3P4/8/P3k2q/4nn2/7b/8/4K3 w - - 0 1"
+        |> getPossibleMovesForPieceType King
+        |> Assert.Empty
     
 module Black = 
 
