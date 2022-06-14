@@ -35,6 +35,8 @@ module GameState =
             halfMoveClock = halfMoveClock;
             fullMoveClock = fullMoveClock;
         }
+    let newGame () : gameState =
+        fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
     let getMovesForPlayer (game: gameState) : move list =
         let board = game.board
         Board.getLegalMoves game.playerTurn board
