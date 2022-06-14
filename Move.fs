@@ -9,7 +9,7 @@ module Move =
     let isEnpassant (move: move) : bool =
         (Move.getMovedPiece move).pieceType = Pawn &&
         Move.getTakenPiece move |> Option.isNone &&
-        Move.getShift move |> fun (i, j) -> (i+j)%2=0
+        Move.getShift move |> fun (i, j) -> (abs(i), abs(j)) = (1,1)
     let isCastling (move: move) : bool =
         (Move.getMovedPiece move).pieceType = King &&
         Move.getShift move |> fun (i, j) -> (i, j) = (2,0) || (i, j) = (-2, 0)
