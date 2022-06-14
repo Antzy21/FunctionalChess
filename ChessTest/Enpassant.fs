@@ -14,6 +14,13 @@ module White =
             |> getPossibleMovesForPieceType Pawn
         Assert.Contains("Pb5 -> xpc6", moves)
         Assert.Contains("Pd5 -> xpc6", moves)
+
+    let ``White can take en passing`` () =
+        let enpassantSquare = "g6"
+        let moves = 
+            $"rnbqkbnr/pppp1p1p/8/4pPp1/4P3/8/PPPP2PP/RNBQKBNR w KQkq {enpassantSquare} 0 1"
+            |> getPossibleMovesForPieceType Pawn
+        Assert.Contains("Pf5 -> xpg6", moves)
     
 module Black = 
     
