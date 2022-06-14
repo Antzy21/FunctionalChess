@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
@@ -13,7 +12,6 @@
     <Compile Include="CastlingAllowance.fs" />
     <Compile Include="Board.fs" />
     <Compile Include="Game.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Checkerboard\Checkerboard.fsproj" />
