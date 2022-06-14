@@ -2,3 +2,5 @@
 /obj
 /.vs/ChessModule/FileContentIndex
 /.vs/ChessModule
+/ChessTest/bin/Debug/net6.0
+/ChessTest/obj
