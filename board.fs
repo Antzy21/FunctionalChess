@@ -74,49 +74,44 @@ module Board =
             match colour with
             | White -> 0, castlingOptions.whiteKingside, castlingOptions.whiteQueenside
             | Black -> 7, castlingOptions.blackKingside, castlingOptions.blackQueenside
-        let k = 
-            if kingSide then
-                let castlingThroughCheck =
-                    [$"e{row}"; $"f{row}"; $"g{row}"]
-                    |> List.map (fun name -> Board.getSquareFromCoordinatesName name board)
-                    |> List.fold (fun s sqr ->
-                        s && 
-                        not <| Square.playerHasVisionOnSquare (Colour.opposite colour) board sqr
-                    ) false
-                let squaresAreEmpty =
-                    [$"f{row}"; $"g{row}"]
-                    |> List.exists (fun name -> 
-                        let square = Board.getSquareFromCoordinatesName name board
-                        Option.isSome square.piece
-                    ) |> not
-                if (not castlingThroughCheck) && squaresAreEmpty then
-                    [((Board.getSquareFromCoordinatesName $"e{row}" board), (Board.getSquareFromCoordinatesName $"g{row}" board))]
-                else 
-                    []
+        let castlingChecks
+            squaresToInspectForCastlingThroughCheck
+            squaresThatMustBeEmpty
+            : bool =
+            let castlingThroughCheck =
+                squaresToInspectForCastlingThroughCheck
+                |> List.map (fun name -> Board.getSquareFromCoordinatesName name board)
+                |> List.fold (fun passingThroughCheck sqr ->
+                    passingThroughCheck || 
+                    Square.playerHasVisionOnSquare (Colour.opposite colour) board sqr
+                ) false
+            let squaresAreEmpty =
+                squaresThatMustBeEmpty
+                |> List.exists (fun name -> 
+                    let square = Board.getSquareFromCoordinatesName name board
+                    Option.isSome square.piece
+                ) |> not
+            (not castlingThroughCheck) && squaresAreEmpty
+        let kingSideCastling : move option = 
+            if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"]) then
+                Some (
+                    (Board.getSquareFromCoordinatesName $"e{row}" board),
+                    (Board.getSquareFromCoordinatesName $"g{row}" board)
+                )
             else
-                []
-        let q =
-            if queenSide then
-                let castlingThroughCheck =
-                    [$"e{row}"; $"d{row}"; $"c{row}"]
-                    |> List.map (fun name -> Board.getSquareFromCoordinatesName name board)
-                    |> List.fold (fun s sqr ->
-                        s &&
-                        not <| Square.playerHasVisionOnSquare (Colour.opposite colour) board sqr
-                    ) false
-                let squaresAreEmpty =
-                    [$"d{row}"; $"c{row}"; $"b{row}"]
-                    |> List.exists (fun name -> 
-                        let square = Board.getSquareFromCoordinatesName name board
-                        Option.isSome square.piece
-                    ) |> not
-                if (not castlingThroughCheck) && squaresAreEmpty  then
-                    [((Board.getSquareFromCoordinatesName $"e{row}" board), (Board.getSquareFromCoordinatesName $"c{row}" board))]
-                else 
-                    []
+                None
+        let queenSideCastling : move option =
+            if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"]) then
+                let endSquareForKing = $"c{row}"
+                Some (
+                    (Board.getSquareFromCoordinatesName $"e{row}" board),
+                    (Board.getSquareFromCoordinatesName endSquareForKing board)
+                )
             else
-                []
-        List.append k q
+                None
+        [kingSideCastling; queenSideCastling]
+        |> List.filter Option.isSome
+        |> List.map Option.get
     let private enpassantMove (move: move) (board: board) : board =
         let board = Board.movePiece move board
         let i, j = (snd move).coordinates |> fst, (fst move).coordinates |> snd
