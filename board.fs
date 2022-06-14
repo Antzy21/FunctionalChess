@@ -72,8 +72,8 @@ module Board =
     let internal getCastlingMoves (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
         let row, kingSide, queenSide = 
             match colour with
-            | White -> 0, castlingOptions.whiteKingside, castlingOptions.whiteQueenside
-            | Black -> 7, castlingOptions.blackKingside, castlingOptions.blackQueenside
+            | White -> 1, castlingOptions.whiteKingside, castlingOptions.whiteQueenside
+            | Black -> 8, castlingOptions.blackKingside, castlingOptions.blackQueenside
         let castlingChecks
             squaresToInspectForCastlingThroughCheck
             squaresThatMustBeEmpty
