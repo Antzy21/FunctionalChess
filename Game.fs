@@ -35,11 +35,11 @@ module GameState =
             halfMoveClock = halfMoveClock;
             fullMoveClock = fullMoveClock;
         }
-    let getMovesForPlayer (player: colour) (game: gameState) : move list =
+    let getMovesForPlayer (game: gameState) : move list =
         let board = game.board
-        Board.getLegalMoves player board
-        |> List.append <| Board.getEnpassantMoves player game.enpassantSquare board
-        |> List.append <| Board.getCastlingMoves player game.castlingAllowance board
+        Board.getLegalMoves game.playerTurn board
+        |> List.append <| Board.getEnpassantMoves game.playerTurn game.enpassantSquare board
+        |> List.append <| Board.getCastlingMoves game.playerTurn game.castlingAllowance board
     let makeMove (move: move) (game: gameState) : gameState =
         {
             board = Board.makeMove move game.board
