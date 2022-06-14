@@ -19,6 +19,11 @@ module White =
     let ``White castling blocked by piece`` () =
         let castlingMoves = getPossibleCastlingMoveNotations "r1b1k1nr/pppppppp/8/8/8/8/PPPPPPPP/R1B1K1NR w KQkq - 1 2"
         Assert.StrictEqual<string list>([], castlingMoves)
+        
+    [<Fact>]
+    let ``White castling blocked by moving through check`` () =
+        let castlingMoves = getPossibleCastlingMoveNotations "3rkr2/8/8/8/8/8/8/R3K2R w KQkq - 1 2"
+        Assert.StrictEqual<string list>([], castlingMoves)
     
 module Black = 
 
@@ -35,4 +40,9 @@ module Black =
     [<Fact>]
     let ``Black castling blocked by piece`` () =
         let castlingMoves = getPossibleCastlingMoveNotations "r1b1k1nr/pppppppp/8/8/8/8/PPPPPPPP/R1B1K1NR b KQkq - 1 2"
+        Assert.StrictEqual<string list>([], castlingMoves)
+        
+    [<Fact>]
+    let ``Black castling blocked by moving through check`` () =
+        let castlingMoves = getPossibleCastlingMoveNotations "r3k2r/8/8/8/8/8/8/3RKR2 b KQkq - 1 2"
         Assert.StrictEqual<string list>([], castlingMoves)
