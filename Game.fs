@@ -35,6 +35,19 @@ module GameState =
             halfMoveClock = halfMoveClock;
             fullMoveClock = fullMoveClock;
         }
+    let toFen (game: gameState) : string =
+        let enpassant = game.enpassantSquare |> Option.map Square.getDescription |> Option.defaultValue "-"
+        let castling = CastlingAllowance.toFen game.castlingAllowance
+        let playerTurn = 
+            match game.playerTurn with
+            | White -> "w"
+            | Black -> "b"
+        $"{Board.toFen game.board} "
+        + $"{playerTurn} "
+        + $"{castling} "
+        + $"{enpassant} "
+        + $"{game.halfMoveClock} {game.fullMoveClock}"
+        
     let newGame () : gameState =
         fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
     let getMovesForPlayer (game: gameState) : move list =

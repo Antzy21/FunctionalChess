@@ -31,6 +31,27 @@ module Board =
         let starting () : board =
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
             |> fromFen
+    let toFen (board: board) : string =
+        board
+        |> Array2D.foldj (fun i j fen square ->
+            match square.piece with
+            | None -> 
+                if Seq.last fen |> Char.IsNumber then
+                    let nef = Seq.rev fen
+                    let addOne = 
+                        Seq.head nef
+                        |> Char.GetNumericValue
+                        |> int |> (+) 1 |> string
+                    (Seq.tail nef |> Seq.rev |> String.Concat) + addOne
+                else
+                    fen + "1"
+            | Some piece -> fen + (Piece.getLetter piece |> string)
+            +
+            if i = Array2D.length1 board - 1 && j <> Array2D.length2 board - 1 then
+                "/"
+            else
+                ""
+        ) ""
     let print (board : board) : unit =
         printfn "   ________________________"
         printfn "  /                        \\"
