@@ -58,3 +58,9 @@ module GameState =
                 | White -> game.fullMoveClock + 1
                 | Black -> game.fullMoveClock
         }
+    let print (game: gameState) =
+        Board.print game.board
+        printfn $"\nPlayer Turn: {game.playerTurn}"
+        printf $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
+        Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") game.enpassantSquare 
+        printfn $"Turn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
