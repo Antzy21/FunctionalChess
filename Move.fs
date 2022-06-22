@@ -52,3 +52,5 @@ module Move =
             )
         )
         |> List.concat
+    let printMoveNotation (move: move) =
+        printfn $"{getMoveNotation move}"
