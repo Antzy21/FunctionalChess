@@ -24,6 +24,18 @@ module White =
     let ``White castling blocked by moving through check`` () =
         getPossibleCastlingMoveNotations "3rkr2/8/8/8/8/8/8/R3K2R w KQkq - 1 2"
         |> Assert.Empty
+
+    [<Fact>]
+    let ``FEN wrongly allows castling, but King is not on starting square`` () =
+        let test = fun () -> 
+            getPossibleCastlingMoveNotations "r6r/4k3/8/8/8/8/4K3/R6R w KQkq - 0 0"
+            |> ignore
+        Assert.Throws<System.Exception>(test)
+        
+    [<Fact>]
+    let ``No rook available`` () =
+        getPossibleCastlingMoveNotations "4k3/8/8/8/8/8/8/4K3 w KQkq - 0 0"
+        |> Assert.Empty
     
 module Black = 
 
@@ -45,4 +57,16 @@ module Black =
     [<Fact>]
     let ``Black castling blocked by moving through check`` () =
         getPossibleCastlingMoveNotations "r3k2r/8/8/8/8/8/8/3RKR2 b KQkq - 1 2"
+        |> Assert.Empty
+        
+    [<Fact>]
+    let ``FEN wrongly allows castling, but King is not on starting square`` () =
+        let test = fun () -> 
+            getPossibleCastlingMoveNotations "r6r/4k3/8/8/8/8/4K3/R6R b KQkq - 0 0"
+            |> ignore
+        Assert.Throws<System.Exception>(test)
+        
+    [<Fact>]
+    let ``No rook available`` () =
+        getPossibleCastlingMoveNotations "4k3/8/8/8/8/8/8/4K3 b KQkq - 0 0"
         |> Assert.Empty
