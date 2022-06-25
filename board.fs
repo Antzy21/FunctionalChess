@@ -99,6 +99,7 @@ module Board =
             squaresToInspectForCastlingThroughCheck
             squaresThatMustBeEmpty
             squareThatNeedsRook
+            squareThatNeedsKing
             : bool =
             let castlingThroughCheck =
                 squaresToInspectForCastlingThroughCheck
@@ -113,14 +114,16 @@ module Board =
                     let square = Board.getSquareFromCoordinatesName name board
                     Option.isSome square.piece
                 ) |> not
-            let squareHadRook = 
-                Board.getSquareFromCoordinatesName squareThatNeedsRook board
-                |> fun square -> square.piece
-                |> (=) <| Some {pieceType = Rook; colour = colour}
+            let rookInPosition = Board.hasPieceOnSquare squareThatNeedsRook {pieceType = Rook; colour = colour} board
+            let kingInPosition = Board.hasPieceOnSquare squareThatNeedsKing {pieceType = King; colour = colour} board
                 
-            (not castlingThroughCheck) && squaresAreEmpty && squareHadRook
+            let squareKingShouldBeOn =
+                Board.getSquare (Coordinates.fromName $"e{row}") board
+            let squareKingShouldBeOn =
+                Board.getSquare (Coordinates.fromName $"e{row}") board
+            (not castlingThroughCheck) && squaresAreEmpty && rookInPosition && kingInPosition
         let kingSideCastling : move option = 
-            if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"] ($"h{row}")) then
+            if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"] ($"h{row}") ($"e{row}")) then
                 Some (
                     (Board.getSquareFromCoordinatesName $"e{row}" board),
                     (Board.getSquareFromCoordinatesName $"g{row}" board)
@@ -128,7 +131,7 @@ module Board =
             else
                 None
         let queenSideCastling : move option =
-            if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"] ($"h{row}")) then
+            if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"] ($"a{row}") ($"e{row}")) then
                 let endSquareForKing = $"c{row}"
                 Some (
                     (Board.getSquareFromCoordinatesName $"e{row}" board),
@@ -136,10 +139,6 @@ module Board =
                 )
             else
                 None
-        let squareKingShouldBeOn =
-            Board.getSquare (Coordinates.fromName $"e{row}") board
-        if squareKingShouldBeOn.piece <> Some {pieceType = King; colour = colour} then
-            failwith "King not on starting square! Error"
 
         [kingSideCastling; queenSideCastling]
         |> List.filter Option.isSome
