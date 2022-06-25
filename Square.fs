@@ -50,3 +50,9 @@ module Square =
     let playerHasVisionOnSquare (colour: colour) (board: board<piece>) (square: square) : bool =
         playerVision colour board
         |> List.contains square
+    let getPieceType (square: square) : pieceType option =
+       square.piece
+       |> Option.map (fun piece -> piece.pieceType)
+    let getPieceColour (square: square) : colour option =
+       square.piece
+       |> Option.map (fun piece -> piece.colour)
