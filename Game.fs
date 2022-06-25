@@ -77,3 +77,5 @@ module GameState =
         printf $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
         Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") game.enpassantSquare 
         printfn $"Turn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
+    let isGameOver (game: gameState) : bool =
+        getMovesForPlayer game |> List.isEmpty
