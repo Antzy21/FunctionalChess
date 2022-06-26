@@ -15,6 +15,13 @@ let getPossibleMovesForPieceType (pieceType: pieceType) (fen: string) : string l
     |> GameState.getMovesForPlayer
     |> List.filter (Move.getMovedPiece >> fun p -> p.pieceType = pieceType)
     |> List.map Move.getMoveNotation
+    
+let getPossibleMovesFromSquare (squareName: string) (fen: string) : string list =
+    fen
+    |> GameState.fromFen
+    |> GameState.getMovesForPlayer
+    |> List.filter (fst >> Square.getCoordinatesName >> (=) squareName)
+    |> List.map Move.getMoveNotation
 
 let getPossibleCastlingMoveNotations (fen: string) : string list =
     fen

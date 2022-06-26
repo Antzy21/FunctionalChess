@@ -65,3 +65,12 @@ module Black =
             "Ph7 -> h6";
             "Ph7 -> h5";
         ], moves)
+
+    [<Fact>]
+    let ``pd5 -> xe4`` () =
+        let moves = 
+            "rnbqkbnr/pp1ppppp/8/3p4/3PP3/8/PPP2PPP/RNBQKBNR b KQkq - 1 2"
+            |> getPossibleMovesFromSquare "d5"
+        Assert.StrictEqual<string list>([
+            "Pd5 -> xPe4";
+        ], moves)

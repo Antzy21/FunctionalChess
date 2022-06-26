@@ -29,7 +29,7 @@ module Piece =
             | Black -> -1, 6
 
         let diagonalMoves =
-            Board.getSquares.afterShifts start.coordinates board [(direction,-1); (direction,1)]
+            Board.getSquares.afterShifts start.coordinates board [(-1,direction); (1,direction)]
             |> List.filter (fun square -> Option.isSome square.piece)
                 
         let forwardMoves = 
