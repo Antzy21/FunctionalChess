@@ -14,3 +14,7 @@ module Colour =
         | "WHITE" | "W" -> Some White
         | "BLACK" | "B" -> Some Black
         | _ -> None
+    let toChar (colour: colour) : char =
+        match colour with
+        | White -> 'W'
+        | Black -> 'B'
