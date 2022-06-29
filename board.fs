@@ -33,10 +33,12 @@ module Board =
             |> fromFen
     let toFen (board: board) : string =
         board
-        |> Array2D.foldj (fun i j fen square ->
+        |> Array2D.foldjbacki (fun i j fen square ->
             match square.piece with
             | None -> 
-                if Seq.last fen |> Char.IsNumber then
+                if fen = "" then
+                    "1"
+                else if Seq.last fen |> Char.IsNumber then
                     let nef = Seq.rev fen
                     let addOne = 
                         Seq.head nef
@@ -47,7 +49,7 @@ module Board =
                     fen + "1"
             | Some piece -> fen + (Piece.getLetter piece |> string)
             +
-            if i = Array2D.length1 board - 1 && j <> Array2D.length2 board - 1 then
+            if i = Array2D.length1 board - 1 && j <> 0 then
                 "/"
             else
                 ""
