@@ -22,9 +22,9 @@ module Piece =
                 Black
         {pieceType = PieceType.fromLetter letter; colour = colour}
 
-    let getPawnMoveFunction (start: square<piece>) (board: board<piece>) (piece: piece) =
+    let getPawnMoveFunction (start: square<piece>) (board: board<piece>) (pieceColour: colour) =
         let direction, startingRow =
-            match piece.colour with
+            match pieceColour with
             | White -> 1, 1
             | Black -> -1, 6
 

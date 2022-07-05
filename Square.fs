@@ -31,7 +31,7 @@ module Square =
             | Rook -> Board.getSquares.getRowAndFile square stopAt board
             | Queen -> List.append (Board.getSquares.getRowAndFile square stopAt board) (Board.getSquares.getDiagonals square stopAt board)
             | King -> Board.getSquares.adjacent square board
-            | Pawn -> Piece.getPawnMoveFunction square board piece 
+            | Pawn -> Piece.getPawnMoveFunction square board piece.colour 
         |> List.filter blockSelfTaking
     let getFromBoardWithPiecesOfColour (colour: colour) (board: board<piece>) : square list =
         board |> Array2D.filter (fun (square: square) ->
