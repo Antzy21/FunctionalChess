@@ -42,15 +42,5 @@ module Move =
         | None -> 
             $"{move |> fst |> Square.getDescription} -> " +
             $"{(move |> snd |> Square.getCoordinatesName)}"
-    let getPossibleMoves (colour: colour) (board: board<piece>) : move list =
-        Square.getFromBoardWithPiecesOfColour colour board
-        |> List.map (fun oldSquare ->
-            oldSquare
-            |> Square.getMoves board
-            |> List.map (fun newSquare ->
-                (oldSquare, newSquare)
-            )
-        )
-        |> List.concat
     let printMoveNotation (move: move) =
         printfn $"{getMoveNotation move}"

@@ -69,11 +69,76 @@ module Board =
         )
         printfn "  \\________________________/"
         printfn "    a  b  c  d  e  f  g  h"
+    
+    module GetSquares =
+        let private stopAt = Some (fun (otherPiece: piece) -> true)
+        let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
+            let piece = Square.getPiece square
+            let x,y = newSquare.coordinates
+            match board.[x,y].piece with
+            | Some oldPiece -> oldPiece.colour <> piece.colour
+            | None -> true
+        let knight (square: square) (board: board) =
+            Board.getSquares.afterAllShiftDirections square (1,2) board
+            |> List.filter (blockSelfTaking square board)
+        let bishop (square: square) (board: board) =
+            Board.getSquares.getDiagonals square stopAt board
+            |> List.filter (blockSelfTaking square board)
+        let rook (square: square) (board: board) =
+            Board.getSquares.getRowAndFile square stopAt board
+            |> List.filter (blockSelfTaking square board)
+        let queen (square: square) (board: board) =
+            Board.getSquares.getRowAndFileAndDiagonals square stopAt board
+            |> List.filter (blockSelfTaking square board)
+        let king (square: square) (board: board) =
+            Board.getSquares.adjacent square board
+            |> List.filter (blockSelfTaking square board)
+        let possibleToMoveToForPieceOnSquare (board: board) (square: square) =
+            let piece = square |> Square.getPiece
+            match piece.pieceType with
+                | Knight -> knight square board
+                | Bishop -> bishop square board
+                | Rook -> rook square board
+                | Queen -> queen square board
+                | King -> king square board
+                | Pawn -> Piece.getPawnMoveFunction square board piece.colour
+    
+    module Square =
+        let getFromBoardWithPiecesOfColour (colour: colour) (board: board) : square list =
+            board |> Array2D.filter (fun (square: square) ->
+                match square.piece with
+                | Some piece when piece.colour = colour -> true
+                | _ -> false
+            )
+            |> List.ofArray
+        let playerVision (colour: colour) (board: board) : square list =
+            getFromBoardWithPiecesOfColour colour board
+            |> List.map (fun oldSquare ->
+                oldSquare
+                |> GetSquares.possibleToMoveToForPieceOnSquare board
+            )
+            |> List.concat
+        let isVisibleByPlayer (colour: colour) (board: board) (square: square) : bool =
+            playerVision colour board
+            |> List.contains square
+
+    module Move =
+        let getPossibleMoves (colour: colour) (board: board) : move list =
+            Square.getFromBoardWithPiecesOfColour colour board
+            |> List.map (fun oldSquare ->
+                oldSquare
+                |> GetSquares.possibleToMoveToForPieceOnSquare board
+                |> List.map (fun newSquare ->
+                    (oldSquare, newSquare)
+                )
+            )
+            |> List.concat
+
     let isInCheck (colour: colour) (board: board) : bool =
         board
         |> Array2D.tryFind (fun square -> square.piece = Some {pieceType = King; colour = colour})
         |> Option.failOnNone "No king found on the board"
-        |> Square.playerHasVisionOnSquare (Colour.opposite colour) board
+        |> Square.isVisibleByPlayer (Colour.opposite colour) board
     let internal getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
         match enpassantSquareOption with
         | None -> []
@@ -108,7 +173,7 @@ module Board =
                 |> List.map (fun name -> Board.getSquareFromCoordinatesName name board)
                 |> List.fold (fun passingThroughCheck sqr ->
                     passingThroughCheck || 
-                    Square.playerHasVisionOnSquare (Colour.opposite colour) board sqr
+                    Square.isVisibleByPlayer (Colour.opposite colour) board sqr
                 ) false
             let squaresAreEmpty =
                 squaresThatMustBeEmpty
