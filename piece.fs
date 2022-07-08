@@ -22,26 +22,26 @@ module Piece =
                 Black
         {pieceType = PieceType.fromLetter letter; colour = colour}
 
-    let getPawnMoveFunction (start: square<piece>) (board: board<piece>) (pieceColour: colour) =
+    let getPawnMoveFunction (start: coordinates) (board: board<piece>) (pieceColour: colour) =
         let direction, startingRow =
             match pieceColour with
             | White -> 1, 1
             | Black -> -1, 6
 
         let diagonalMoves =
-            Board.getSquares.afterShifts start.coordinates board [(-1,direction); (1,direction)]
+            Board.getSquares.afterShifts start board [(-1,direction); (1,direction)]
             |> List.filter (fun square -> Option.isSome square.piece)
                 
         let forwardMoves = 
-            Board.getSquares.afterShift (0,direction) start.coordinates board
+            Board.getSquares.afterShift (0,direction) start board
             |> Option.failOnNone "Pawn shouldn't be at the end of the board"
             |> (fun square -> 
                 match square.piece with
                 | Some _ -> []
                 | None ->
-                    match start.coordinates with
+                    match start with
                     | (_, row) when row = startingRow ->
-                        Board.getSquares.afterShift (0,direction*2) start.coordinates board
+                        Board.getSquares.afterShift (0,direction*2) start board
                         |> Option.get
                         |> (fun square2 -> 
                             match square2.piece with
