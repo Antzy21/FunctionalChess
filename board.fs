@@ -78,31 +78,31 @@ module Board =
             match board.[x,y].piece with
             | Some oldPiece -> oldPiece.colour <> piece.colour
             | None -> true
-        let knight (square: square) (board: board) =
-            Board.getSquares.afterAllShiftDirections square (1,2) board
-            |> List.filter (blockSelfTaking square board)
-        let bishop (square: square) (board: board) =
-            Board.getSquares.getDiagonals square stopAt board
-            |> List.filter (blockSelfTaking square board)
-        let rook (square: square) (board: board) =
-            Board.getSquares.getRowAndFile square stopAt board
-            |> List.filter (blockSelfTaking square board)
-        let queen (square: square) (board: board) =
-            Board.getSquares.getRowAndFileAndDiagonals square stopAt board
-            |> List.filter (blockSelfTaking square board)
-        let king (square: square) (board: board) =
-            Board.getSquares.adjacent square board
-            |> List.filter (blockSelfTaking square board)
-        let possibleToMoveToForPieceOnSquare (board: board) (square: square) =
-            let piece = square |> Square.getPiece
+        let private knightDirection (coordinates: coordinates) (board: board) : square list =
+            Board.getSquares.afterAllShiftDirections coordinates (1,2) board
+        let private bishopDirection (coordinates: coordinates) (board: board) : square list =
+            Board.getSquares.getDiagonals coordinates stopAt board
+        let private rookDirection (coordinates: coordinates) (board: board) : square list =
+            Board.getSquares.getRowAndFile coordinates stopAt board
+        let private queenDirection (coordinates: coordinates) (board: board) : square list =
+            Board.getSquares.getRowAndFileAndDiagonals coordinates stopAt board
+        let private kingDirection (coordinates: coordinates) (board: board) : square list =
+            Board.getSquares.adjacent coordinates board
+        let private pieceDirection (piece: piece) (coordinates: coordinates) (board: board) : square list =
             match piece.pieceType with
-                | Knight -> knight square board
-                | Bishop -> bishop square board
-                | Rook -> rook square board
-                | Queen -> queen square board
-                | King -> king square board
-                | Pawn -> Piece.getPawnMoveFunction square board piece.colour
-    
+                | Knight -> knightDirection coordinates board
+                | Bishop -> bishopDirection coordinates board
+                | Rook -> rookDirection coordinates board
+                | Queen -> queenDirection coordinates board
+                | King -> kingDirection coordinates board
+                | Pawn -> Piece.getPawnMoveFunction coordinates board piece.colour
+        let possibleToMoveToForPieceOnSquare (board: board) (square: square) : square list =
+            let piece = square |> Square.getPiece
+            pieceDirection piece square.coordinates board
+            |> List.filter (blockSelfTaking square board)
+        let reverseEngineerPieceLocations (board: board) (square: square) : square list =
+            failwith "not implimented"
+
     module Square =
         let getFromBoardWithPiecesOfColour (colour: colour) (board: board) : square list =
             board |> Array2D.filter (fun (square: square) ->
