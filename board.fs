@@ -100,8 +100,14 @@ module Board =
             let piece = square |> Square.getPiece
             pieceDirection piece square.coordinates board
             |> List.filter (blockSelfTaking square board)
-        let reverseEngineerPieceLocations (board: board) (square: square) : square list =
-            failwith "not implimented"
+        let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) : square list =
+            match piece.pieceType with
+                | Knight -> knightDirection coordinates board
+                | Bishop -> bishopDirection coordinates board
+                | Rook -> rookDirection coordinates board
+                | Queen -> queenDirection coordinates board
+                | King -> kingDirection coordinates board
+                | Pawn -> Piece.PawnMoves.getPawnFrom coordinates piece.colour board
 
     module Square =
         let getFromBoardWithPiecesOfColour (colour: colour) (board: board) : square list =
