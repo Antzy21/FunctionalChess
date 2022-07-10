@@ -22,33 +22,54 @@ module Piece =
                 Black
         {pieceType = PieceType.fromLetter letter; colour = colour}
 
-    let getPawnMoveFunction (start: coordinates) (board: board<piece>) (pieceColour: colour) =
-        let direction, startingRow =
+    module PawnMoves =
+        let private getPawnMovementDirection (pieceColour: colour) =
             match pieceColour with
-            | White -> 1, 1
-            | Black -> -1, 6
+            | White -> 1
+            | Black -> -1
+        let private getPawnStartingRow (pieceColour: colour) =
+            match pieceColour with
+            | White -> 1
+            | Black -> 6
 
-        let diagonalMoves =
-            Board.getSquares.afterShifts start board [(-1,direction); (1,direction)]
-            |> List.filter (fun square -> Option.isSome square.piece)
-                
-        let forwardMoves = 
-            Board.getSquares.afterShift (0,direction) start board
-            |> Option.failOnNone "Pawn shouldn't be at the end of the board"
-            |> (fun square -> 
-                match square.piece with
-                | Some _ -> []
-                | None ->
-                    match start with
-                    | (_, row) when row = startingRow ->
-                        Board.getSquares.afterShift (0,direction*2) start board
-                        |> Option.get
-                        |> (fun square2 -> 
-                            match square2.piece with
-                            | Some _ -> [square]
-                            | None -> [square; square2]
-                        )
-                    | _ -> [square]
+        let private getPawnMovesFromStartingRow square direction start board =
+            Board.GetSquare.afterShift (0,direction*2) start board
+            |> Option.get
+            |> (fun square2 -> 
+                match square2.piece with
+                | Some _ -> [square]
+                | None -> [square; square2]
             )
 
-        List.append forwardMoves diagonalMoves
+        let private getPawnMovesForColour (start: coordinates) (board: board<piece>) (direction: int) (startingRow: int) =
+            let diagonalMoves =
+                Board.GetSquares.afterShifts start board [(-1,direction); (1,direction)]
+                |> List.filter (fun square -> Option.isSome square.piece)
+                
+            let forwardMoves = 
+                Board.GetSquare.afterShift (0,direction) start board
+                |> Option.failOnNone "Pawn shouldn't be at the end of the board"
+                |> (fun square -> 
+                    match square.piece with
+                    | Some _ -> []
+                    | None ->
+                        if snd start = startingRow then
+                            getPawnMovesFromStartingRow square direction start board
+                        else [square]
+                )
+            List.append forwardMoves diagonalMoves        
+
+        let getPawnMoves (start: coordinates) (board: board<piece>) (pieceColour: colour) =
+            let direction = getPawnMovementDirection pieceColour
+            let startingRow = getPawnStartingRow pieceColour
+
+            getPawnMovesForColour start board direction startingRow
+
+        let getPawnFrom (start: coordinates) (pieceColour: colour) (board: board<piece>): square<piece> list =
+            let direction = getPawnMovementDirection pieceColour
+            let rowIfMovedTwo = getPawnStartingRow pieceColour + direction*2
+            if snd start = rowIfMovedTwo then
+                [(0, -direction); (-1, -direction); (1, -direction); (0,-direction*2)]
+            else
+                [(0, -direction); (-1, -direction); (1, -direction)]
+            |> Board.GetSquares.afterShifts start board
