@@ -79,15 +79,15 @@ module Board =
             | Some oldPiece -> oldPiece.colour <> piece.colour
             | None -> true
         let private knightDirection (coordinates: coordinates) (board: board) : square list =
-            Board.getSquares.afterAllShiftDirections coordinates (1,2) board
+            Board.GetSquares.afterAllShiftDirections coordinates (1,2) board
         let private bishopDirection (coordinates: coordinates) (board: board) : square list =
-            Board.getSquares.getDiagonals coordinates stopAt board
+            Board.GetSquares.onDiagonals coordinates stopAt board
         let private rookDirection (coordinates: coordinates) (board: board) : square list =
-            Board.getSquares.getRowAndFile coordinates stopAt board
+            Board.GetSquares.onRowAndFile coordinates stopAt board
         let private queenDirection (coordinates: coordinates) (board: board) : square list =
-            Board.getSquares.getRowAndFileAndDiagonals coordinates stopAt board
+            Board.GetSquares.onRowFileAndDiagonals coordinates stopAt board
         let private kingDirection (coordinates: coordinates) (board: board) : square list =
-            Board.getSquares.adjacent coordinates board
+            Board.GetSquares.adjacent coordinates board
         let private pieceDirection (piece: piece) (coordinates: coordinates) (board: board) : square list =
             match piece.pieceType with
                 | Knight -> knightDirection coordinates board
@@ -95,7 +95,7 @@ module Board =
                 | Rook -> rookDirection coordinates board
                 | Queen -> queenDirection coordinates board
                 | King -> kingDirection coordinates board
-                | Pawn -> Piece.getPawnMoveFunction coordinates board piece.colour
+                | Pawn -> Piece.PawnMoves.getPawnMoves coordinates board piece.colour
         let possibleToMoveToForPieceOnSquare (board: board) (square: square) : square list =
             let piece = square |> Square.getPiece
             pieceDirection piece square.coordinates board
@@ -148,7 +148,7 @@ module Board =
                 | White -> -1
                 | Black -> 1
             let pos = enpassantSquare.coordinates
-            Board.getSquares.afterShifts pos board [(-1, direction);(+1, direction);]
+            Board.GetSquares.afterShifts pos board [(-1, direction);(+1, direction);]
             |> List.filter (fun square -> 
                 match square.piece with
                 | Some piece when piece.pieceType = Pawn && piece.colour = colour -> true
@@ -170,7 +170,7 @@ module Board =
             : bool =
             let castlingThroughCheck =
                 squaresToInspectForCastlingThroughCheck
-                |> List.map (fun name -> Board.getSquareFromCoordinatesName name board)
+                |> List.map (fun name -> Board.GetSquare.fromCoordinatesName name board)
                 |> List.fold (fun passingThroughCheck sqr ->
                     passingThroughCheck || 
                     Square.isVisibleByPlayer (Colour.opposite colour) board sqr
@@ -178,22 +178,22 @@ module Board =
             let squaresAreEmpty =
                 squaresThatMustBeEmpty
                 |> List.exists (fun name -> 
-                    let square = Board.getSquareFromCoordinatesName name board
+                    let square = Board.GetSquare.fromCoordinatesName name board
                     Option.isSome square.piece
                 ) |> not
             let rookInPosition = Board.hasPieceOnSquare squareThatNeedsRook {pieceType = Rook; colour = colour} board
             let kingInPosition = Board.hasPieceOnSquare squareThatNeedsKing {pieceType = King; colour = colour} board
                 
             let squareKingShouldBeOn =
-                Board.getSquare (Coordinates.fromName $"e{row}") board
+                Board.GetSquare.fromCoordinatesName $"e{row}" board
             let squareKingShouldBeOn =
-                Board.getSquare (Coordinates.fromName $"e{row}") board
+                Board.GetSquare.fromCoordinatesName $"e{row}" board
             (not castlingThroughCheck) && squaresAreEmpty && rookInPosition && kingInPosition
         let kingSideCastling : move option = 
             if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"] ($"h{row}") ($"e{row}")) then
                 Some (
-                    (Board.getSquareFromCoordinatesName $"e{row}" board),
-                    (Board.getSquareFromCoordinatesName $"g{row}" board)
+                    (Board.GetSquare.fromCoordinatesName $"e{row}" board),
+                    (Board.GetSquare.fromCoordinatesName $"g{row}" board)
                 )
             else
                 None
@@ -201,8 +201,8 @@ module Board =
             if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"] ($"a{row}") ($"e{row}")) then
                 let endSquareForKing = $"c{row}"
                 Some (
-                    (Board.getSquareFromCoordinatesName $"e{row}" board),
-                    (Board.getSquareFromCoordinatesName endSquareForKing board)
+                    (Board.GetSquare.fromCoordinatesName $"e{row}" board),
+                    (Board.GetSquare.fromCoordinatesName endSquareForKing board)
                 )
             else
                 None
@@ -211,38 +211,38 @@ module Board =
         |> List.filter Option.isSome
         |> List.map Option.get
     let private enpassantMove (move: move) (board: board) : board =
-        let board = Board.movePiece move board
+        let board = Board.Update.applyMove move board
         let i, j = (snd move).coordinates |> fst, (fst move).coordinates |> snd
         board[i,j] <- Square.removePiece board[i,j]
         board
     let private castlingMove (move: move) (board: board) : board =
         let i, j = snd move |> Square.getCoordinates
-        let board = Board.movePiece move board
+        let board = Board.Update.applyMove move board
         if j = 0 && i = 2 then
-            Board.removePiece (0,0) board
-            |> Board.updateWithPiece (0,2) {pieceType = Rook; colour = White}
+            Board.Update.Square.removePiece (0,0) board
+            |> Board.Update.Square.withPiece (0,2) {pieceType = Rook; colour = White}
         elif j = 0 && i = 6 then
-            Board.removePiece (0,7) board
-            |> Board.updateWithPiece (0,6) {pieceType = Rook; colour = White}
+            Board.Update.Square.removePiece (0,7) board
+            |> Board.Update.Square.withPiece (0,6) {pieceType = Rook; colour = White}
         elif j = 7 && i = 2 then
-            Board.removePiece (7,0) board
-            |> Board.updateWithPiece (7,2) {pieceType = Rook; colour = Black}
+            Board.Update.Square.removePiece (7,0) board
+            |> Board.Update.Square.withPiece (7,2) {pieceType = Rook; colour = Black}
         elif j = 7 && i = 6 then
-            Board.removePiece (7,7) board
-            |> Board.updateWithPiece (7,6) {pieceType = Rook; colour = Black}
+            Board.Update.Square.removePiece (7,7) board
+            |> Board.Update.Square.withPiece (7,6) {pieceType = Rook; colour = Black}
         else
             failwith $"Invalid Castling attempted with move {Move.getMoveNotation move}"
-        |> Board.removePiece (i,j)
+        |> Board.Update.Square.removePiece (i,j)
     let makeMove (move: move) (board: board) : board = 
         if Move.isEnpassant move then
             enpassantMove move board
         elif Move.isCastling move then
             castlingMove move board
         else
-            Board.movePiece move board
+            Board.Update.applyMove move board
     let getLegalMoves (colour: colour) (board: board) : move list =
         Move.getPossibleMoves colour board
         |> List.filter (fun move ->
-            let newBoardState = Board.movePiece move board
+            let newBoardState = Board.Update.applyMove move board
             not <| isInCheck colour newBoardState
         )

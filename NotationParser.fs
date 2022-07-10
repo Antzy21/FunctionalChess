@@ -38,10 +38,11 @@ module NotationParser =
                     Pawn
                 else 
                     PieceType.fromLetter (move.Chars 0)
+            let piece = {pieceType = pieceType; colour = colour}
 
-            let newSquare = {piece = Some {pieceType = pieceType; colour = colour}; coordinates = newCoordinates}
+            let newSquare = Board.GetSquare.fromCoordinates newCoordinates board
 
-            Board.GetSquares.reverseEngineerPieceLocations board newSquare
+            Board.GetSquares.reverseEngineerPieceLocations piece newSquare.coordinates board
             |> function
             | oldSquare :: [] ->
                 Some (newSquare, oldSquare)

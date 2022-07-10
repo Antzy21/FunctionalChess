@@ -24,7 +24,7 @@ module GameState =
         let enpassantSquare = 
             match parts[3] with
             | "-" -> None
-            | name -> Some (Board.getSquareFromCoordinatesName name board)
+            | name -> Some (Board.GetSquare.fromCoordinatesName name board)
         let halfMoveClock = int(parts[4])
         let fullMoveClock = int(parts[5])
         {
