@@ -34,3 +34,8 @@ let gameStateIsInCheck (fen: string) : bool =
     fen
     |> GameState.fromFen
     |> fun gs -> gs.board |> Board.isInCheck gs.playerTurn
+
+let moveNotationFromNotationParser (game: gameState) (notation: string) : string = 
+    NotationParser.tryParse game.playerTurn game.board "xd5"
+    |> Option.get
+    |> Move.getMoveNotation
