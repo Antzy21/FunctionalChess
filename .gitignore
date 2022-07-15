@@ -1,6 +1,5 @@
 /bin
 /obj
-/.vs/ChessModule/FileContentIndex
-/.vs/ChessModule
+/.vs
 /ChessTest/bin/Debug/net6.0
 /ChessTest/obj
