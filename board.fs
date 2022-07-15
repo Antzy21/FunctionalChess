@@ -108,6 +108,11 @@ module Board =
                 | Queen -> queenDirection coordinates board
                 | King -> kingDirection coordinates board
                 | Pawn -> Piece.PawnMoves.getPawnFrom coordinates piece.colour board
+            |> List.filter (fun square ->
+                Square.getPieceType square
+                |> Option.filter ((=) piece.pieceType)
+                |> Option.isSome
+            )
 
     module Square =
         let getFromBoardWithPiecesOfColour (colour: colour) (board: board) : square list =
