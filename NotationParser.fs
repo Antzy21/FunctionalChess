@@ -31,10 +31,10 @@ module NotationParser =
                 )
         | move ->
             let newCoordinates = 
-                move.[move.Length-1 .. move.Length]
+                move.[move.Length-2 .. move.Length]
                 |> Coordinates.fromName
             let pieceType =
-                if move.Length = 2 then
+                if move.Length = 2 || move.Chars 0 = 'x' then
                     Pawn
                 else 
                     PieceType.fromLetter (move.Chars 0)
@@ -45,7 +45,7 @@ module NotationParser =
             Board.GetSquares.reverseEngineerPieceLocations piece newSquare.coordinates board
             |> function
             | oldSquare :: [] ->
-                Some (newSquare, oldSquare)
+                Some (oldSquare, newSquare)
             | [] ->
                 printfn $"No {pieceType} avaiable to do {move}"
                 None
