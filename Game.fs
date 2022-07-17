@@ -64,7 +64,7 @@ module GameState =
                     CastlingAllowance.removeBasedOnMove move game.castlingAllowance
                 else
                     game.castlingAllowance
-            enpassantSquare = None;                   
+            enpassantSquare = Move.getEnPassantSquare move                    
             halfMoveClock = game.halfMoveClock + 1
             fullMoveClock = 
                 match game.playerTurn with 

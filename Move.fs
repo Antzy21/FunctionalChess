@@ -6,10 +6,28 @@ open FSharp.Extensions
 type move = move<piece>
 
 module Move =
+    let getMovedPieceType (move: move) : pieceType =
+        Move.getMovedPiece move
+        |> fun piece -> piece.pieceType
     let isEnpassant (move: move) : bool =
         (Move.getMovedPiece move).pieceType = Pawn &&
         Move.getTakenPiece move |> Option.isNone &&
         Move.getShift move |> fun (i, j) -> (abs(i), abs(j)) = (1,1)
+    let getEnPassantSquare (move: move) : square option = 
+        if getMovedPieceType move = Pawn && Move.getShift move = (0,2) then
+            let startingSquare = fst move
+            let shift = 
+                Move.getMovedPiece move
+                |> fun piece -> piece.colour
+                |> function
+                | White -> (0,1)
+                | Black -> (0,-1)
+            Some {
+                coordinates = Coordinates.afterShift shift startingSquare.coordinates;
+                piece = None
+            }
+        else 
+            None
     let isCastling (move: move) : bool =
         (Move.getMovedPiece move).pieceType = King &&
         Move.getShift move |> fun (i, j) -> (i, j) = (2,0) || (i, j) = (-2, 0)
