@@ -31,3 +31,20 @@ module White =
         let fullNotation = moveNotationFromNotationParser game "xa6"
         Assert.Equal("Pb5 -> xPa5", fullNotation)
         
+module Black =
+
+    [<Fact>]
+    let ``Parse e5 move`` () =
+        let game =
+            GameState.newGame ()
+            |> GameState.makeMoveFromNotation "e4"
+        let fullNotation = moveNotationFromNotationParser game "e5" 
+        Assert.Equal("pe7 -> e5", fullNotation)
+
+    [<Fact>]
+    let ``Setup a6 enpassant`` () =
+        let game = 
+            "rnbqkbnr/p1pppppp/6p1/1P6/8/8/P1PPPPPP/RNBQKBNR b KQkq - 3 2"
+            |> GameState.fromFen
+        let fullNotation = moveNotationFromNotationParser game "a5"
+        Assert.Equal("pa7 -> a5", fullNotation)
