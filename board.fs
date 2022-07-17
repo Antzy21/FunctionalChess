@@ -109,8 +109,8 @@ module Board =
                 | King -> kingDirection coordinates board
                 | Pawn -> Piece.PawnMoves.getPawnFrom coordinates piece.colour board
             |> List.filter (fun square ->
-                Square.getPieceType square
-                |> Option.filter ((=) piece.pieceType)
+                square.piece
+                |> Option.filter ((=) piece)
                 |> Option.isSome
             )
 
