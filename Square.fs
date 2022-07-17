@@ -13,8 +13,8 @@ module Square =
     let getDescription (square: square) =
         let pieceTypeLetter = 
             match square.piece with
-            | None -> ' '
-            | Some piece -> PieceType.getLetter piece.pieceType
+            | None -> ""
+            | Some piece -> $"{Piece.getLetter piece}"
         $"{pieceTypeLetter}{(Square.getCoordinatesName square)}"
     let getPieceType (square: square) : pieceType option =
        square.piece
