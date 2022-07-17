@@ -1,6 +1,7 @@
 ﻿namespace Chess
 
 open Checkerboard
+open FSharp.Extensions
 
 module NotationParser =
     let tryParse (colour: colour) (board: board) (move: string) : move option =
@@ -49,6 +50,8 @@ module NotationParser =
             | [] ->
                 printfn $"No {pieceType} avaiable to do {move}"
                 None
-            | _ ->
+            | squares ->
                 printfn $"Too many {pieceType}s are able to do {move}"
+                squares
+                |> List.iter (fun square -> printfn $"{square.coordinates}")
                 None
