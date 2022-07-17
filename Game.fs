@@ -64,13 +64,16 @@ module GameState =
                     CastlingAllowance.removeBasedOnMove move game.castlingAllowance
                 else
                     game.castlingAllowance
-            enpassantSquare = None;
+            enpassantSquare = None;                   
             halfMoveClock = game.halfMoveClock + 1
             fullMoveClock = 
                 match game.playerTurn with 
                 | White -> game.fullMoveClock + 1
                 | Black -> game.fullMoveClock
         }
+    let makeMoveFromNotation (move: string) (game: gameState) : gameState =
+        let parsedMove = NotationParser.parse game.playerTurn game.board move
+        makeMove parsedMove game
     let print (game: gameState) =
         Board.print game.board
         printfn $"\nPlayer Turn: {game.playerTurn}"
