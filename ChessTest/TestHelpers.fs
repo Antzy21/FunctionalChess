@@ -36,6 +36,5 @@ let gameStateIsInCheck (fen: string) : bool =
     |> fun gs -> gs.board |> Board.isInCheck gs.playerTurn
 
 let moveNotationFromNotationParser (game: gameState) (notation: string) : string = 
-    NotationParser.tryParse game.playerTurn game.board "xd5"
-    |> Option.get
+    NotationParser.parse game.playerTurn game.board notation
     |> Move.getMoveNotation

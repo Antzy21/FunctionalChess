@@ -55,3 +55,7 @@ module NotationParser =
                 squares
                 |> List.iter (fun square -> printfn $"{square.coordinates}")
                 None
+
+    let parse (colour: colour) (board: board) (move: string) : move =
+        tryParse colour board move
+        |> Option.failOnNone "Failed to parse notation"
