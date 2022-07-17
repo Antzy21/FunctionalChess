@@ -27,9 +27,9 @@ module White =
 
     [<Fact>]
     let ``Parse Enpassant`` () =
-        let game = GameState.fromFen "rnbqkbnr/1ppppppp/8/pP3/8/8/P1PPPPPP/RNBQKBNR w KQkq a6 4 2"
+        let game = GameState.fromFen "rnbqkbnr/1ppppppp/8/pP6/8/8/P1PPPPPP/RNBQKBNR w KQkq a6 4 2"
         let fullNotation = moveNotationFromNotationParser game "xa6"
-        Assert.Equal("Pb5 -> xPa5", fullNotation)
+        Assert.Equal("Pb5 -> xpa6", fullNotation)
         
 module Black =
 

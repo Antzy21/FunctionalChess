@@ -42,28 +42,28 @@ module Black =
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
             |> getPossibleMoves
         Assert.StrictEqual<string list>([
-            "Pa7 -> a6";
-            "Pa7 -> a5";
-            "Pb7 -> b6";
-            "Pb7 -> b5";
-            "Nb8 -> c6";
-            "Nb8 -> a6";
-            "Pc5 -> c4";
-            "Pd7 -> d6";
-            "Pd7 -> d5";
-            "Qd8 -> c7";
-            "Qd8 -> b6";
-            "Qd8 -> a5";
-            "Pe7 -> e6";
-            "Pe7 -> e5";
-            "Pf7 -> f6";
-            "Pf7 -> f5";
-            "Pg7 -> g6";
-            "Pg7 -> g5";
-            "Ng8 -> h6";
-            "Ng8 -> f6";
-            "Ph7 -> h6";
-            "Ph7 -> h5";
+            "pa7 -> a6";
+            "pa7 -> a5";
+            "pb7 -> b6";
+            "pb7 -> b5";
+            "nb8 -> c6";
+            "nb8 -> a6";
+            "pc5 -> c4";
+            "pd7 -> d6";
+            "pd7 -> d5";
+            "qd8 -> c7";
+            "qd8 -> b6";
+            "qd8 -> a5";
+            "pe7 -> e6";
+            "pe7 -> e5";
+            "pf7 -> f6";
+            "pf7 -> f5";
+            "pg7 -> g6";
+            "pg7 -> g5";
+            "ng8 -> h6";
+            "ng8 -> f6";
+            "ph7 -> h6";
+            "ph7 -> h5";
         ], moves)
 
     [<Fact>]
@@ -72,5 +72,5 @@ module Black =
             "rnbqkbnr/pp1ppppp/8/3p4/3PP3/8/PPP2PPP/RNBQKBNR b KQkq - 1 2"
             |> getPossibleMovesFromSquare "d5"
         Assert.StrictEqual<string list>([
-            "Pd5 -> xPe4";
+            "pd5 -> xPe4";
         ], moves)

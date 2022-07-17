@@ -30,4 +30,4 @@ module Black =
         let moves = 
             $"rnbqkbnr/2p5/2Pp1p1p/1p1PpPpP/pP2P1P1/P7/8/RNBQKBNR b KQkq {enpassantSquare} 0 1"
             |> getPossibleMovesForPieceType Pawn
-        Assert.Contains("Pa4 -> xPb3", moves)
+        Assert.Contains("pa4 -> xPb3", moves)
