@@ -122,6 +122,10 @@ module Board =
         let isVisibleByPlayer (colour: colour) (board: board) (square: square) : bool =
             playerVision colour board
             |> List.contains square
+        let isAtOppositeEndOfBoard (colour: colour) (square: square) : bool =
+            match colour with
+            | White -> snd square.coordinates = 7
+            | Black -> snd square.coordinates = 0
 
     module Move =
         let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
@@ -136,8 +140,16 @@ module Board =
                 GetSquares.pieceVision oldSquare board
                 |> List.filter (blockSelfTaking oldSquare board)
                 |> List.map (fun newSquare ->
-                    (oldSquare, newSquare)
+                    if Square.getPieceType oldSquare = Some Pawn && Square.isAtOppositeEndOfBoard colour newSquare then
+                        [ Queen; Rook; Bishop; Knight ]
+                        |> List.map (fun pieceType ->
+                            let promotedSquare : square = {coordinates = newSquare.coordinates; piece = Some {pieceType = pieceType; colour = colour}}
+                            oldSquare, promotedSquare
+                        )
+                    else
+                        [oldSquare, newSquare]
                 )
+                |> List.concat
             )
             |> List.concat
 
