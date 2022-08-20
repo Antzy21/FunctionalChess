@@ -11,7 +11,7 @@ module Move =
         |> fun piece -> piece.pieceType
     let isEnpassant (move: move) : bool =
         (Move.getMovedPiece move).pieceType = Pawn &&
-        Move.getTakenPiece move |> Option.isNone &&
+        Move.getPieceAtDestination move |> Option.isNone &&
         Move.getShift move |> fun (i, j) -> (abs(i), abs(j)) = (1,1)
     let getEnPassantSquare (move: move) : square option = 
         if getMovedPieceType move = Pawn && Move.getShift move = (0,2) then
@@ -41,7 +41,11 @@ module Move =
         else
             failwith $"Move is not castling"
     let getMoveNotation (move: move) : string =
-        match Move.getTakenPiece move with
+        match Move.getPieceAtDestination move with
+        | Some promotingPiece when promotingPiece.colour = (Move.getMovedPiece move).colour ->
+            $"{move |> fst |> Square.getDescription} -> " +
+            $"{(PieceType.getLetter promotingPiece.pieceType)}" +
+            $"{(move |> snd |> Square.getCoordinatesName)}"
         | Some takenPiece ->
             $"{move |> fst |> Square.getDescription} -> " +
             $"x{(PieceType.getLetter takenPiece.pieceType)}" +
