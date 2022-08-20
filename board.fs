@@ -72,41 +72,32 @@ module Board =
     
     module GetSquares =
         let private stopAt = Some (fun (otherPiece: piece) -> true)
-        let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
-            let piece = Square.getPiece square
-            let x,y = newSquare.coordinates
-            match board.[x,y].piece with
-            | Some oldPiece -> oldPiece.colour <> piece.colour
-            | None -> true
-        let private knightDirection (coordinates: coordinates) (board: board) : square list =
+        let private knightVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.afterAllShiftDirections coordinates (1,2) board
-        let private bishopDirection (coordinates: coordinates) (board: board) : square list =
+        let private bishopVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.onDiagonals coordinates stopAt board
-        let private rookDirection (coordinates: coordinates) (board: board) : square list =
+        let private rookVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.onRowAndFile coordinates stopAt board
-        let private queenDirection (coordinates: coordinates) (board: board) : square list =
+        let private queenVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.onRowFileAndDiagonals coordinates stopAt board
-        let private kingDirection (coordinates: coordinates) (board: board) : square list =
+        let private kingVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.adjacent coordinates board
-        let private pieceDirection (piece: piece) (coordinates: coordinates) (board: board) : square list =
+        let pieceVision (square: square) (board: board) : square list =
+            let piece, coordinates = Square.getPiece square, square.coordinates
             match piece.pieceType with
-                | Knight -> knightDirection coordinates board
-                | Bishop -> bishopDirection coordinates board
-                | Rook -> rookDirection coordinates board
-                | Queen -> queenDirection coordinates board
-                | King -> kingDirection coordinates board
-                | Pawn -> Piece.PawnMoves.getPawnMoves coordinates board piece.colour
-        let possibleToMoveToForPieceOnSquare (board: board) (square: square) : square list =
-            let piece = square |> Square.getPiece
-            pieceDirection piece square.coordinates board
-            |> List.filter (blockSelfTaking square board)
+                | Knight -> knightVision coordinates board
+                | Bishop -> bishopVision coordinates board
+                | Rook -> rookVision coordinates board
+                | Queen -> queenVision coordinates board
+                | King -> kingVision coordinates board
+                | Pawn -> Piece.PawnMoves.getPawnVision coordinates board piece.colour
         let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) : square list =
             match piece.pieceType with
-                | Knight -> knightDirection coordinates board
-                | Bishop -> bishopDirection coordinates board
-                | Rook -> rookDirection coordinates board
-                | Queen -> queenDirection coordinates board
-                | King -> kingDirection coordinates board
+                | Knight -> knightVision coordinates board
+                | Bishop -> bishopVision coordinates board
+                | Rook -> rookVision coordinates board
+                | Queen -> queenVision coordinates board
+                | King -> kingVision coordinates board
                 | Pawn -> Piece.PawnMoves.getPawnFrom coordinates piece.colour board
             |> List.filter (fun square ->
                 square.piece
@@ -125,8 +116,7 @@ module Board =
         let playerVision (colour: colour) (board: board) : square list =
             getFromBoardWithPiecesOfColour colour board
             |> List.map (fun oldSquare ->
-                oldSquare
-                |> GetSquares.possibleToMoveToForPieceOnSquare board
+                GetSquares.pieceVision oldSquare board
             )
             |> List.concat
         let isVisibleByPlayer (colour: colour) (board: board) (square: square) : bool =
@@ -134,11 +124,17 @@ module Board =
             |> List.contains square
 
     module Move =
+        let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
+            match Board.GetPiece.fromCoordinates newSquare.coordinates board with
+            | Some newPiece -> 
+                let piece = Square.getPiece square
+                newPiece.colour <> piece.colour
+            | None -> true
         let getPossibleMoves (colour: colour) (board: board) : move list =
             Square.getFromBoardWithPiecesOfColour colour board
-            |> List.map (fun oldSquare ->
-                oldSquare
-                |> GetSquares.possibleToMoveToForPieceOnSquare board
+            |> List.map (fun (oldSquare : square<piece>) ->
+                GetSquares.pieceVision oldSquare board
+                |> List.filter (blockSelfTaking oldSquare board)
                 |> List.map (fun newSquare ->
                     (oldSquare, newSquare)
                 )
@@ -228,22 +224,16 @@ module Board =
         board
     let private castlingMove (move: move) (board: board) : board =
         let i, j = snd move |> Square.getCoordinates
-        let board = Board.Update.applyMove move board
-        if j = 0 && i = 2 then
-            Board.Update.Square.removePiece (0,0) board
-            |> Board.Update.Square.withPiece (0,2) {pieceType = Rook; colour = White}
-        elif j = 0 && i = 6 then
-            Board.Update.Square.removePiece (0,7) board
-            |> Board.Update.Square.withPiece (0,6) {pieceType = Rook; colour = White}
-        elif j = 7 && i = 2 then
-            Board.Update.Square.removePiece (7,0) board
-            |> Board.Update.Square.withPiece (7,2) {pieceType = Rook; colour = Black}
-        elif j = 7 && i = 6 then
-            Board.Update.Square.removePiece (7,7) board
-            |> Board.Update.Square.withPiece (7,6) {pieceType = Rook; colour = Black}
-        else
-            failwith $"Invalid Castling attempted with move {Move.getMoveNotation move}"
-        |> Board.Update.Square.removePiece (i,j)
+        let rookStartingCoordinates, rookEndingCoordinates = 
+            if j = 0 && i = 2 then (0,0), (0,2)
+            elif j = 0 && i = 6 then (0,7), (0,6)
+            elif j = 7 && i = 2 then (7,0), (7,2)
+            elif j = 7 && i = 6 then (7,7), (7,6)
+            else
+                failwith $"Invalid Castling attempted with move {Move.getMoveNotation move}"
+        Board.Update.applyMove move board
+        |> Board.Update.Square.removePiece rookStartingCoordinates
+        |> Board.Update.Square.withPiece rookEndingCoordinates {pieceType = Rook; colour = Black}
     let makeMove (move: move) (board: board) : board = 
         if Move.isEnpassant move then
             enpassantMove move board

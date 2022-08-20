@@ -32,7 +32,7 @@ module Piece =
             | White -> 1
             | Black -> 6
 
-        let private getPawnMovesFromStartingRow square direction start board =
+        let private getPawnVisionFromStartingRow square direction start board =
             Board.GetSquare.afterShift (0,direction*2) start board
             |> Option.get
             |> (fun square2 -> 
@@ -41,7 +41,7 @@ module Piece =
                 | None -> [square; square2]
             )
 
-        let private getPawnMovesForColour (start: coordinates) (board: board<piece>) (direction: int) (startingRow: int) =
+        let private getPawnVisionForColour (start: coordinates) (board: board<piece>) (direction: int) (startingRow: int) : square<piece> list =
             let diagonalMoves =
                 Board.GetSquares.afterShifts start board [(-1,direction); (1,direction)]
                 |> List.filter (fun square -> Option.isSome square.piece)
@@ -54,16 +54,15 @@ module Piece =
                     | Some _ -> []
                     | None ->
                         if snd start = startingRow then
-                            getPawnMovesFromStartingRow square direction start board
+                            getPawnVisionFromStartingRow square direction start board
                         else [square]
                 )
             List.append forwardMoves diagonalMoves        
 
-        let getPawnMoves (start: coordinates) (board: board<piece>) (pieceColour: colour) =
+        let getPawnVision (start: coordinates) (board: board<piece>) (pieceColour: colour) : square<piece> list =
             let direction = getPawnMovementDirection pieceColour
             let startingRow = getPawnStartingRow pieceColour
-
-            getPawnMovesForColour start board direction startingRow
+            getPawnVisionForColour start board direction startingRow
 
         let getPawnFrom (start: coordinates) (pieceColour: colour) (board: board<piece>): square<piece> list =
             let direction = getPawnMovementDirection pieceColour
