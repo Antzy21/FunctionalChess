@@ -53,7 +53,7 @@ module NotationParser =
             | squares ->
                 printfn $"Too many {pieceType}s are able to do {move}"
                 squares
-                |> List.iter (fun square -> printfn $"{square.coordinates}")
+                |> List.iter (fun square -> printfn $"{Square.getDescription square}")
                 None
 
     let parse (colour: colour) (board: board) (move: string) : move =
