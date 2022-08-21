@@ -11,5 +11,20 @@ module White =
         let moves = 
             $"8/P7/8/8/8/8/8/2k2K3 w - - 0 1"
             |> getPossibleMovesForPieceType Pawn
-        let expected = ["Pa7 -> Qa8"; "Pa7 -> Ra8"; "Pa7 -> Ba8"; "Pa7 -> Na8"]
+        let expected = ["Pa7 -> a8 = Q"; "Pa7 -> a8 = R"; "Pa7 -> a8 = B"; "Pa7 -> a8 = N"]
+        Assert.Equal<string list>(expected, moves)
+
+    [<Fact>]
+    let ``Blocked from promoting`` () =
+        let moves = 
+            $"b7/P7/8/8/8/8/8/2k2K3 w - - 0 1"
+            |> getPossibleMovesForPieceType Pawn
+        Assert.Empty(moves)
+
+    [<Fact>]
+    let ``Promoting by taking`` () =
+        let moves = 
+            $"br6/P7/8/8/8/8/8/2k2K3 w - - 0 1"
+            |> getPossibleMovesForPieceType Pawn
+        let expected = ["Pa7 -> xb8 = Q"; "Pa7 -> xb8 = R"; "Pa7 -> xb8 = B"; "Pa7 -> xb8 = N"]
         Assert.Equal<string list>(expected, moves)

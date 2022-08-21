@@ -43,9 +43,14 @@ module Move =
     let getMoveNotation (move: move) : string =
         match Move.getPieceAtDestination move with
         | Some promotingPiece when promotingPiece.colour = (Move.getMovedPiece move).colour ->
+            let timesSignIfTaken =
+                if Move.getShift move |> fst <> 0 then "x"
+                else ""
             $"{move |> fst |> Square.getDescription} -> " +
-            $"{(PieceType.getLetter promotingPiece.pieceType)}" +
-            $"{(move |> snd |> Square.getCoordinatesName)}"
+            timesSignIfTaken +
+            $"{(move |> snd |> Square.getCoordinatesName)}" +
+            " = " +
+            $"{(PieceType.getLetter promotingPiece.pieceType)}"
         | Some takenPiece ->
             $"{move |> fst |> Square.getDescription} -> " +
             $"x{(PieceType.getLetter takenPiece.pieceType)}" +
