@@ -31,6 +31,11 @@ module Move =
     let isCastling (move: move) : bool =
         (Move.getMovedPiece move).pieceType = King &&
         Move.getShift move |> fun (i, j) -> (i, j) = (2,0) || (i, j) = (-2, 0)
+    let isPromotion (move: move) (board: board<piece>) : bool =
+        let promotionPiece = (snd move).piece
+        let coordinates = (snd move).coordinates
+        let endSquare = Board.GetSquare.fromCoordinates coordinates board
+        endSquare.piece <> promotionPiece
     let getCastlingSide (move: move) : side =
         if not <| isCastling move then
             failwith $"Move is not castling"
