@@ -29,5 +29,6 @@ module PieceType =
         | Queen -> Some 9
     let getLetter (piece: pieceType) : char =
         Map.find piece pieceTypeLetterMap
-    let fromLetter (letter: char) : pieceType =
-        Map.findKey (fun _ l -> System.Char.ToUpper letter = l) pieceTypeLetterMap
+    let tryParse (letter: char) : pieceType option =
+        Map.tryFindKey (fun _ l -> System.Char.ToUpper letter = l) pieceTypeLetterMap
+    let fromLetter : char -> pieceType = tryParse >> Option.get 
