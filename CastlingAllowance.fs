@@ -13,25 +13,30 @@ module CastlingAllowance =
             blackQueenside = fen.Contains('q')
         }
     let toFen (castling: castlingAllowance) : string =
-        if castling.whiteKingside then
-            "K"
+        let allowances = 
+            if castling.whiteKingside then
+                "K"
+            else
+                ""
+            +
+            if castling.whiteQueenside then
+                "Q"
+            else
+                ""
+            +
+            if castling.blackKingside then
+                "k"
+            else
+                ""
+            +
+            if castling.blackQueenside then
+                "q"
+            else
+                ""
+        if allowances = "" then
+            "-"
         else
-            ""
-        +
-        if castling.whiteQueenside then
-            "Q"
-        else
-            ""
-        +
-        if castling.blackKingside then
-            "k"
-        else
-            ""
-        +
-        if castling.blackQueenside then
-            "q"
-        else
-            ""
+            allowances
     let removeRights (colour: colour) (side: side) (ca: castlingAllowance) : castlingAllowance =
         match colour, side with
         | White, Kingside -> {whiteKingside = false; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = ca.blackQueenside}
