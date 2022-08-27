@@ -4,6 +4,14 @@ open Checkerboard
 open FSharp.Extensions
 
 module NotationParser =
+    
+    let private tryParseSquare (board: board) (square: string) : square option =
+        square.[square.Length-2 ..]
+        |> Coordinates.tryParse
+        |> Option.map (fun coordinates ->
+            Board.GetSquare.fromCoordinates coordinates board
+        )
+
     let private normalMoveParsing (colour: colour) (board: board) (move: string) : move option =
         
         let piece = 
@@ -15,12 +23,7 @@ module NotationParser =
                 {pieceType = pieceType; colour = colour}
             )
 
-        let newSquare = 
-            move.[move.Length-2 ..]
-            |> Coordinates.tryParse
-            |> Option.map (fun newCoordinates ->
-                Board.GetSquare.fromCoordinates newCoordinates board
-            )
+        let newSquare = tryParseSquare board move
 
         (piece, newSquare)
         ||> Option.map2 (fun p ns -> (p, ns))
@@ -38,21 +41,12 @@ module NotationParser =
                 |> List.iter (fun square -> printfn $"{Square.getDescription square}")
                 None
         )
-        
+
     let tryParseFullNotation (board: board) (move: string) : move option =
         match move.Split(' ') with
         | [|fstSquare; _; sndSquare |] ->
-            fstSquare.[fstSquare.Length-2 ..]
-            |> Coordinates.tryParse
-            |> Option.bind (fun fstCoordinates ->
-                let fstSquare = Board.GetSquare.fromCoordinates fstCoordinates board
-                sndSquare.[sndSquare.Length-2 ..]
-                |> Coordinates.tryParse
-                |> Option.bind (fun sndCoordinates ->
-                    let sndSquare = Board.GetSquare.fromCoordinates sndCoordinates board
-                    Some (fstSquare, sndSquare)
-                )
-            )
+            (tryParseSquare board fstSquare, tryParseSquare board sndSquare)
+            ||> Option.map2 (fun fs ss -> (fs, ss))
         | _ -> None
 
     let tryParse (colour: colour) (board: board) (move: string) : move option =

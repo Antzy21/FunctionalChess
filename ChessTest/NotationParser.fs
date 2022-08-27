@@ -30,7 +30,19 @@ module White =
         let game = GameState.fromFen "rnbqkbnr/1ppppppp/8/pP6/8/8/P1PPPPPP/RNBQKBNR w KQkq a6 4 2"
         let fullNotation = moveNotationFromNotationParser game "xa6"
         Assert.Equal("Pb5 -> xpa6", fullNotation)
+
+    [<Fact>]
+    let ``Parse Full Notation of e4`` () =
+        let game = GameState.newGame ()
+        let fullNotation = moveNotationFromNotationParser game "Pe2 -> e4" 
+        Assert.Equal("Pe2 -> e4", fullNotation)
         
+    [<Fact>]
+    let ``Parse Full Notation of Nc3`` () =
+        let game = GameState.newGame ()
+        let fullNotation = moveNotationFromNotationParser game "Nb1 -> c3" 
+        Assert.Equal("Nb1 -> c3", fullNotation)
+
 module Black =
 
     [<Fact>]
