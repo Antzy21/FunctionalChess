@@ -235,11 +235,9 @@ module Board =
         board[i,j] <- Square.removePiece board[i,j]
         board
     let private promotionMove (move: move) (board: board) : board =
-        let i, j = (fst move).coordinates |> fst, (fst move).coordinates |> snd
-        board[i,j] <- Square.removePiece board[i,j]
-        let i, j = (snd move).coordinates |> fst, (snd move).coordinates |> snd
-        board[i,j] <- Square.updateWithPiece (Option.get (snd move).piece) board[i,j]
-        board
+        let board = Board.Update.applyMove move board
+        let promotionSquare = (snd move)
+        Board.Update.Square.withPiece promotionSquare.coordinates (Option.get (snd move).piece) board
     let private castlingMove (move: move) (board: board) : board =
         let i, j = snd move |> Square.getCoordinates
         let rookStartingCoordinates, rookEndingCoordinates = 
