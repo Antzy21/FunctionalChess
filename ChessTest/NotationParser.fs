@@ -12,6 +12,12 @@ module White =
         let game = GameState.newGame ()
         let fullNotation = moveNotationFromNotationParser game "e4" 
         Assert.Equal("Pe2 -> e4", fullNotation)
+        
+    [<Fact>]
+    let ``Parse e3 move`` () =
+        let game = GameState.newGame ()
+        let fullNotation = moveNotationFromNotationParser game "e3" 
+        Assert.Equal("Pe2 -> e3", fullNotation)
 
     [<Fact>]
     let ``Parse Nc3 move`` () =
