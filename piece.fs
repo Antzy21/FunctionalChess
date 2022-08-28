@@ -67,8 +67,20 @@ module Piece =
         let getPawnFrom (start: coordinates) (pieceColour: colour) (board: board<piece>): square<piece> list =
             let direction = getPawnMovementDirection pieceColour
             let rowIfMovedTwo = getPawnStartingRow pieceColour + direction*2
-            if snd start = rowIfMovedTwo then
-                [(0, -direction); (-1, -direction); (1, -direction); (0,-direction*2)]
+            let pieceAtStart = Board.GetPiece.fromCoordinates start board
+            if Option.isSome pieceAtStart then
+                [(-1, -direction); (1, -direction)]
             else
-                [(0, -direction); (-1, -direction); (1, -direction)]
+                if snd start = rowIfMovedTwo then
+                    [(0, -direction); (0,-direction*2)]
+                else                    
+                    Board.GetSquare.afterShift (0, -direction) start board
+                    |> Option.map (fun square ->
+                        match square.piece with
+                        | Some piece when piece.colour = pieceColour ->
+                            [(0, -direction)]
+                        | _ ->
+                            [(-1, -direction); (1, -direction)]
+                    )
+                    |> Option.get
             |> Board.GetSquares.afterShifts start board
