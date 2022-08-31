@@ -14,7 +14,7 @@ module Move =
         Move.getPieceAtDestination move |> Option.isNone &&
         Move.getShift move |> fun (i, j) -> (abs(i), abs(j)) = (1,1)
     let getEnPassantSquare (move: move) : square option = 
-        if getMovedPieceType move = Pawn && Move.getShift move = (0,2) then
+        if getMovedPieceType move = Pawn && List.contains (Move.getShift move) [(0,2); (0,-2)] then
             let startingSquare = fst move
             let shift = 
                 Move.getMovedPiece move
