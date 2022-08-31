@@ -47,21 +47,21 @@ module CastlingAllowance =
         removeRights (Move.getMovedPiece move |> fun p -> p.colour) (Move.getCastlingSide move) ca
     let print (castling: castlingAllowance) : string=
         if castling.whiteKingside then
-            "White 0-0\n"
+            "White 0-0, "
         else
-            ""
+            "-, "
         +
         if castling.whiteQueenside then
-            "White 0-0-0\n"
+            "W 0-0-0, "
         else
-            ""
+            "-, "
         +
         if castling.blackKingside then
-            "Black 0-0\n"
+            "B 0-0, "
         else
-            ""
+            "-, "
         +
         if castling.blackQueenside then
-            "Black 0-0-0\n"
+            "B 0-0-0"
         else
-            ""
+            "-"

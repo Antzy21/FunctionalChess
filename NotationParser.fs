@@ -55,25 +55,25 @@ module NotationParser =
             match colour with
             | White ->
                 Some (
-                    {piece = Some {pieceType = King; colour = colour} ; coordinates = (3,0)},
-                    {piece = None; coordinates = (5,0)}
+                    {piece = Some {pieceType = King; colour = colour} ; coordinates = Coordinates.fromName "e1"},
+                    {piece = None; coordinates = Coordinates.fromName "c1"}
                 )
             | Black ->
                 Some (
-                    {piece = Some {pieceType = King; colour = colour}; coordinates = (3,7)},
-                    {piece = None; coordinates = (5,7)}
+                    {piece = Some {pieceType = King; colour = colour}; coordinates = Coordinates.fromName "e8"},
+                    {piece = None; coordinates = Coordinates.fromName "c8"}
                 )
         | "0-0" ->
             match colour with
             | White ->
                 Some (
-                    {piece = Some {pieceType = King; colour = colour}; coordinates = (3,0)},
-                    {piece = None; coordinates = (1,0)}
+                    {piece = Some {pieceType = King; colour = colour}; coordinates = Coordinates.fromName "e1"},
+                    {piece = None; coordinates = Coordinates.fromName "g1"}
                 )
             | Black ->
                 Some (
-                    {piece = Some {pieceType = King; colour = colour}; coordinates = (3,7)},
-                    {piece = None; coordinates = (1,7)}
+                    {piece = Some {pieceType = King; colour = colour}; coordinates = Coordinates.fromName "e8"},
+                    {piece = None; coordinates = Coordinates.fromName "g8"}
                 )
         | move when move.Contains('=') ->
             normalMoveParsing colour board (move.Split(' ').[0])

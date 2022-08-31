@@ -218,10 +218,9 @@ module Board =
                 None
         let queenSideCastling : move option =
             if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"] ($"a{row}") ($"e{row}")) then
-                let endSquareForKing = $"c{row}"
                 Some (
                     (Board.GetSquare.fromCoordinatesName $"e{row}" board),
-                    (Board.GetSquare.fromCoordinatesName endSquareForKing board)
+                    (Board.GetSquare.fromCoordinatesName $"c{row}" board)
                 )
             else
                 None
@@ -239,14 +238,14 @@ module Board =
         let promotionSquare = (snd move)
         Board.Update.Square.withPiece promotionSquare.coordinates (Option.get (snd move).piece) board
     let private castlingMove (move: move) (board: board) : board =
-        let i, j = snd move |> Square.getCoordinates
+        let kingEndCoordinates = snd move |> Square.getCoordinates
         let rookStartingCoordinates, rookEndingCoordinates = 
-            if j = 0 && i = 2 then (0,0), (0,2)
-            elif j = 0 && i = 6 then (0,7), (0,6)
-            elif j = 7 && i = 2 then (7,0), (7,2)
-            elif j = 7 && i = 6 then (7,7), (7,6)
-            else
-                failwith $"Invalid Castling attempted with move {Move.getMoveNotation move}"
+            match Coordinates.getName kingEndCoordinates with
+            | "c1" -> (0,0), (3,0)
+            | "g1" -> (7,0), (5,0)
+            | "c8" -> (0,7), (3,7)
+            | "g8" -> (7,7), (5,7)
+            | _ -> failwith $"Invalid Castling attempted with move {Move.getMoveNotation move}"
         Board.Update.applyMove move board
         |> Board.Update.Square.removePiece rookStartingCoordinates
         |> Board.Update.Square.withPiece rookEndingCoordinates {pieceType = Rook; colour = Black}
