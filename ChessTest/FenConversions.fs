@@ -28,7 +28,16 @@ let ``Asymetric board`` () =
     |> fun f -> Assert.Equal(f, fen)
 
 [<Fact>]
-let ``Sets Enpassant square`` () =
+let ``Sets Enpassant square for White`` () =
+    let game = GameState.newGame ()
+    NotationParser.parse game.playerTurn game.board "a4"
+    |> fun move -> GameState.makeMove move game
+    |> GameState.toFen
+    |> fun fen ->
+        Assert.Equal("rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 1 1", fen)
+
+[<Fact>]
+let ``Sets Enpassant square for Black`` () =
     let game = 
         "rnbqkbnr/p1pppppp/6p1/1P6/8/8/P1PPPPPP/RNBQKBNR b KQkq - 3 2"
         |> GameState.fromFen
