@@ -15,7 +15,9 @@
     <Compile Include="Game.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Checkerboard\Checkerboard.fsproj" />
+    <PackageReference Include="Antzy21.Games.Checkerboard" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\FSharp.Extensions\FSharp.Extensions.fsproj" />
   </ItemGroup>
 </Project>
