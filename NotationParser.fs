@@ -12,7 +12,7 @@ module NotationParser =
             Board.GetSquare.fromCoordinates coordinates board
         )
 
-    let private normalMoveParsing (colour: colour) (board: board) (move: string) : move option =
+    let private normalMoveParsing (colour: colour) (board: board) (move: string) : normalMove option =
         
         let piece = 
             if move.Length = 2 || move.Chars 0 = 'x' then
@@ -42,7 +42,7 @@ module NotationParser =
                 None
         )
 
-    let tryParseFullNotation (board: board) (move: string) : move option =
+    let tryParseFullNotation (board: board) (move: string) : normalMove option =
         match move.Split(' ') with
         | [|fstSquare; _; sndSquare |] ->
             (tryParseSquare board fstSquare, tryParseSquare board sndSquare)
@@ -52,41 +52,21 @@ module NotationParser =
     let tryParse (colour: colour) (board: board) (move: string) : move option =
         match move with
         | "0-0-0" ->
-            match colour with
-            | White ->
-                Some (
-                    {piece = Some {pieceType = King; colour = colour} ; coordinates = Coordinates.fromName "e1"},
-                    {piece = None; coordinates = Coordinates.fromName "c1"}
-                )
-            | Black ->
-                Some (
-                    {piece = Some {pieceType = King; colour = colour}; coordinates = Coordinates.fromName "e8"},
-                    {piece = None; coordinates = Coordinates.fromName "c8"}
-                )
+            Some <| Castling (Queenside, colour)
         | "0-0" ->
-            match colour with
-            | White ->
-                Some (
-                    {piece = Some {pieceType = King; colour = colour}; coordinates = Coordinates.fromName "e1"},
-                    {piece = None; coordinates = Coordinates.fromName "g1"}
-                )
-            | Black ->
-                Some (
-                    {piece = Some {pieceType = King; colour = colour}; coordinates = Coordinates.fromName "e8"},
-                    {piece = None; coordinates = Coordinates.fromName "g8"}
-                )
+            Some <| Castling (Kingside, colour)
         | move when move.Contains('=') ->
             normalMoveParsing colour board (move.Split(' ').[0])
             |> Option.map (fun parsedMove ->
-                let sndSquare = snd parsedMove
-                let sndSquare = Square.updateWithPiece (Piece.getFromLetter (move.[move.Length-1])) sndSquare
-                fst parsedMove, sndSquare
+                Promotion (parsedMove, PieceType.fromLetter (move.[move.Length-1]))
             )
         | move -> 
             try
                 normalMoveParsing colour board move
+                |> Option.map Move
             with
             _ -> tryParseFullNotation board move
+                |> Option.map Move
     let parse (colour: colour) (board: board) (move: string) : move =
         tryParse colour board move
         |> Option.failOnNone "Failed to parse notation"

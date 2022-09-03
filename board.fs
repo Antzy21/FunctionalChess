@@ -122,10 +122,8 @@ module Board =
         let isVisibleByPlayer (colour: colour) (board: board) (square: square) : bool =
             playerVision colour board
             |> List.contains square
-        let isAtOppositeEndOfBoard (colour: colour) (square: square) : bool =
-            match colour with
-            | White -> snd square.coordinates = 7
-            | Black -> snd square.coordinates = 0
+        let isAtEndsOfBoard (square: square) (board: board) : bool =
+            List.contains (snd square.coordinates) [0; Array2D.length2 board]
 
     module Move =
         let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
@@ -134,22 +132,12 @@ module Board =
                 let piece = Square.getPiece square
                 newPiece.colour <> piece.colour
             | None -> true
-        let getPossibleMoves (colour: colour) (board: board) : move list =
+        let getNormalMoves (colour: colour) (board: board) : normalMove list =
             Square.getFromBoardWithPiecesOfColour colour board
             |> List.map (fun (oldSquare : square<piece>) ->
                 GetSquares.pieceVision oldSquare board
                 |> List.filter (blockSelfTaking oldSquare board)
-                |> List.map (fun newSquare ->
-                    if Square.getPieceType oldSquare = Some Pawn && Square.isAtOppositeEndOfBoard colour newSquare then
-                        [ Queen; Rook; Bishop; Knight ]
-                        |> List.map (fun pieceType ->
-                            let promotedSquare : square = {coordinates = newSquare.coordinates; piece = Some {pieceType = pieceType; colour = colour}}
-                            oldSquare, promotedSquare
-                        )
-                    else
-                        [oldSquare, newSquare]
-                )
-                |> List.concat
+                |> List.map (fun newSquare -> oldSquare, newSquare)
             )
             |> List.concat
 
@@ -158,7 +146,7 @@ module Board =
         |> Array2D.tryFind (fun square -> square.piece = Some {pieceType = King; colour = colour})
         |> Option.failOnNone "No king found on the board"
         |> Square.isVisibleByPlayer (Colour.opposite colour) board
-    let internal getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
+    let internal getEnpassantMoves (colour: colour) (enpassantSquareOption: square option) (board: board) : normalMove list =
         match enpassantSquareOption with
         | None -> []
         | Some enpassantSquare -> 
@@ -210,56 +198,69 @@ module Board =
             (not castlingThroughCheck) && squaresAreEmpty && rookInPosition && kingInPosition
         let kingSideCastling : move option = 
             if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"] ($"h{row}") ($"e{row}")) then
-                Some (
-                    (Board.GetSquare.fromCoordinatesName $"e{row}" board),
-                    (Board.GetSquare.fromCoordinatesName $"g{row}" board)
-                )
+                Some <| Castling (Kingside, colour)
             else
                 None
         let queenSideCastling : move option =
             if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"] ($"a{row}") ($"e{row}")) then
-                Some (
-                    (Board.GetSquare.fromCoordinatesName $"e{row}" board),
-                    (Board.GetSquare.fromCoordinatesName $"c{row}" board)
-                )
+                Some <| Castling (Queenside, colour)
             else
                 None
 
         [kingSideCastling; queenSideCastling]
         |> List.filter Option.isSome
         |> List.map Option.get
-    let private enpassantMove (move: move) (board: board) : board =
+    let internal derivePromotionMoves (board: board) =
+        List.map (fun normalMove ->
+            if Move.getMovedPieceType normalMove = Pawn && Square.isAtEndsOfBoard (snd normalMove) board then
+                [ Queen; Rook; Bishop; Knight ]
+                |> List.map (fun pieceType ->
+                    Promotion (normalMove, pieceType)
+                )
+            else
+                [Move normalMove]
+        ) >> List.concat
+    let private enpassantMove (move: normalMove) (board: board) : board =
         let board = Board.Update.applyMove move board
         let i, j = (snd move).coordinates |> fst, (fst move).coordinates |> snd
         board[i,j] <- Square.removePiece board[i,j]
         board
-    let private promotionMove (move: move) (board: board) : board =
+    let private promotionMove (move: normalMove) (promotedPieceType: pieceType) (board: board) : board =
         let board = Board.Update.applyMove move board
-        let promotionSquare = (snd move)
-        Board.Update.Square.withPiece promotionSquare.coordinates (Option.get (snd move).piece) board
-    let private castlingMove (move: move) (board: board) : board =
-        let kingEndCoordinates = snd move |> Square.getCoordinates
-        let rookStartingCoordinates, rookEndingCoordinates = 
-            match Coordinates.getName kingEndCoordinates with
-            | "c1" -> (0,0), (3,0)
-            | "g1" -> (7,0), (5,0)
-            | "c8" -> (0,7), (3,7)
-            | "g8" -> (7,7), (5,7)
-            | _ -> failwith $"Invalid Castling attempted with move {Move.getMoveNotation move}"
-        Board.Update.applyMove move board
-        |> Board.Update.Square.removePiece rookStartingCoordinates
-        |> Board.Update.Square.withPiece rookEndingCoordinates {pieceType = Rook; colour = Black}
+        let promotionCoordinates = (snd move).coordinates
+        let colour = Move.getMovedPiece move |> fun piece -> piece.colour
+        let promotedPiece = {pieceType = promotedPieceType; colour = colour}
+        Board.Update.Square.withPiece promotionCoordinates promotedPiece board
+    let private castlingMove (side: side) (colour: colour) (board: board) : board =
+        let rank = 
+            match colour with
+            | White -> 0
+            | Black -> 7
+        let kingStart, kingEnd, rookStart, rookEnd = 
+            match side with
+            | Kingside -> $"e{rank}", $"g{rank}", $"h{rank}", $"f{rank}"
+            | Queenside -> $"e{rank}", $"c{rank}", $"a{rank}", $"d{rank}"
+        Board.Update.applyMove (
+            (Board.GetSquare.fromCoordinatesName kingStart board),
+            (Board.GetSquare.fromCoordinatesName kingEnd board)
+        ) board
+        |> Board.Update.applyMove (
+            (Board.GetSquare.fromCoordinatesName rookStart board),
+            (Board.GetSquare.fromCoordinatesName rookEnd board)
+        )
     let makeMove (move: move) (board: board) : board = 
-        if Move.isEnpassant move then
-            enpassantMove move board
-        elif Move.isCastling move then
-            castlingMove move board
-        elif Move.isPromotion move board then
-            promotionMove move board
-        else
-            Board.Update.applyMove move board
-    let getLegalMoves (colour: colour) (board: board) : move list =
-        Move.getPossibleMoves colour board
+        match move with
+        | Castling (side, colour) -> 
+            castlingMove side colour board
+        | Promotion (move, promotedPiece) ->
+            promotionMove move promotedPiece board
+        | Move move ->
+            if Move.isEnpassant move then
+                enpassantMove move board
+            else
+                Board.Update.applyMove move board
+    let getNormalMoves (colour: colour) (board: board) : normalMove list =
+        Move.getNormalMoves colour board
         |> List.filter (fun move ->
             let newBoardState = Board.Update.applyMove move board
             not <| isInCheck colour newBoardState

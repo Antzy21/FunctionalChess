@@ -52,19 +52,22 @@ module GameState =
         fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
     let getMovesForPlayer (game: gameState) : move list =
         let board = game.board
-        Board.getLegalMoves game.playerTurn board
+        Board.getNormalMoves game.playerTurn board
         |> List.append <| Board.getEnpassantMoves game.playerTurn game.enpassantSquare board
+        |> Board.derivePromotionMoves board
         |> List.append <| Board.getCastlingMoves game.playerTurn game.castlingAllowance board
     let makeMove (move: move) (game: gameState) : gameState =
         {
             board = Board.makeMove move game.board
             playerTurn = Colour.opposite game.playerTurn
             castlingAllowance = 
-                if Move.isCastling move then
-                    CastlingAllowance.removeBasedOnMove move game.castlingAllowance
-                else
-                    game.castlingAllowance
-            enpassantSquare = Move.getEnPassantSquare move                    
+                match move with
+                | Castling (side, colour) -> CastlingAllowance.removeRights colour side game.castlingAllowance
+                | _ -> game.castlingAllowance
+            enpassantSquare = 
+                match move with
+                | Move move -> Move.getEnPassantSquare move                  
+                | _ -> game.enpassantSquare
             halfMoveClock = game.halfMoveClock + 1
             fullMoveClock = 
                 match game.playerTurn with 
