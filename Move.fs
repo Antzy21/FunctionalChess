@@ -3,7 +3,12 @@
 open Checkerboard
 open FSharp.Extensions
 
-type move = move<piece>
+type normalMove = move<piece>
+
+type move = 
+    | Move of normalMove
+    | Castling of (side * colour)
+    | Promotion of (normalMove * pieceType)
 
 module Move =
     let getMovedPieceType (move: move) : pieceType =
