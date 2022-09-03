@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Helpers\Functions.fs" />
     <Compile Include="FenConversions.fs" />
-    <Compile Include="TestHelpers.fs" />
   </ItemGroup>
 	
   <ItemGroup>
