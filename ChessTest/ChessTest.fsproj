@@ -9,10 +9,10 @@
 
   <ItemGroup>
     <Compile Include="Helpers\Functions.fs" />
-    <Compile Include="FenConversions.fs" />
   </ItemGroup>
 	
   <ItemGroup>
+    <Compile Include="FenConversions.fs" />
     <Compile Include="Moves.fs" />
     <Compile Include="Check.fs" />
     <Compile Include="Castling.fs" />

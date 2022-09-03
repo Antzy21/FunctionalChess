@@ -47,13 +47,11 @@ let ``Sets Enpassant square for Black`` () =
     |> fun fen ->
         Assert.Equal("rnbqkbnr/2pppppp/6p1/pP6/8/8/P1PPPPPP/RNBQKBNR w KQkq a6 4 2", fen)
 
-module ConsecutiveMoves =
-    
-    [<Fact>]
-    let ``Example 1`` () =
-        let gameFen =
-            GameState.newGame ()
-            |> GameState.makeMoveFromNotation "e4"
-            |> GameState.makeMoveFromNotation "e5"
-            |> GameState.toFen
-        Assert.Equal("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 2 1", gameFen)
+[<Fact>]
+let ``Parse e4 then e5`` () =
+    let gameFen =
+        GameState.newGame ()
+        |> GameState.makeMoveFromNotation "e4"
+        |> GameState.makeMoveFromNotation "e5"
+        |> GameState.toFen
+    Assert.Equal("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 2 1", gameFen)
