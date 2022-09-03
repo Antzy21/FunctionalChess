@@ -15,13 +15,26 @@ module GetPossibleMoves =
         getPossibleMovesWithFilter (fun _ -> true) fen
 
     let forPieceType (pieceType: pieceType) (fen: string) : string list =
-        getPossibleMovesWithFilter (Move.getMovedPiece >> fun p -> p.pieceType = pieceType) fen
+        getPossibleMovesWithFilter (fun move ->
+            match move with
+            | Move move -> Move.getMovedPieceType move |> (=) pieceType
+            | Promotion (move, _) -> Move.getMovedPieceType move |> (=) pieceType
+            | Castling _ -> false
+        ) fen
     
     let fromSquare (squareName: string) (fen: string) : string list =
-        getPossibleMovesWithFilter (fst >> Square.getCoordinatesName >> (=) squareName) fen
+        getPossibleMovesWithFilter (fun move ->
+            match move with
+            | Move move -> fst move |> Square.getCoordinatesName |> (=) squareName
+            | _ -> false
+        ) fen
 
     let castling (fen: string) : string list =
-        getPossibleMovesWithFilter Move.isCastling fen
+        getPossibleMovesWithFilter (fun move ->
+            match move with
+            | Castling _ -> true
+            | _ -> false
+        ) fen
 
 let gameStateIsInCheck (fen: string) : bool =
     GameState.fromFen fen
