@@ -2,13 +2,14 @@ namespace Castling
 
 open Xunit
 open TestHelpers
+open Chess
 
 module White =
 
     [<Fact>]
     let ``White castling both sides possible`` () =
         let castlingMoves = getPossibleCastlingMoveNotations "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 1 2"
-        Assert.StrictEqual<string list>(["0-0-0"; "0-0"], castlingMoves)
+        Assert.StrictEqual<string list>(["0-0"; "0-0-0"], castlingMoves)
 
     [<Fact>]
     let ``White castling not allowed from gameState`` () =
@@ -40,7 +41,7 @@ module Black =
     [<Fact>]
     let ``Black castling both sides possible`` () =
         let castlingMoves = getPossibleCastlingMoveNotations "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 1 2"
-        Assert.StrictEqual<string list>(["0-0-0"; "0-0"], castlingMoves)
+        Assert.StrictEqual<string list>(["0-0"; "0-0-0"], castlingMoves)
 
     [<Fact>]
     let ``Black castling not allowed from gameState`` () =
@@ -66,3 +67,11 @@ module Black =
     let ``No rook available`` () =
         getPossibleCastlingMoveNotations "4k3/8/8/8/8/8/8/4K3 b KQkq - 0 0"
         |> Assert.Empty
+
+    [<Fact>]
+    let ``Parse Queenside castling`` () =
+        let gameState =
+            GameState.fromFen "r3k3/8/8/8/8/8/8/4K3 b q - 0 0"
+            |> GameState.makeMoveFromNotation "0-0-0"
+        let fenResult = GameState.toFen gameState
+        Assert.Equal("2kr4/8/8/8/8/8/8/4K3 w - - 1 0", fenResult)
