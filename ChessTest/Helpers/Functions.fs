@@ -30,3 +30,9 @@ let gameStateIsInCheck (fen: string) : bool =
 let moveNotationFromNotationParser (game: gameState) (notation: string) : string = 
     NotationParser.parse game.playerTurn game.board notation
     |> Move.getMoveNotation
+
+let fromFenToFenIsInverse (fen: string) : bool =
+    fen
+    |> GameState.fromFen
+    |> GameState.toFen
+    |> (=) fen
