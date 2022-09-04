@@ -57,8 +57,9 @@ module GameState =
         |> Board.derivePromotionMoves board
         |> List.append <| Board.getCastlingMoves game.playerTurn game.castlingAllowance board
     let makeMove (move: move) (game: gameState) : gameState =
+        Board.makeMove move game.board
         {
-            board = Board.makeMove move game.board
+            board = game.board
             playerTurn = Colour.opposite game.playerTurn
             castlingAllowance = 
                 match move with

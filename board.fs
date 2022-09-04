@@ -220,18 +220,17 @@ module Board =
             else
                 [Move normalMove]
         ) >> List.concat
-    let private enpassantMove (move: normalMove) (board: board) : board =
-        let board = Board.Update.applyMove move board
-        let i, j = (snd move).coordinates |> fst, (fst move).coordinates |> snd
-        board[i,j] <- Square.removePiece board[i,j]
-        board
-    let private promotionMove (move: normalMove) (promotedPieceType: pieceType) (board: board) : board =
-        let board = Board.Update.applyMove move board
+    let private enpassantMove (move: normalMove) (board: board) =
+        Board.Update.applyMove move board
+        let coordinates = (snd move).coordinates |> fst, (fst move).coordinates |> snd
+        Board.Update.Square.removePiece coordinates board
+    let private promotionMove (move: normalMove) (promotedPieceType: pieceType) (board: board) =
+        Board.Update.applyMove move board
         let promotionCoordinates = (snd move).coordinates
         let colour = Move.getMovedPiece move |> fun piece -> piece.colour
         let promotedPiece = {pieceType = promotedPieceType; colour = colour}
         Board.Update.Square.withPiece promotionCoordinates promotedPiece board
-    let private castlingMove (side: side) (colour: colour) (board: board) : board =
+    let private castlingMove (side: side) (colour: colour) (board: board) =
         let rank = 
             match colour with
             | White -> 0
@@ -244,11 +243,11 @@ module Board =
             (Board.GetSquare.fromCoordinatesName kingStart board),
             (Board.GetSquare.fromCoordinatesName kingEnd board)
         ) board
-        |> Board.Update.applyMove (
+        Board.Update.applyMove (
             (Board.GetSquare.fromCoordinatesName rookStart board),
             (Board.GetSquare.fromCoordinatesName rookEnd board)
-        )
-    let makeMove (move: move) (board: board) : board = 
+        ) board
+    let makeMove (move: move) (board: board) = 
         match move with
         | Castling (side, colour) -> 
             castlingMove side colour board
@@ -262,6 +261,8 @@ module Board =
     let getNormalMoves (colour: colour) (board: board) : normalMove list =
         Move.getNormalMoves colour board
         |> List.filter (fun move ->
-            let newBoardState = Board.Update.applyMove move board
-            not <| isInCheck colour newBoardState
+            Board.Update.applyMove move board
+            let isLegalMove = isInCheck colour board |> not
+            Board.Update.undoMove move board
+            isLegalMove
         )
