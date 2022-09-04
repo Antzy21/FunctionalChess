@@ -84,6 +84,22 @@ module GameState =
                     | White -> game.fullMoveClock + 1
                     | Black -> game.fullMoveClock
             }
+        let undoMove (move: move) (game: gameState) : gameState =
+            Board.Update.undoMove move game.board
+            {
+                board = game.board
+                playerTurn = Colour.opposite game.playerTurn
+                castlingAllowance = 
+                    match move with
+                    | Castling (side, colour) -> CastlingAllowance.addRights side colour game.castlingAllowance
+                    | _ -> game.castlingAllowance
+                enpassantSquare = Move.getPreviousEnpassantSquare move
+                halfMoveClock = game.halfMoveClock - 1
+                fullMoveClock = 
+                    match game.playerTurn with 
+                    | White -> game.fullMoveClock
+                    | Black -> game.fullMoveClock - 1
+            }
         let makeMoveFromNotation (move: string) (game: gameState) : gameState =
             let parsedMove = NotationParser.parse game.playerTurn game.board move
             makeMove parsedMove game
