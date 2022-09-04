@@ -6,8 +6,8 @@ open Checkerboard
 module GetPossibleMoves = 
 
     let private getPossibleMovesWithFilter (filter: move -> bool) (fen: string) : string list =
-        GameState.fromFen fen
-        |> GameState.getMovesForPlayer
+        GameState.Create.fromFen fen
+        |> GameState.getMoves
         |> List.filter filter
         |> List.map Move.getMoveNotation
     
@@ -37,7 +37,7 @@ module GetPossibleMoves =
         ) fen
 
 let gameStateIsInCheck (fen: string) : bool =
-    GameState.fromFen fen
+    GameState.Create.fromFen fen
     |> fun gs -> gs.board |> Board.isInCheck gs.playerTurn
 
 let moveNotationFromNotationParser (game: gameState) (notation: string) : string = 
@@ -46,6 +46,6 @@ let moveNotationFromNotationParser (game: gameState) (notation: string) : string
 
 let fromFenToFenIsInverse (fen: string) : bool =
     fen
-    |> GameState.fromFen
+    |> GameState.Create.fromFen
     |> GameState.toFen
     |> (=) fen

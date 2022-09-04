@@ -57,15 +57,15 @@ let ``Black castling blocked by moving through check`` () =
 [<Fact>]
 let ``Parse Queenside castling`` () =
     let result =
-        GameState.fromFen "r3k3/8/8/8/8/8/8/4K3 b q - 0 0"
-        |> GameState.makeMoveFromNotation "0-0-0"
+        GameState.Create.fromFen "r3k3/8/8/8/8/8/8/4K3 b q - 0 0"
+        |> GameState.Update.makeMoveFromNotation "0-0-0"
         |> GameState.toFen
     Assert.Equal("2kr4/8/8/8/8/8/8/4K3 w - - 1 0", result)
     
 [<Fact>]
 let ``Parse Kingside castling`` () =
     let result =
-        GameState.fromFen "4k2r/8/8/8/8/8/8/4K3 b k - 0 0"
-        |> GameState.makeMoveFromNotation "0-0"
+        GameState.Create.fromFen "4k2r/8/8/8/8/8/8/4K3 b k - 0 0"
+        |> GameState.Update.makeMoveFromNotation "0-0"
         |> GameState.toFen
     Assert.Equal("5rk1/8/8/8/8/8/8/4K3 w - - 1 0", result)

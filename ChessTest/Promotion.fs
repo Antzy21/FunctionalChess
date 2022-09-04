@@ -8,8 +8,8 @@ open ChessTest.Helpers.Functions
 let ``White can promote`` () =
     let result = 
         "8/P7/8/8/8/8/8/2k2K2 w - - 0 1"
-        |> GameState.fromFen
-        |> GameState.makeMoveFromNotation "a8 = Q"
+        |> GameState.Create.fromFen
+        |> GameState.Update.makeMoveFromNotation "a8 = Q"
         |> GameState.toFen
     Assert.Equal("Q7/8/8/8/8/8/8/2k2K2 b - - 1 2", result)
 
@@ -31,8 +31,8 @@ let ``Blocked from promoting`` () =
 let ``Promoting by taking`` () =
     let result = 
         "br6/P7/8/8/8/8/8/2k2K2 w - - 0 1"
-        |> GameState.fromFen
-        |> GameState.makeMoveFromNotation "xb8 = Q"
+        |> GameState.Create.fromFen
+        |> GameState.Update.makeMoveFromNotation "xb8 = Q"
         |> GameState.toFen
     Assert.Equal("bQ6/8/8/8/8/8/8/2k2K2 b - - 1 2", result)
 

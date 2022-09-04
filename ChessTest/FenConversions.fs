@@ -21,9 +21,9 @@ let ``Asymetric board`` () =
 
 [<Fact>]
 let ``Sets Enpassant square for White`` () =
-    let game = GameState.newGame ()
+    let game = GameState.Create.newGame ()
     NotationParser.parse game.playerTurn game.board "a4"
-    |> fun move -> GameState.makeMove move game
+    |> fun move -> GameState.Update.makeMove move game
     |> GameState.toFen
     |> fun fen ->
         Assert.Equal("rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 1 1", fen)
@@ -32,9 +32,9 @@ let ``Sets Enpassant square for White`` () =
 let ``Sets Enpassant square for Black`` () =
     let game = 
         "rnbqkbnr/p1pppppp/6p1/1P6/8/8/P1PPPPPP/RNBQKBNR b KQkq - 3 2"
-        |> GameState.fromFen
+        |> GameState.Create.fromFen
     NotationParser.parse game.playerTurn game.board "a5"
-    |> fun move -> GameState.makeMove move game
+    |> fun move -> GameState.Update.makeMove move game
     |> GameState.toFen
     |> fun fen ->
         Assert.Equal("rnbqkbnr/2pppppp/6p1/pP6/8/8/P1PPPPPP/RNBQKBNR w KQkq a6 4 2", fen)
@@ -42,8 +42,8 @@ let ``Sets Enpassant square for Black`` () =
 [<Fact>]
 let ``Parse e4 then e5`` () =
     let gameFen =
-        GameState.newGame ()
-        |> GameState.makeMoveFromNotation "e4"
-        |> GameState.makeMoveFromNotation "e5"
+        GameState.Create.newGame ()
+        |> GameState.Update.makeMoveFromNotation "e4"
+        |> GameState.Update.makeMoveFromNotation "e5"
         |> GameState.toFen
     Assert.Equal("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 2 1", gameFen)

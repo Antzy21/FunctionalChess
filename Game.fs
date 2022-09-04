@@ -10,6 +10,8 @@ type gameState = {
     }
 
 module GameState =
+
+    module Create =
     let fromFen (fen: string) : gameState =
         let parts = fen.Split(' ')
         let board = Board.Create.fromFen(parts[0])
@@ -33,6 +35,9 @@ module GameState =
             halfMoveClock = halfMoveClock;
             fullMoveClock = fullMoveClock;
         }
+        let newGame () : gameState =
+            fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+
     let toFen (game: gameState) : string =
         let enpassant = game.enpassantSquare |> Option.map Square.getDescription |> Option.defaultValue "-"
         let castling = CastlingAllowance.toFen game.castlingAllowance
@@ -45,15 +50,21 @@ module GameState =
         + $"{castling} "
         + $"{enpassant} "
         + $"{game.halfMoveClock} {game.fullMoveClock}"
+    let print (game: gameState) =
+        Board.print game.board
+        printfn $"\nPlayer Turn: {game.playerTurn}"
+        printf $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
+        Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") game.enpassantSquare 
+        printfn $"Turn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
         
-    let newGame () : gameState =
-        fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
-    let getMovesForPlayer (game: gameState) : move list =
+    let getMoves (game: gameState) : move list =
         let board = game.board
         Board.GetMoves.normal game.playerTurn board
         |> List.append <| Board.GetMoves.enpassant game.playerTurn game.enpassantSquare board
         |> Board.GetMoves.promotion board
         |> List.append <| Board.GetMoves.castling game.playerTurn game.castlingAllowance board
+    
+    module Update = 
     let makeMove (move: move) (game: gameState) : gameState =
         Board.Update.applyMove move game.board
         {
@@ -76,11 +87,6 @@ module GameState =
     let makeMoveFromNotation (move: string) (game: gameState) : gameState =
         let parsedMove = NotationParser.parse game.playerTurn game.board move
         makeMove parsedMove game
-    let print (game: gameState) =
-        Board.print game.board
-        printfn $"\nPlayer Turn: {game.playerTurn}"
-        printf $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
-        Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") game.enpassantSquare 
-        printfn $"Turn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
+
     let isGameOver (game: gameState) : bool =
-        getMovesForPlayer game |> List.isEmpty
+        getMoves game |> List.isEmpty
