@@ -234,17 +234,22 @@ module Board =
             )
 
     module Update =
-        let private enpassantMove (move: normalMove) (board: board) =
+        let applyEnpassant (move: normalMove) (board: board) =
             Board.Update.applyMove move board
             let coordinates = (snd move).coordinates |> fst, (fst move).coordinates |> snd
             Board.Update.Square.removePiece coordinates board
-        let private promotionMove (move: normalMove) (promotedPieceType: pieceType) (board: board) =
+        let undoEnpassant (move: normalMove) (board: board) =
+            Board.Update.applyMove move board
+            let coordinates = (snd move).coordinates |> fst, (fst move).coordinates |> snd
+            let pawn = {pieceType = Pawn; colour = Move.getMovedPieceColour move |> Colour.opposite}
+            Board.Update.Square.withPiece coordinates pawn board
+        let applyPromotion (move: normalMove) (promotedPieceType: pieceType) (board: board) =
             Board.Update.applyMove move board
             let promotionCoordinates = (snd move).coordinates
             let colour = Move.getMovedPiece move |> fun piece -> piece.colour
             let promotedPiece = {pieceType = promotedPieceType; colour = colour}
             Board.Update.Square.withPiece promotionCoordinates promotedPiece board
-        let private castlingMove (side: side) (colour: colour) (board: board) =
+        let private castlingMove (side: side) (colour: colour) (board: board) : normalMove * normalMove =
             let rank = 
                 match colour with
                 | White -> 1
@@ -253,22 +258,41 @@ module Board =
                 match side with
                 | Kingside -> $"e{rank}", $"g{rank}", $"h{rank}", $"f{rank}"
                 | Queenside -> $"e{rank}", $"c{rank}", $"a{rank}", $"d{rank}"
-            Board.Update.applyMove (
+            (
                 (Board.GetSquare.fromCoordinatesName kingStart board),
                 (Board.GetSquare.fromCoordinatesName kingEnd board)
-            ) board
-            Board.Update.applyMove (
+            ),
+            (
                 (Board.GetSquare.fromCoordinatesName rookStart board),
                 (Board.GetSquare.fromCoordinatesName rookEnd board)
-            ) board
+            )
+        let applyCastling (side: side) (colour: colour) (board: board) =
+            let kingMove, rookMove = castlingMove side colour board
+            Board.Update.applyMove kingMove board
+            Board.Update.applyMove rookMove board
+        let undoCastling (side: side) (colour: colour) (board: board) =
+            let kingMove, rookMove = castlingMove side colour board
+            Board.Update.undoMove kingMove board
+            Board.Update.undoMove rookMove board
         let applyMove (move: move) (board: board) = 
             match move with
             | Castling (side, colour) -> 
-                castlingMove side colour board
+                applyCastling side colour board
             | Promotion (move, promotedPiece) ->
-                promotionMove move promotedPiece board
+                applyPromotion move promotedPiece board
             | Move move ->
                 if Move.isEnpassant move then
-                    enpassantMove move board
+                    applyEnpassant move board
                 else
                     Board.Update.applyMove move board
+        let undoMove (move: move) (board: board) = 
+            match move with
+            | Castling (side, colour) -> 
+                undoCastling side colour board
+            | Promotion (move, _) ->
+                Board.Update.undoMove move board
+            | Move move ->
+                if Move.isEnpassant move then
+                    undoEnpassant move board
+                else
+                    Board.Update.undoMove move board
