@@ -1,7 +1,5 @@
 namespace Chess
 
-open Checkerboard
-
 type gameState = {
     board: board;
     playerTurn: colour;
@@ -24,7 +22,7 @@ module GameState =
         let enpassantSquare = 
             match parts[3] with
             | "-" -> None
-            | name -> Some (Board.GetSquare.fromCoordinatesName name board)
+            | name -> Some (Checkerboard.Board.GetSquare.fromCoordinatesName name board)
         let halfMoveClock = int(parts[4])
         let fullMoveClock = int(parts[5])
         {
@@ -52,12 +50,12 @@ module GameState =
         fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
     let getMovesForPlayer (game: gameState) : move list =
         let board = game.board
-        Board.getNormalMoves game.playerTurn board
-        |> List.append <| Board.getEnpassantMoves game.playerTurn game.enpassantSquare board
-        |> Board.derivePromotionMoves board
-        |> List.append <| Board.getCastlingMoves game.playerTurn game.castlingAllowance board
+        Board.GetMoves.normal game.playerTurn board
+        |> List.append <| Board.GetMoves.enpassant game.playerTurn game.enpassantSquare board
+        |> Board.GetMoves.promotion board
+        |> List.append <| Board.GetMoves.castling game.playerTurn game.castlingAllowance board
     let makeMove (move: move) (game: gameState) : gameState =
-        Board.makeMove move game.board
+        Board.Update.applyMove move game.board
         {
             board = game.board
             playerTurn = Colour.opposite game.playerTurn
