@@ -21,6 +21,12 @@ module Move =
         (Move.getMovedPiece move).pieceType = Pawn &&
         Move.getPieceAtDestination move |> Option.isNone &&
         Move.getShift move |> fun (i, j) -> (abs(i), abs(j)) = (1,1)
+    let getPreviousEnpassantSquare (move: move) : square option =
+        match move with
+        | Move move when isEnpassant move ->
+            Some (snd move)
+        | _ ->
+            None // Without previous move knowledge, this is impossible to know
     let getEnPassantSquare (move: normalMove) : square option = 
         if getMovedPieceType move = Pawn && List.contains (Move.getShift move) [(0,2); (0,-2)] then
             let startingSquare = fst move
