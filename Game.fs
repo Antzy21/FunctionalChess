@@ -12,29 +12,29 @@ type gameState = {
 module GameState =
 
     module Create =
-    let fromFen (fen: string) : gameState =
-        let parts = fen.Split(' ')
-        let board = Board.Create.fromFen(parts[0])
-        let playerTurn =
-            match parts[1] with
-            | "w" -> White
-            | "b" -> Black
-            | c -> failwith $"Error in FEN: Cannot determine player turn from {c}" 
-        let castlingAllowance = CastlingAllowance.fromFen parts[2]
-        let enpassantSquare = 
-            match parts[3] with
-            | "-" -> None
-            | name -> Some (Checkerboard.Board.GetSquare.fromCoordinatesName name board)
-        let halfMoveClock = int(parts[4])
-        let fullMoveClock = int(parts[5])
-        {
-            board = board;
-            playerTurn = playerTurn;
-            castlingAllowance = castlingAllowance;
-            enpassantSquare = enpassantSquare;
-            halfMoveClock = halfMoveClock;
-            fullMoveClock = fullMoveClock;
-        }
+        let fromFen (fen: string) : gameState =
+            let parts = fen.Split(' ')
+            let board = Board.Create.fromFen(parts[0])
+            let playerTurn =
+                match parts[1] with
+                | "w" -> White
+                | "b" -> Black
+                | c -> failwith $"Error in FEN: Cannot determine player turn from {c}" 
+            let castlingAllowance = CastlingAllowance.fromFen parts[2]
+            let enpassantSquare = 
+                match parts[3] with
+                | "-" -> None
+                | name -> Some (Checkerboard.Board.GetSquare.fromCoordinatesName name board)
+            let halfMoveClock = int(parts[4])
+            let fullMoveClock = int(parts[5])
+            {
+                board = board;
+                playerTurn = playerTurn;
+                castlingAllowance = castlingAllowance;
+                enpassantSquare = enpassantSquare;
+                halfMoveClock = halfMoveClock;
+                fullMoveClock = fullMoveClock;
+            }
         let newGame () : gameState =
             fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
 
@@ -65,28 +65,28 @@ module GameState =
         |> List.append <| Board.GetMoves.castling game.playerTurn game.castlingAllowance board
     
     module Update = 
-    let makeMove (move: move) (game: gameState) : gameState =
-        Board.Update.applyMove move game.board
-        {
-            board = game.board
-            playerTurn = Colour.opposite game.playerTurn
-            castlingAllowance = 
-                match move with
-                | Castling (side, colour) -> CastlingAllowance.removeRights colour side game.castlingAllowance
-                | _ -> game.castlingAllowance
-            enpassantSquare = 
-                match move with
-                | Move move -> Move.getEnPassantSquare move                  
-                | _ -> game.enpassantSquare
-            halfMoveClock = game.halfMoveClock + 1
-            fullMoveClock = 
-                match game.playerTurn with 
-                | White -> game.fullMoveClock + 1
-                | Black -> game.fullMoveClock
-        }
-    let makeMoveFromNotation (move: string) (game: gameState) : gameState =
-        let parsedMove = NotationParser.parse game.playerTurn game.board move
-        makeMove parsedMove game
+        let makeMove (move: move) (game: gameState) : gameState =
+            Board.Update.applyMove move game.board
+            {
+                board = game.board
+                playerTurn = Colour.opposite game.playerTurn
+                castlingAllowance = 
+                    match move with
+                    | Castling (side, colour) -> CastlingAllowance.removeRights side colour game.castlingAllowance
+                    | _ -> game.castlingAllowance
+                enpassantSquare = 
+                    match move with
+                    | Move move -> Move.getEnPassantSquare move                  
+                    | _ -> game.enpassantSquare
+                halfMoveClock = game.halfMoveClock + 1
+                fullMoveClock = 
+                    match game.playerTurn with 
+                    | White -> game.fullMoveClock + 1
+                    | Black -> game.fullMoveClock
+            }
+        let makeMoveFromNotation (move: string) (game: gameState) : gameState =
+            let parsedMove = NotationParser.parse game.playerTurn game.board move
+            makeMove parsedMove game
 
     let isGameOver (game: gameState) : bool =
         getMoves game |> List.isEmpty

@@ -37,12 +37,14 @@ module CastlingAllowance =
             "-"
         else
             allowances
-    let removeRights (colour: colour) (side: side) (ca: castlingAllowance) : castlingAllowance =
+    let private modifyRights (setting: bool) (side: side) (colour: colour) (ca: castlingAllowance) : castlingAllowance =
         match colour, side with
-        | White, Kingside -> {whiteKingside = false; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = ca.blackQueenside}
-        | White, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = false; blackKingside = ca.blackKingside; blackQueenside = ca.blackQueenside}
-        | Black, Kingside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = false; blackQueenside = ca.blackQueenside}
-        | Black, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = false}
+        | White, Kingside -> {whiteKingside = setting; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = ca.blackQueenside}
+        | White, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = setting; blackKingside = ca.blackKingside; blackQueenside = ca.blackQueenside}
+        | Black, Kingside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = setting; blackQueenside = ca.blackQueenside}
+        | Black, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = setting}
+    let removeRights = modifyRights false
+    let addRights = modifyRights false        
     let print (castling: castlingAllowance) : string=
         if castling.whiteKingside then
             "White 0-0, "
