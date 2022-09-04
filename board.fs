@@ -125,7 +125,7 @@ module Board =
             playerVision colour board
             |> List.contains square
         let isAtEndsOfBoard (square: square) (board: board) : bool =
-            List.contains (snd square.coordinates) [0; Array2D.length2 board]
+            List.contains (snd square.coordinates) [0; Array2D.length2 board - 1]
 
     module Move =
         let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
