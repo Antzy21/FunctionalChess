@@ -61,3 +61,11 @@ let ``Parse Queenside castling`` () =
         |> GameState.makeMoveFromNotation "0-0-0"
         |> GameState.toFen
     Assert.Equal("2kr4/8/8/8/8/8/8/4K3 w - - 1 0", result)
+    
+[<Fact>]
+let ``Parse Kingside castling`` () =
+    let result =
+        GameState.fromFen "4k2r/8/8/8/8/8/8/4K3 b k - 0 0"
+        |> GameState.makeMoveFromNotation "0-0"
+        |> GameState.toFen
+    Assert.Equal("5rk1/8/8/8/8/8/8/4K3 w - - 1 0", result)
