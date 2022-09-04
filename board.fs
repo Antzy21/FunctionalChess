@@ -247,8 +247,8 @@ module Board =
         let private castlingMove (side: side) (colour: colour) (board: board) =
             let rank = 
                 match colour with
-                | White -> 0
-                | Black -> 7
+                | White -> 1
+                | Black -> 8
             let kingStart, kingEnd, rookStart, rookEnd = 
                 match side with
                 | Kingside -> $"e{rank}", $"g{rank}", $"h{rank}", $"f{rank}"
