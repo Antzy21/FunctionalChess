@@ -252,19 +252,19 @@ module Board =
         let private castlingMove (side: side) (colour: colour) (board: board) : normalMove * normalMove =
             let rank = 
                 match colour with
-                | White -> 1
-                | Black -> 8
+                | White -> 0
+                | Black -> 7
             let kingStart, kingEnd, rookStart, rookEnd = 
                 match side with
-                | Kingside -> $"e{rank}", $"g{rank}", $"h{rank}", $"f{rank}"
-                | Queenside -> $"e{rank}", $"c{rank}", $"a{rank}", $"d{rank}"
+                | Kingside -> (4, rank), (6, rank), (7, rank), (5, rank)
+                | Queenside -> (4, rank), (2, rank), (0, rank), (3, rank)
             (
-                (Board.GetSquare.fromCoordinatesName kingStart board),
-                (Board.GetSquare.fromCoordinatesName kingEnd board)
+                {piece = Some {pieceType = King; colour = colour}; coordinates = kingStart},
+                {piece = None; coordinates = kingEnd}
             ),
             (
-                (Board.GetSquare.fromCoordinatesName rookStart board),
-                (Board.GetSquare.fromCoordinatesName rookEnd board)
+                {piece = Some {pieceType = Rook; colour = colour}; coordinates = rookStart},
+                {piece = None; coordinates = rookEnd}
             )
         let applyCastling (side: side) (colour: colour) (board: board) =
             let kingMove, rookMove = castlingMove side colour board
