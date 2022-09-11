@@ -44,7 +44,7 @@ module CastlingAllowance =
         | Black, Kingside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = setting; blackQueenside = ca.blackQueenside}
         | Black, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = setting}
     let removeRights = modifyRights false
-    let addRights = modifyRights false        
+    let addRights = modifyRights true        
     let print (castling: castlingAllowance) : string=
         if castling.whiteKingside then
             "White 0-0, "
