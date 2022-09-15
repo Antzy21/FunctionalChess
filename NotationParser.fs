@@ -48,7 +48,10 @@ module NotationParser =
             (tryParseSquare board fstSquare, tryParseSquare board sndSquare)
             ||> Option.map2 (fun fs ss -> (fs, ss))
         | _ -> None
-
+    let parseFullNotation (board: board) (move: string) : normalMove =
+        tryParseFullNotation board move
+        |> Option.failOnNone "Failed to parse notation"
+    
     let tryParse (colour: colour) (board: board) (move: string) : move option =
         match move with
         | "0-0-0" ->
