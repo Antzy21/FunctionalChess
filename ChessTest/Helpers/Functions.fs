@@ -17,7 +17,8 @@ module GetPossibleMoves =
     let forPieceType (pieceType: pieceType) (fen: string) : string list =
         getPossibleMovesWithFilter (fun move ->
             match move with
-            | Move move -> Move.getMovedPieceType move |> (=) pieceType
+            | NormalMove move -> Move.getMovedPieceType move |> (=) pieceType
+            | EnPassant move -> Move.getMovedPieceType move |> (=) pieceType
             | Promotion (move, _) -> Move.getMovedPieceType move |> (=) pieceType
             | Castling _ -> false
         ) fen
@@ -25,7 +26,7 @@ module GetPossibleMoves =
     let fromSquare (squareName: string) (fen: string) : string list =
         getPossibleMovesWithFilter (fun move ->
             match move with
-            | Move move -> fst move |> Square.getCoordinatesName |> (=) squareName
+            | NormalMove move -> fst move |> Square.getCoordinatesName |> (=) squareName
             | _ -> false
         ) fen
 
@@ -43,6 +44,37 @@ let gameStateIsInCheck (fen: string) : bool =
 let moveNotationFromNotationParser (game: gameState) (notation: string) : string = 
     NotationParser.parse game.playerTurn game.board notation
     |> Move.getMoveNotation
+    
+module UpdateWithMove =
+    let applyMove (fen: string) (move: move) : string =
+        let gs = GameState.Create.fromFen fen
+        GameState.Update.makeMove move gs
+        |> GameState.toFen
+    
+    let parseMoveAndApplyIt (fen: string) (notation: string) : string =
+        let gs = GameState.Create.fromFen fen
+        let move = NotationParser.parse (Colour.opposite gs.playerTurn) gs.board notation
+        GameState.Update.makeMove move gs
+        |> GameState.toFen
+    
+    let undoMove (fen: string) (move: move) : string =
+        let gs = GameState.Create.fromFen fen
+        GameState.Update.undoMove move gs
+        |> GameState.toFen    
+
+    let parseMoveAndUndoIt (fen: string) (notation: string) : string =
+        let gs = GameState.Create.fromFen fen
+        let move = NotationParser.parse (Colour.opposite gs.playerTurn) gs.board notation
+        GameState.Update.undoMove move gs
+        |> GameState.toFen
+    
+let fromFenToFenIsInverseAfterMove (fen: string) (notation: string) : bool =
+    let gs = GameState.Create.fromFen fen
+    let move = NotationParser.parse gs.playerTurn gs.board notation
+    GameState.Update.makeMove move gs
+    |> GameState.Update.undoMove move
+    |> GameState.toFen
+    |> (=) fen
 
 let fromFenToFenIsInverse (fen: string) : bool =
     fen
