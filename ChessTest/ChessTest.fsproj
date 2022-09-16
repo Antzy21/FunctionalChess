@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Helpers\Data.fs" />
     <Compile Include="Helpers\Functions.fs" />
   </ItemGroup>
 	
