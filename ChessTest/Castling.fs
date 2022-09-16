@@ -2,7 +2,6 @@ module Castling
 
 open Xunit
 open ChessTest.Helpers.Functions
-open Chess
 
 [<Fact>]
 let ``Castling both sides possible for White`` () =
@@ -53,47 +52,3 @@ let ``No rook available`` () =
 let ``Black castling blocked by moving through check`` () =
     GetPossibleMoves.castling "r3k2r/8/8/8/8/8/8/3RKR2 b KQkq - 1 2"
     |> Assert.Empty
-        
-[<Fact>]
-let ``Parse Queenside castling`` () =
-    let result =
-        GameState.Create.fromFen "r3k3/8/8/8/8/8/8/4K3 b q - 0 0"
-        |> GameState.Update.makeMoveFromNotation "0-0-0"
-        |> GameState.toFen
-    Assert.Equal("2kr4/8/8/8/8/8/8/4K3 w - - 1 0", result)
-    
-[<Fact>]
-let ``Parse Kingside castling`` () =
-    let result =
-        GameState.Create.fromFen "4k2r/8/8/8/8/8/8/4K3 b k - 0 0"
-        |> GameState.Update.makeMoveFromNotation "0-0"
-        |> GameState.toFen
-    Assert.Equal("5rk1/8/8/8/8/8/8/4K3 w - - 1 0", result)
-    
-[<Fact>]
-let ``Parse undo Kingside castling`` () =
-    let result =
-        GameState.Create.fromFen "5rk1/8/8/8/8/8/8/4K3 w - - 1 0"
-        |> GameState.Update.undoMoveFromNotation "0-0"
-        |> GameState.toFen
-    Assert.Equal("4k2r/8/8/8/8/8/8/4K3 b k - 0 0", result)
-
-[<Fact>]
-let ``Make and undo Kingside castling`` () =
-    let initialFen = "r3k2r/8/8/8/8/8/8/4K3 b k - 0 0"
-    let result =
-        GameState.Create.fromFen initialFen
-        |> GameState.Update.makeMoveFromNotation "0-0"
-        |> GameState.Update.undoMoveFromNotation "0-0"
-        |> GameState.toFen
-    Assert.Equal(initialFen, result)
-
-[<Fact>]
-let ``Make and undo Queenside castling`` () =
-    let initialFen = "r3k2r/8/8/8/8/8/8/4K3 b q - 0 0"
-    let result =
-        GameState.Create.fromFen initialFen
-        |> GameState.Update.makeMoveFromNotation "0-0-0"
-        |> GameState.Update.undoMoveFromNotation "0-0-0"
-        |> GameState.toFen
-    Assert.Equal(initialFen, result)
