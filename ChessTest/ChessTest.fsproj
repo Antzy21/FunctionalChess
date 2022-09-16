@@ -15,10 +15,8 @@
   <ItemGroup>
     <Compile Include="FenConversions.fs" />
     <Compile Include="Moves.fs" />
+    <Compile Include="GetMoves.fs" />
     <Compile Include="Check.fs" />
-    <Compile Include="Castling.fs" />
-    <Compile Include="Enpassant.fs" />
-    <Compile Include="Promotion.fs" />
     <Compile Include="NotationParser.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
