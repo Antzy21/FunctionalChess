@@ -60,8 +60,8 @@ module GameState =
     let getMoves (game: gameState) : move list =
         let board = game.board
         Board.GetMoves.normal game.playerTurn board
-        |> List.append <| Board.GetMoves.enpassant game.playerTurn game.enpassantSquare board
         |> Board.GetMoves.promotion board
+        |> List.append <| Board.GetMoves.enpassant game.playerTurn game.enpassantSquare board
         |> List.append <| Board.GetMoves.castling game.playerTurn game.castlingAllowance board
     
     module Update = 
@@ -76,8 +76,8 @@ module GameState =
                     | _ -> game.castlingAllowance
                 enpassantSquare = 
                     match move with
-                    | Move move -> Move.getEnPassantSquare move                  
-                    | _ -> game.enpassantSquare
+                    | NormalMove move -> Move.Enpassant.getEnPassantSquare move |> Some
+                    | _ -> None
                 halfMoveClock = game.halfMoveClock + 1
                 fullMoveClock = 
                     match game.playerTurn with 
@@ -93,7 +93,7 @@ module GameState =
                     match move with
                     | Castling (side, colour) -> CastlingAllowance.addRights side colour game.castlingAllowance
                     | _ -> game.castlingAllowance
-                enpassantSquare = Move.getPreviousEnpassantSquare move
+                enpassantSquare = Move.Enpassant.getPreviousEnpassantSquare move
                 halfMoveClock = game.halfMoveClock - 1
                 fullMoveClock = 
                     match game.playerTurn with 

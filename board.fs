@@ -150,7 +150,7 @@ module Board =
         |> Square.isVisibleByPlayer (Colour.opposite colour) board
 
     module GetMoves =
-        let internal enpassant (colour: colour) (enpassantSquareOption: square option) (board: board) : normalMove list =
+        let internal enpassant (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
             match enpassantSquareOption with
             | None -> []
             | Some enpassantSquare -> 
@@ -166,7 +166,7 @@ module Board =
                     | _ -> false
                 )
                 |> List.map (fun square ->
-                    (square, board.[fst pos, snd pos])
+                    EnPassant (square, board.[fst pos, snd pos])
                 )
         let internal castling (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
             let row, kingSide, queenSide = 
@@ -222,7 +222,7 @@ module Board =
                         Promotion (normalMove, pieceType)
                     )
                 else
-                    [Move normalMove]
+                    [NormalMove normalMove]
             ) >> List.concat
         let normal (colour: colour) (board: board) : normalMove list =
             Move.getNormalMoves colour board
@@ -239,7 +239,7 @@ module Board =
             let coordinates = (snd move).coordinates |> fst, (fst move).coordinates |> snd
             Board.Update.Square.removePiece coordinates board
         let undoEnpassant (move: normalMove) (board: board) =
-            Board.Update.applyMove move board
+            Board.Update.undoMove move board
             let coordinates = (snd move).coordinates |> fst, (fst move).coordinates |> snd
             let pawn = {pieceType = Pawn; colour = Move.getMovedPieceColour move |> Colour.opposite}
             Board.Update.Square.withPiece coordinates pawn board
@@ -280,19 +280,17 @@ module Board =
                 applyCastling side colour board
             | Promotion (move, promotedPiece) ->
                 applyPromotion move promotedPiece board
-            | Move move ->
-                if Move.isEnpassant move then
-                    applyEnpassant move board
-                else
-                    Board.Update.applyMove move board
+            | EnPassant move ->
+                applyEnpassant move board
+            | NormalMove move ->
+                Board.Update.applyMove move board
         let undoMove (move: move) (board: board) = 
             match move with
             | Castling (side, colour) -> 
                 undoCastling side colour board
             | Promotion (move, _) ->
                 Board.Update.undoMove move board
-            | Move move ->
-                if Move.isEnpassant move then
-                    undoEnpassant move board
-                else
-                    Board.Update.undoMove move board
+            | EnPassant move ->
+                undoEnpassant move board
+            | NormalMove move ->
+                Board.Update.undoMove move board
