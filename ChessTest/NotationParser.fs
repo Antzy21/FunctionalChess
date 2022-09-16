@@ -1,63 +1,81 @@
-﻿module NotationParser
+﻿namespace NotationParser
 
 open Xunit
 open Chess
-open ChessTest.Helpers.Functions
+open ChessTest.Helpers.Data
 
-[<Fact>]
-let ``Parse e4 move`` () =
-    let game = GameState.Create.newGame()
-    let fullNotation = moveNotationFromNotationParser game "e4" 
-    Assert.Equal("Pe2 -> e4", fullNotation)
+module ParseLong =
+    [<Fact>]
+    let ``e4`` () =
+        let result = NotationParser.parseFullNotation "Pe2 -> e4"
+        Assert.Equal(Moves.WhiteMove1, NormalMove result)
         
-[<Fact>]
-let ``Parse e3 move`` () =
-    let game = GameState.Create.newGame()
-    let fullNotation = moveNotationFromNotationParser game "e3" 
-    Assert.Equal("Pe2 -> e3", fullNotation)
+    [<Fact>]
+    let ``d5`` () =
+        let result = NotationParser.parseFullNotation "pd7 -> d5"
+        Assert.Equal(Moves.BlackMove1, NormalMove result)
+        
+    [<Fact>]
+    let ``xd5`` () =
+        let result = NotationParser.parseFullNotation "Pe4 -> xpd5"
+        Assert.Equal(Moves.WhiteMove2, NormalMove result)
+        
+    [<Fact>]
+    let ``nf6`` () =
+        let result = NotationParser.parseFullNotation "ng8 -> f6"
+        Assert.Equal(Moves.BlackMove2, NormalMove result)
+        
+module ParseShort =
+    [<Fact>]
+    let ``e4`` () =
+        let board = Board.Create.starting ()
+        let result = NotationParser.parse White board "e4"
+        Assert.Equal(Moves.WhiteMove1, result)
+        
+module Castling =
+    [<Fact>]
+    let ``White Kingside`` () =
+        let gs = GameState.Create.fromFen Fens.Castling.PreWhite
+        let result = NotationParser.parse gs.playerTurn gs.board "0-0"
+        Assert.Equal(Castling (Kingside, White), result)
+    [<Fact>]
+    let ``White Queenside`` () =
+        let gs = GameState.Create.fromFen Fens.Castling.PreWhite
+        let result = NotationParser.parse gs.playerTurn gs.board "0-0-0"
+        Assert.Equal(Castling (Queenside, White), result)
+    [<Fact>]
+    let ``Black Kingside`` () =
+        let gs = GameState.Create.fromFen Fens.Castling.PreBlack
+        let result = NotationParser.parse gs.playerTurn gs.board "0-0"
+        Assert.Equal(Castling (Kingside, Black), result)
+    [<Fact>]
+    let ``Black Queenside`` () =
+        let gs = GameState.Create.fromFen Fens.Castling.PreBlack
+        let result = NotationParser.parse gs.playerTurn gs.board "0-0-0"
+        Assert.Equal(Castling (Queenside, Black), result)
 
-[<Fact>]
-let ``Parse Nc3 move`` () =
-    let game = GameState.Create.newGame()
-    let fullNotation = moveNotationFromNotationParser game "Nc3"
-    Assert.Equal("Nb1 -> c3", fullNotation)
+module Enpassant =
+    [<Fact>]
+    let ``White`` () =
+        let gs = GameState.Create.fromFen Fens.Enpassant.PreWhite
+        let result = NotationParser.parse gs.playerTurn gs.board "Pb5 -> xpa6 e.p."
+        Assert.Equal(Moves.EnPassant.White, result)
     
-[<Fact>]
-let ``Parse xd5 move`` () =
-    let game = GameState.Create.fromFen "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 2 1"
-    let fullNotation = moveNotationFromNotationParser game "xd5"        
-    Assert.Equal("Pe4 -> xPd5", fullNotation)
+    [<Fact>]
+    let ``Black`` () =
+        let gs = GameState.Create.fromFen Fens.Enpassant.PreBlack
+        let result = NotationParser.parse gs.playerTurn gs.board "pb4 -> xPa3 e.p."
+        Assert.Equal(Moves.EnPassant.Black, result)
 
-[<Fact>]
-let ``Parse Enpassant`` () =
-    let game = GameState.Create.fromFen "rnbqkbnr/1ppppppp/8/pP6/8/8/P1PPPPPP/RNBQKBNR w KQkq a6 4 2"
-    let fullNotation = moveNotationFromNotationParser game "xa6"
-    Assert.Equal("Pb5 -> xpa6", fullNotation)
-
-[<Fact>]
-let ``Parse Full Notation of e4`` () =
-    let game = GameState.Create.newGame()
-    let fullNotation = moveNotationFromNotationParser game "Pe2 -> e4" 
-    Assert.Equal("Pe2 -> e4", fullNotation)
-        
-[<Fact>]
-let ``Parse Full Notation of Nc3`` () =
-    let game = GameState.Create.newGame()
-    let fullNotation = moveNotationFromNotationParser game "Nb1 -> c3" 
-    Assert.Equal("Nb1 -> c3", fullNotation)
-
-[<Fact>]
-let ``Parse e5 move`` () =
-    let game =
-        GameState.Create.newGame()
-        |> GameState.Update.makeMoveFromNotation "e4"
-    let fullNotation = moveNotationFromNotationParser game "e5" 
-    Assert.Equal("pe7 -> e5", fullNotation)
-
-[<Fact>]
-let ``Setup a6 enpassant`` () =
-    let game = 
-        "rnbqkbnr/p1pppppp/6p1/1P6/8/8/P1PPPPPP/RNBQKBNR b KQkq - 3 2"
-        |> GameState.Create.fromFen
-    let fullNotation = moveNotationFromNotationParser game "a5"
-    Assert.Equal("pa7 -> a5", fullNotation)
+module Promotion =
+    [<Fact>]
+    let ``White`` () =
+        let gs = GameState.Create.fromFen Fens.Promotion.PreWhite1
+        let result = NotationParser.parse gs.playerTurn gs.board "Pa7 -> a8 = Q"
+        Assert.Equal(Moves.Promotion.White1, result)
+    
+    [<Fact>]
+    let ``White taking`` () =
+        let gs = GameState.Create.fromFen Fens.Promotion.PreWhite2
+        let result = NotationParser.parse gs.playerTurn gs.board "Pa7 -> xnb8 = R"
+        Assert.Equal(Moves.Promotion.White2, result)
