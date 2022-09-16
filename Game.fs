@@ -103,9 +103,6 @@ module GameState =
         let makeMoveFromNotation (move: string) (game: gameState) : gameState =
             let parsedMove = NotationParser.parse game.playerTurn game.board move
             makeMove parsedMove game
-        let undoMoveFromNotation (move: string) (game: gameState) : gameState =
-            let parsedMove = NotationParser.parse (Colour.opposite game.playerTurn) game.board move
-            undoMove parsedMove game
 
     let isGameOver (game: gameState) : bool =
         getMoves game |> List.isEmpty
