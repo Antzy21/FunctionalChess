@@ -76,7 +76,7 @@ module GameState =
                     | _ -> game.castlingAllowance
                 enpassantSquare = 
                     match move with
-                    | NormalMove move -> Move.Enpassant.getEnPassantSquare move |> Some
+                    | NormalMove move -> Move.Enpassant.getEnPassantSquare move
                     | _ -> None
                 halfMoveClock = game.halfMoveClock + 1
                 fullMoveClock = 

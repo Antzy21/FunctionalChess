@@ -27,16 +27,19 @@ module Move =
                 Some (snd move)
             | _ ->
                 None // Without previous move knowledge, this is impossible to know
-        let getEnPassantSquare (enpassantMove: normalMove) : square = 
-            let startingSquare = fst enpassantMove
-            let shift = 
-                match getMovedPieceColour enpassantMove with                
-                | White -> (0,1)
-                | Black -> (0,-1)
-            {
-                coordinates = Coordinates.afterShift shift startingSquare.coordinates;
-                piece = None
-            }
+        let getEnPassantSquare (move: normalMove) : square option = 
+            if getMovedPieceType move = Pawn && List.contains (Move.getShift move) [(0,2); (0,-2)] then
+                let startingSquare = fst move
+                let shift = 
+                    match getMovedPieceColour move with                
+                    | White -> (0,1)
+                    | Black -> (0,-1)
+                Some {
+                    coordinates = Coordinates.afterShift shift startingSquare.coordinates;
+                    piece = None
+                }
+            else
+                None
     
     let getMoveNotation (move: move) : string =
         match move with
