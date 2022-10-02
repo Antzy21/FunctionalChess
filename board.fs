@@ -150,15 +150,15 @@ module Board =
         |> Square.isVisibleByPlayer (Colour.opposite colour) board
 
     module GetMoves =
-        let internal enpassant (colour: colour) (enpassantSquareOption: square option) (board: board) : move list =
+        let internal enpassant (colour: colour) (enpassantSquareOption: coordinates option) (board: board) : move list =
             match enpassantSquareOption with
             | None -> []
-            | Some enpassantSquare -> 
+            | Some enpassantCoordinates -> 
                 let direction =
                     match colour with
                     | White -> -1
                     | Black -> 1
-                let pos = enpassantSquare.coordinates
+                let pos = enpassantCoordinates
                 Board.GetSquares.afterShifts pos board [(-1, direction);(+1, direction);]
                 |> List.filter (fun square -> 
                     match square.piece with

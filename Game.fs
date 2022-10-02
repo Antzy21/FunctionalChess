@@ -4,7 +4,7 @@ type gameState = {
     board: board;
     playerTurn: colour;
     castlingAllowance: castlingAllowance;
-    enpassantSquare: square option;
+    enpassantCoordinates: (Checkerboard.coordinates option) list;
     halfMoveClock: int;
     fullMoveClock: int;
     }
@@ -21,17 +21,17 @@ module GameState =
                 | "b" -> Black
                 | c -> failwith $"Error in FEN: Cannot determine player turn from {c}" 
             let castlingAllowance = CastlingAllowance.fromFen parts[2]
-            let enpassantSquare = 
+            let enpassantCoordinates = 
                 match parts[3] with
-                | "-" -> None
-                | name -> Some (Checkerboard.Board.GetSquare.fromCoordinatesName name board)
+                | "-" -> [None]
+                | name -> [Some (Checkerboard.Coordinates.fromName name)]
             let halfMoveClock = int(parts[4])
             let fullMoveClock = int(parts[5])
             {
                 board = board;
                 playerTurn = playerTurn;
                 castlingAllowance = castlingAllowance;
-                enpassantSquare = enpassantSquare;
+                enpassantCoordinates = enpassantCoordinates;
                 halfMoveClock = halfMoveClock;
                 fullMoveClock = fullMoveClock;
             }
@@ -39,7 +39,10 @@ module GameState =
             fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
 
     let toFen (game: gameState) : string =
-        let enpassant = game.enpassantSquare |> Option.map Square.getDescription |> Option.defaultValue "-"
+        let enpassant =
+            (List.head game.enpassantCoordinates)
+            |> Option.map (Checkerboard.Coordinates.getName)
+            |> Option.defaultValue "-"
         let castling = CastlingAllowance.toFen game.castlingAllowance
         let playerTurn = 
             match game.playerTurn with
@@ -53,15 +56,15 @@ module GameState =
     let print (game: gameState) =
         Board.print game.board
         printfn $"\nPlayer Turn: {game.playerTurn}"
-        printf $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
-        Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") game.enpassantSquare 
+        printfn $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
+        Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") (List.head game.enpassantCoordinates)
         printfn $"Turn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
         
     let getMoves (game: gameState) : move list =
         let board = game.board
         Board.GetMoves.normal game.playerTurn board
         |> Board.GetMoves.promotion board
-        |> List.append <| Board.GetMoves.enpassant game.playerTurn game.enpassantSquare board
+        |> List.append <| Board.GetMoves.enpassant game.playerTurn (List.head game.enpassantCoordinates) board
         |> List.append <| Board.GetMoves.castling game.playerTurn game.castlingAllowance board
     
     module Update = 
@@ -74,10 +77,11 @@ module GameState =
                     match move with
                     | Castling (side, colour) -> CastlingAllowance.removeRights side colour game.castlingAllowance
                     | _ -> game.castlingAllowance
-                enpassantSquare = 
+                enpassantCoordinates = 
                     match move with
-                    | NormalMove move -> Move.Enpassant.getEnPassantSquare move
+                    | NormalMove move -> Move.Enpassant.getEnPassantCoordinates move
                     | _ -> None
+                    :: game.enpassantCoordinates
                 halfMoveClock = game.halfMoveClock + 1
                 fullMoveClock = 
                     match game.playerTurn with 
@@ -93,7 +97,10 @@ module GameState =
                     match move with
                     | Castling (side, colour) -> CastlingAllowance.addRights side colour game.castlingAllowance
                     | _ -> game.castlingAllowance
-                enpassantSquare = Move.Enpassant.getPreviousEnpassantSquare move
+                enpassantCoordinates = 
+                    match game.enpassantCoordinates with
+                    | [] | _::[] -> [None]
+                    | _::t -> t
                 halfMoveClock = game.halfMoveClock - 1
                 fullMoveClock = 
                     match game.playerTurn with 

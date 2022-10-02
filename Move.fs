@@ -21,23 +21,14 @@ module Move =
         |> fun piece -> piece.colour
 
     module Enpassant =
-        let getPreviousEnpassantSquare (move: move) : square option =
-            match move with
-            | EnPassant move ->
-                Some (snd move)
-            | _ ->
-                None // Without previous move knowledge, this is impossible to know
-        let getEnPassantSquare (move: normalMove) : square option = 
+        let getEnPassantCoordinates (move: normalMove) : coordinates option = 
             if getMovedPieceType move = Pawn && List.contains (Move.getShift move) [(0,2); (0,-2)] then
                 let startingSquare = fst move
                 let shift = 
                     match getMovedPieceColour move with                
                     | White -> (0,1)
                     | Black -> (0,-1)
-                Some {
-                    coordinates = Coordinates.afterShift shift startingSquare.coordinates;
-                    piece = None
-                }
+                Some (Coordinates.afterShift shift startingSquare.coordinates)
             else
                 None
     
@@ -72,6 +63,8 @@ module Move =
                 $"{move |> fst |> Square.getDescription} -> " +
                 $"{(move |> snd |> Square.getCoordinatesName)}"
 
+    //let getPgnMoveNotation (move: move) : string =
+        
 
     let printMoveNotation (move: move) =
         printfn $"{getMoveNotation move}"
