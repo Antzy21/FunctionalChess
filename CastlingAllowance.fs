@@ -47,7 +47,7 @@ module CastlingAllowance =
     let addRights = modifyRights true        
     let print (castling: castlingAllowance) : string=
         if castling.whiteKingside then
-            "White 0-0, "
+            "W 0-0, "
         else
             "-, "
         +
