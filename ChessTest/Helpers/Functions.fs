@@ -9,7 +9,7 @@ module GetPossibleMoves =
         GameState.Create.fromFen fen
         |> GameState.getMoves
         |> List.filter filter
-        |> List.map Move.getMoveNotation
+        |> List.map Move.getFullNotation
     
     let all (fen: string) : string list =
         getPossibleMovesWithFilter (fun _ -> true) fen
@@ -43,7 +43,7 @@ let gameStateIsInCheck (fen: string) : bool =
 
 let moveNotationFromNotationParser (game: gameState) (notation: string) : string = 
     NotationParser.parse game.playerTurn game.board notation
-    |> Move.getMoveNotation
+    |> Move.getFullNotation
     
 module UpdateWithMove =
     let applyMove (fen: string) (move: move) : string =

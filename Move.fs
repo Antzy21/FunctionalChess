@@ -32,7 +32,7 @@ module Move =
             else
                 None
     
-    let getMoveNotation (move: move) : string =
+    let getFullNotation (move: move) : string =
         match move with
         | Castling (Kingside, _) -> "0-0"
         | Castling (Queenside, _) -> "0-0-0"
@@ -63,8 +63,39 @@ module Move =
                 $"{move |> fst |> Square.getDescription} -> " +
                 $"{(move |> snd |> Square.getCoordinatesName)}"
 
-    //let getPgnMoveNotation (move: move) : string =
-        
+    let getAlgebraicNotation (move: move) : string =
+        match move with
+        | Castling (Kingside, _) -> "0-0"
+        | Castling (Queenside, _) -> "0-0-0"
+        | Promotion (move, promotedPieceType) ->
+            let timesSignIfTaken =
+                if Move.getShift move |> fst <> 0 then
+                    (fst move |> Square.getFile)
+                    + "x"
+                else ""
+            timesSignIfTaken +
+            $"{(move |> snd |> Square.getCoordinatesName)}" +
+            "=" +
+            $"{(PieceType.getLetter promotedPieceType)}"
+        | EnPassant move ->
+            (fst move |> Square.getFile)
+            + $"x{(move |> snd |> Square.getCoordinatesName)}"
+        | NormalMove move ->
+            let taking = Move.getPieceAtDestination move |> Option.isSome
+            match (Move.getMovedPiece move).pieceType with
+            | Pawn -> 
+                if taking then
+                    $"{(fst move |> Square.getFile)}x"
+                else ""
+            | piece -> 
+                if taking then
+                    "x"
+                else ""
+                + $"{PieceType.getLetter piece}"
+            + (snd move |> Square.getCoordinatesName)            
 
-    let printMoveNotation (move: move) =
-        printfn $"{getMoveNotation move}"
+    let printFullNotation (move: move) =
+        printfn $"{getFullNotation move}"
+
+    let printAlgebraicNotation (move: move) =
+        printfn $"{getAlgebraicNotation move}"
