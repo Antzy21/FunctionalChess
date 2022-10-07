@@ -88,10 +88,10 @@ module Move =
                     $"{(fst move |> Square.getFile)}x"
                 else ""
             | piece -> 
+                $"{PieceType.getLetter piece}" +
                 if taking then
                     "x"
                 else ""
-                + $"{PieceType.getLetter piece}"
             + (snd move |> Square.getCoordinatesName)            
 
     let printFullNotation (move: move) =
