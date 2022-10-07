@@ -12,6 +12,7 @@
     <Compile Include="CastlingAllowance.fs" />
     <Compile Include="Board.fs" />
     <Compile Include="NotationParser.fs" />
+    <Compile Include="GameState.fs" />
     <Compile Include="Game.fs" />
   </ItemGroup>
   <ItemGroup>

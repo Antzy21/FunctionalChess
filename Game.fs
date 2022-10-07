@@ -1,115 +1,55 @@
 namespace Chess
 
-type gameState = {
-    board: board;
-    playerTurn: colour;
-    castlingAllowance: castlingAllowance;
-    enpassantCoordinates: (Checkerboard.coordinates option) list;
-    halfMoveClock: int;
-    fullMoveClock: int;
-    }
+type game = {
+    gameState: gameState;
+    moves: move list
+}
 
-module GameState =
+module Game =
 
     module Create =
-        let fromFen (fen: string) : gameState =
-            let parts = fen.Split(' ')
-            let board = Board.Create.fromFen(parts[0])
-            let playerTurn =
-                match parts[1] with
-                | "w" -> White
-                | "b" -> Black
-                | c -> failwith $"Error in FEN: Cannot determine player turn from {c}" 
-            let castlingAllowance = CastlingAllowance.fromFen parts[2]
-            let enpassantCoordinates = 
-                match parts[3] with
-                | "-" -> [None]
-                | name -> [Some (Checkerboard.Coordinates.fromName name)]
-            let halfMoveClock = int(parts[4])
-            let fullMoveClock = int(parts[5])
+        let newGame () : game =
             {
-                board = board;
-                playerTurn = playerTurn;
-                castlingAllowance = castlingAllowance;
-                enpassantCoordinates = enpassantCoordinates;
-                halfMoveClock = halfMoveClock;
-                fullMoveClock = fullMoveClock;
+                moves = [];
+                gameState = GameState.Create.newGame ()
             }
-        let newGame () : gameState =
-            fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
 
-    let toFen (game: gameState) : string =
-        let enpassant =
-            (List.head game.enpassantCoordinates)
-            |> Option.map (Checkerboard.Coordinates.getName)
-            |> Option.defaultValue "-"
-        let castling = CastlingAllowance.toFen game.castlingAllowance
-        let playerTurn = 
-            match game.playerTurn with
-            | White -> "w"
-            | Black -> "b"
-        $"{Board.toFen game.board} "
-        + $"{playerTurn} "
-        + $"{castling} "
-        + $"{enpassant} "
-        + $"{game.halfMoveClock} {game.fullMoveClock}"
-    let print (game: gameState) =
-        Board.print game.board
-        printfn $"\nPlayer Turn: {game.playerTurn}"
-        printfn $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
-        Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") (List.head game.enpassantCoordinates)
-        printfn $"Turn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
+    let print (game: game) =
+        GameState.print game.gameState
         
-    let getMoves (game: gameState) : move list =
-        let board = game.board
-        Board.GetMoves.normal game.playerTurn board
-        |> Board.GetMoves.promotion board
-        |> List.append <| Board.GetMoves.enpassant game.playerTurn (List.head game.enpassantCoordinates) board
-        |> List.append <| Board.GetMoves.castling game.playerTurn game.castlingAllowance board
-    
     module Update = 
-        let makeMove (move: move) (game: gameState) : gameState =
-            Board.Update.applyMove move game.board
+        let makeMove (move: move) (game: game) : game =
             {
-                board = game.board
-                playerTurn = Colour.opposite game.playerTurn
-                castlingAllowance = 
-                    match move with
-                    | Castling (side, colour) -> CastlingAllowance.removeRights side colour game.castlingAllowance
-                    | _ -> game.castlingAllowance
-                enpassantCoordinates = 
-                    match move with
-                    | NormalMove move -> Move.Enpassant.getEnPassantCoordinates move
-                    | _ -> None
-                    :: game.enpassantCoordinates
-                halfMoveClock = game.halfMoveClock + 1
-                fullMoveClock = 
-                    match game.playerTurn with 
-                    | White -> game.fullMoveClock + 1
-                    | Black -> game.fullMoveClock
+                moves = move :: game.moves;
+                gameState = GameState.Update.makeMove move game.gameState
             }
-        let undoMove (move: move) (game: gameState) : gameState =
-            Board.Update.undoMove move game.board
+        let undoMove (game: game) : game =
+            let moveToUndo, moves =
+                match game.moves with
+                | [] -> failwith "No moves to undo"
+                | moveToUndo :: moves -> moveToUndo, moves 
+            let gameState = 
+                match moves with
+                | EnPassant epMove :: _ -> 
+                    let enpassantCoordinates = Some (snd epMove).coordinates
+                    GameState.Update.undoMoveSetEnpassantSquare enpassantCoordinates moveToUndo game.gameState
+                | _ ->
+                    GameState.Update.undoMove moveToUndo game.gameState
             {
-                board = game.board
-                playerTurn = Colour.opposite game.playerTurn
-                castlingAllowance = 
-                    match move with
-                    | Castling (side, colour) -> CastlingAllowance.addRights side colour game.castlingAllowance
-                    | _ -> game.castlingAllowance
-                enpassantCoordinates = 
-                    match game.enpassantCoordinates with
-                    | [] | _::[] -> [None]
-                    | _::t -> t
-                halfMoveClock = game.halfMoveClock - 1
-                fullMoveClock = 
-                    match game.playerTurn with 
-                    | White -> game.fullMoveClock
-                    | Black -> game.fullMoveClock - 1
+                moves = moves;
+                gameState = gameState
             }
-        let makeMoveFromNotation (move: string) (game: gameState) : gameState =
-            let parsedMove = NotationParser.parse game.playerTurn game.board move
+        let makeMoveFromNotation (move: string) (game: game) : game =
+            let parsedMove = NotationParser.parse game.gameState.playerTurn game.gameState.board move
             makeMove parsedMove game
 
-    let isGameOver (game: gameState) : bool =
-        getMoves game |> List.isEmpty
+    let pgn (game: game) : string =
+        game.moves
+        |> List.rev
+        |> List.mapi (fun i move -> 
+            if i%2 = 0 then
+                $"{(i/2)+1}. "
+            else ""
+            + $"{(Move.getAlgebraicNotation move)} "
+        )
+        |> List.reduce (+)
