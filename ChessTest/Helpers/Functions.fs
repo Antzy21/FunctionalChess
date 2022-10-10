@@ -9,7 +9,7 @@ module GetPossibleMoves =
         GameState.Create.fromFen fen
         |> GameState.getMoves
         |> List.filter filter
-        |> List.map Move.getFullNotation
+        |> List.map MoveParser.FullNotation.toString
     
     let all (fen: string) : string list =
         getPossibleMovesWithFilter (fun _ -> true) fen
@@ -41,9 +41,9 @@ let gameStateIsInCheck (fen: string) : bool =
     GameState.Create.fromFen fen
     |> fun gs -> gs.board |> Board.isInCheck gs.playerTurn
 
-let moveNotationFromNotationParser (game: gameState) (notation: string) : string = 
-    NotationParser.parse game.playerTurn game.board notation
-    |> Move.getFullNotation
+let moveNotationFromMoveParser (game: gameState) (notation: string) : string = 
+    MoveParser.parse game.playerTurn game.board notation
+    |> MoveParser.FullNotation.toString
     
 module UpdateWithMove =
     let applyMove (fen: string) (move: move) : string =
@@ -53,7 +53,7 @@ module UpdateWithMove =
     
     let parseMoveAndApplyIt (fen: string) (notation: string) : string =
         let gs = GameState.Create.fromFen fen
-        let move = NotationParser.parse (Colour.opposite gs.playerTurn) gs.board notation
+        let move = MoveParser.parse (Colour.opposite gs.playerTurn) gs.board notation
         GameState.Update.makeMove move gs
         |> GameState.toFen
     
@@ -64,13 +64,13 @@ module UpdateWithMove =
 
     let parseMoveAndUndoIt (fen: string) (notation: string) : string =
         let gs = GameState.Create.fromFen fen
-        let move = NotationParser.parse (Colour.opposite gs.playerTurn) gs.board notation
+        let move = MoveParser.parse (Colour.opposite gs.playerTurn) gs.board notation
         GameState.Update.undoMove move gs
         |> GameState.toFen
     
 let fromFenToFenIsInverseAfterMove (fen: string) (notation: string) : bool =
     let gs = GameState.Create.fromFen fen
-    let move = NotationParser.parse gs.playerTurn gs.board notation
+    let move = MoveParser.parse gs.playerTurn gs.board notation
     GameState.Update.makeMove move gs
     |> GameState.Update.undoMove move
     |> GameState.toFen

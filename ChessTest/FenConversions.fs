@@ -24,7 +24,7 @@ module SetEnpassantSquare =
     [<Fact>]
     let ``Sets Enpassant square for White`` () =
         let game = GameState.Create.newGame ()
-        NotationParser.parse game.playerTurn game.board "a4"
+        MoveParser.parse game.playerTurn game.board "a4"
         |> fun move -> GameState.Update.makeMove move game
         |> GameState.toFen
         |> fun fen ->
@@ -35,7 +35,7 @@ module SetEnpassantSquare =
         let game = 
             "rnbqkbnr/p1pppppp/6p1/1P6/8/8/P1PPPPPP/RNBQKBNR b KQkq - 3 2"
             |> GameState.Create.fromFen
-        NotationParser.parse game.playerTurn game.board "a5"
+        MoveParser.parse game.playerTurn game.board "a5"
         |> fun move -> GameState.Update.makeMove move game
         |> GameState.toFen
         |> fun fen ->
