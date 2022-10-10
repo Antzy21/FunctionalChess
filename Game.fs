@@ -40,7 +40,7 @@ module Game =
                 gameState = gameState
             }
         let makeMoveFromNotation (move: string) (game: game) : game =
-            let parsedMove = NotationParser.parse game.gameState.playerTurn game.gameState.board move
+            let parsedMove = MoveParser.parse game.gameState.playerTurn game.gameState.board move
             makeMove parsedMove game
 
     let pgn (game: game) : string =
@@ -50,6 +50,6 @@ module Game =
             if i%2 = 0 then
                 $"{(i/2)+1}. "
             else ""
-            + $"{(Move.getAlgebraicNotation move)} "
+            + $"{(MoveParser.AlgebraicNotation.toString move)} "
         )
         |> List.reduce (+)

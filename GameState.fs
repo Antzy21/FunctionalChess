@@ -105,7 +105,7 @@ module GameState =
             }
         let undoMove = undoMoveSetEnpassantSquare None
         let makeMoveFromNotation (move: string) (game: gameState) : gameState =
-            let parsedMove = NotationParser.parse game.playerTurn game.board move
+            let parsedMove = MoveParser.parse game.playerTurn game.board move
             makeMove parsedMove game
 
     let isGameOver (game: gameState) : bool =
