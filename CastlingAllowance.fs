@@ -44,7 +44,30 @@ module CastlingAllowance =
         | Black, Kingside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = setting; blackQueenside = ca.blackQueenside}
         | Black, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = setting}
     let removeRights = modifyRights false
-    let addRights = modifyRights true        
+    let addRights = modifyRights true   
+    let removeBasedOnMove (colour: colour) (ca: castlingAllowance) (move: move) =
+        match move with
+        | Castling (_, colour) -> 
+            ca
+            |> removeRights Kingside colour
+            |> removeRights Queenside colour
+        | NormalMove normalMove ->
+            match Move.getMovedPieceType normalMove with
+            | King ->
+                ca
+                |> removeRights Kingside colour
+                |> removeRights Queenside colour
+            | Rook ->
+                let rank =
+                    match colour with
+                    | White -> 0
+                    | Black -> 7
+                match (fst normalMove).coordinates with
+                | (0, r) when r = rank -> removeRights Queenside colour ca
+                | (7, r) when r = rank -> removeRights Kingside colour ca
+                | _ -> ca
+            | _ -> ca
+        | _ -> ca
     let print (castling: castlingAllowance) : string=
         if castling.whiteKingside then
             "W 0-0, "
