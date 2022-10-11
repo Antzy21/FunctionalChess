@@ -75,7 +75,26 @@ module GameState =
                 playerTurn = Colour.opposite gameState.playerTurn
                 castlingAllowance = 
                     match move with
-                    | Castling (side, colour) -> CastlingAllowance.removeRights side colour gameState.castlingAllowance
+                    | Castling (_, colour) -> 
+                        gameState.castlingAllowance
+                        |> CastlingAllowance.removeRights Kingside colour
+                        |> CastlingAllowance.removeRights Queenside colour
+                    | NormalMove normalMove ->
+                        match Move.getMovedPieceType normalMove with
+                        | King ->
+                            gameState.castlingAllowance
+                            |> CastlingAllowance.removeRights Kingside gameState.playerTurn
+                            |> CastlingAllowance.removeRights Queenside gameState.playerTurn
+                        | Rook ->
+                            let rank =
+                                match gameState.playerTurn with
+                                | White -> 0
+                                | Black -> 7
+                            match (fst normalMove).coordinates with
+                            | (0, r) when r = rank -> CastlingAllowance.removeRights Queenside gameState.playerTurn gameState.castlingAllowance
+                            | (7, r) when r = rank -> CastlingAllowance.removeRights Kingside gameState.playerTurn gameState.castlingAllowance
+                            | _ -> gameState.castlingAllowance
+                        | _ -> gameState.castlingAllowance
                     | _ -> gameState.castlingAllowance
                 enpassantCoordinates = 
                     match move with
