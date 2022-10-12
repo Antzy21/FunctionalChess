@@ -53,13 +53,17 @@ module GameState =
         + $"{castling} "
         + $"{enpassant} "
         + $"{game.halfMoveClock} {game.fullMoveClock}"
-    let print (game: gameState) =
-        Board.print game.board
-        printfn $"\nPlayer Turn: {game.playerTurn}"
-        printfn $"Castling Allowed: \n{CastlingAllowance.print game.castlingAllowance}"
-        Option.iter (fun enpasSqr -> printfn $"EnpassantSquare: {enpasSqr}") game.enpassantCoordinates
-        printfn $"Turn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
-        
+    let toString (game: gameState) : string =
+        $"{Board.print game.board}\n" +
+        $"\nPlayer Turn: {game.playerTurn}" +
+        $"\nCastling Allowed: \n{CastlingAllowance.print game.castlingAllowance}" +
+        (
+            Option.map (fun enpasSqr -> $"\nEnpassantSquare: {enpasSqr}") game.enpassantCoordinates
+            |> Option.defaultValue ""
+        ) +
+        $"\nTurn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
+    let print =
+        toString >> printfn "%s"
     let getMoves (gameState: gameState) : move list =
         let board = gameState.board
         Board.GetMoves.normal gameState.playerTurn board
