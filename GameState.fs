@@ -37,6 +37,15 @@ module GameState =
             }
         let newGame () : gameState =
             fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+        let deepCopy (gameState: gameState) : gameState =
+            {
+                board = Array2D.copy gameState.board;
+                playerTurn = gameState.playerTurn
+                castlingAllowance = gameState.castlingAllowance;
+                enpassantCoordinates = gameState.enpassantCoordinates;
+                halfMoveClock = gameState.halfMoveClock;
+                fullMoveClock = gameState.fullMoveClock;
+            }
 
     let toFen (game: gameState) : string =
         let enpassant =

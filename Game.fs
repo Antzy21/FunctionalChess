@@ -13,6 +13,16 @@ module Game =
                 moves = [];
                 gameState = GameState.Create.newGame ()
             }
+        let fromFen (fen: string) : game =
+            {
+                moves = [];
+                gameState = GameState.Create.fromFen fen
+            }
+        let deepCopy (game: game) : game =
+            {
+                moves = game.moves;
+                gameState = GameState.Create.deepCopy game.gameState
+            }
 
     let toString (game: game) =
         List.fold (fun s move ->
@@ -20,7 +30,7 @@ module Game =
         ) $"{GameState.toString game.gameState}" game.moves
     let print (game: game) =
         toString >> printf "%s"
-        
+
     module Update = 
         let makeMove (move: move) (game: game) : game =
             {
