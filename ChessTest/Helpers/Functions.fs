@@ -46,27 +46,26 @@ let moveNotationFromMoveParser (game: gameState) (notation: string) : string =
     |> MoveParser.FullNotation.toString
     
 module UpdateWithMove =
-    let applyMove (fen: string) (move: move) : string =
-        let gs = GameState.Create.fromFen fen
-        GameState.Update.makeMove move gs
-        |> GameState.toFen
-    
+
     let parseMoveAndApplyIt (fen: string) (notation: string) : string =
         let gs = GameState.Create.fromFen fen
         let move = MoveParser.parse (Colour.opposite gs.playerTurn) gs.board notation
         GameState.Update.makeMove move gs
         |> GameState.toFen
-    
-    let undoMove (fen: string) (move: move) : string =
-        let gs = GameState.Create.fromFen fen
-        GameState.Update.undoMove move gs
-        |> GameState.toFen    
 
     let parseMoveAndUndoIt (fen: string) (notation: string) : string =
         let gs = GameState.Create.fromFen fen
         let move = MoveParser.parse (Colour.opposite gs.playerTurn) gs.board notation
         GameState.Update.undoMove move gs
         |> GameState.toFen
+
+    let makeMove (move: move) (game: game) : game =
+        Game.Create.deepCopy game
+        |> Game.Update.makeMove move
+        
+    let undoMove (game: game) : game =
+        Game.Create.deepCopy game
+        |> Game.Update.undoMove
     
 let fromFenToFenIsInverseAfterMove (fen: string) (notation: string) : bool =
     let gs = GameState.Create.fromFen fen

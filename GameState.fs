@@ -104,7 +104,10 @@ module GameState =
                 playerTurn = Colour.opposite gameState.playerTurn
                 castlingAllowance = 
                     match move with
-                    | Castling (side, colour) -> CastlingAllowance.addRights side colour gameState.castlingAllowance
+                    | Castling (_, colour) -> 
+                        gameState.castlingAllowance
+                        |> CastlingAllowance.addRights Kingside colour
+                        |> CastlingAllowance.addRights Queenside colour
                     | _ -> gameState.castlingAllowance
                 enpassantCoordinates = enpassantCoordinates
                 halfMoveClock = gameState.halfMoveClock - 1

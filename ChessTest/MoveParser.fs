@@ -35,47 +35,47 @@ module ParseAlgebraic =
 module Castling =
     [<Fact>]
     let ``White Kingside`` () =
-        let gs = GameState.Create.fromFen Fens.Castling.PreWhite
-        let result = MoveParser.parse gs.playerTurn gs.board "0-0"
+        let game = Games.Castling.PreWhite
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0"
         Assert.Equal(Castling (Kingside, White), result)
     [<Fact>]
     let ``White Queenside`` () =
-        let gs = GameState.Create.fromFen Fens.Castling.PreWhite
-        let result = MoveParser.parse gs.playerTurn gs.board "0-0-0"
+        let game = Games.Castling.PreWhite
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0-0"
         Assert.Equal(Castling (Queenside, White), result)
     [<Fact>]
     let ``Black Kingside`` () =
-        let gs = GameState.Create.fromFen Fens.Castling.PreBlack
-        let result = MoveParser.parse gs.playerTurn gs.board "0-0"
+        let game = Games.Castling.PreBlack
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0"
         Assert.Equal(Castling (Kingside, Black), result)
     [<Fact>]
     let ``Black Queenside`` () =
-        let gs = GameState.Create.fromFen Fens.Castling.PreBlack
-        let result = MoveParser.parse gs.playerTurn gs.board "0-0-0"
+        let game = Games.Castling.PreBlack
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0-0"
         Assert.Equal(Castling (Queenside, Black), result)
 
 module Enpassant =
     [<Fact>]
     let ``White`` () =
-        let gs = GameState.Create.fromFen Fens.Enpassant.PreWhite
-        let result = MoveParser.parse gs.playerTurn gs.board "bxa6"
-        Assert.Equal(Moves.EnPassant.White, result)
+        let game = Games.Enpassant.PreWhite
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "bxa6"
+        Assert.Equal(Moves.EnPassant.PostWhite, result)
     
     [<Fact>]
     let ``Black`` () =
-        let gs = GameState.Create.fromFen Fens.Enpassant.PreBlack
-        let result = MoveParser.parse gs.playerTurn gs.board "bxa3"
-        Assert.Equal(Moves.EnPassant.Black, result)
+        let game = Games.Enpassant.PreBlack
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "bxa3"
+        Assert.Equal(Moves.EnPassant.PostBlack, result)
 
 module Promotion =
     [<Fact>]
     let ``White`` () =
-        let gs = GameState.Create.fromFen Fens.Promotion.PreWhite1
-        let result = MoveParser.parse gs.playerTurn gs.board "a8=Q"
+        let game = Games.Promotion.PreWhite1
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "a8=Q"
         Assert.Equal(Moves.Promotion.White1, result)
     
     [<Fact>]
     let ``White taking`` () =
-        let gs = GameState.Create.fromFen Fens.Promotion.PreWhite2
-        let result = MoveParser.parse gs.playerTurn gs.board "axb8=R"
+        let game = Games.Promotion.PreWhite2
+        let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "axb8=R"
         Assert.Equal(Moves.Promotion.White2, result)

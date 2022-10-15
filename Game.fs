@@ -44,8 +44,8 @@ module Game =
                 | moveToUndo :: moves -> moveToUndo, moves 
             let gameState = 
                 match moves with
-                | EnPassant epMove :: _ -> 
-                    let enpassantCoordinates = Some (snd epMove).coordinates
+                | NormalMove normalMove :: _ ->
+                    let enpassantCoordinates = Move.Enpassant.getEnPassantCoordinates normalMove
                     GameState.Update.undoMoveSetEnpassantSquare enpassantCoordinates moveToUndo game.gameState
                 | _ ->
                     GameState.Update.undoMove moveToUndo game.gameState
