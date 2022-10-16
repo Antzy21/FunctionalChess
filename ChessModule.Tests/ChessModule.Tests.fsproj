@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ChessModule.fsproj" />
+    <ProjectReference Include="..\ChessModule\ChessModule.fsproj" />
   </ItemGroup>
 
 </Project>

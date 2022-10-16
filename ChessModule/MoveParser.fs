@@ -198,9 +198,12 @@ module MoveParser =
             tryParse colour board move
             |> Option.failOnNone "Failed to parse notation"
 
-    let parse (playerTurn: colour) (board: board) (move: string) =
+    let tryParse (playerTurn: colour) (board: board) (move: string) =
         AlgebraicNotation.tryParse playerTurn board move
-        |> Option.defaultWith (fun () -> 
-            FullNotation.parse move
-            |> NormalMove
+        |> Option.orElseWith (fun () -> 
+            FullNotation.tryParse move
+            |> Option.map NormalMove
         )
+    let parse (colour: colour) (board: board) (move: string) : move =
+        tryParse colour board move
+        |> Option.failOnNone "Failed to parse notation"

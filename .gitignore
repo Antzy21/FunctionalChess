@@ -1,5 +1,5 @@
-/bin
-/obj
 /.vs
-/ChessTest/bin/Debug/net6.0
-/ChessTest/obj
+/ChessModule/obj
+/ChessModule/bin
+/ChessModule.Tests/obj
+/ChessModule.Tests/bin
