@@ -127,10 +127,10 @@ module MoveParser =
             | oldSquare :: [] ->
                 Some oldSquare
             | [] ->
-                printfn $"No {piece.pieceType} avaiable to do {move}"
+                printfn $"No {piece.pieceType} avaiable to move to {Square.toString newSquare}"
                 None
             | squares ->
-                printfn $"Too many {piece.pieceType}s are able to do {move}"
+                printfn $"Too many {piece.pieceType}s are able to move to {Square.toString newSquare}"
                 squares
                 |> List.iter (fun square -> printfn $"{Square.getDescription square}")
                 None

@@ -65,7 +65,7 @@ module Board =
             printf $"{j+1} |"
             [0..7]
             |> List.iter (fun i ->
-                printf " %c " <| Square.print board.[i,j]
+                printf " %c " <| Square.toString board.[i,j]
             )
             printfn "|"
         )
