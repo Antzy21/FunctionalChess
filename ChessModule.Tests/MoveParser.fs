@@ -18,19 +18,19 @@ module ParseFull =
     [<Fact>]
     let ``xd5`` () =
         let result = MoveParser.FullNotation.parse "Pe4 -> xpd5"
-        Assert.Equal(Moves.WhiteMove2, NormalMove result)
+        Assert.Equal(Moves.xd5, NormalMove result)
         
     [<Fact>]
     let ``nf6`` () =
         let result = MoveParser.FullNotation.parse "ng8 -> f6"
-        Assert.Equal(Moves.BlackMove2, NormalMove result)
+        Assert.Equal(Moves.Nf6, NormalMove result)
         
 module ParseAlgebraic =
     [<Fact>]
     let ``e4`` () =
         let board = Board.Create.starting ()
         let result = MoveParser.AlgebraicNotation.parse White board "e4"
-        Assert.Equal(Moves.WhiteMove1, result)
+        Assert.Equal(Moves.e4, result)
         
 module Castling =
     [<Fact>]

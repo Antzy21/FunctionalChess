@@ -9,22 +9,22 @@ module Normal =
     [<Fact>]
     let ``e4`` () =
         let newGame = Game.Create.newGame ()
-        let result = UpdateWithMove.makeMove Moves.WhiteMove1 newGame
+        let result = UpdateWithMove.makeMove Moves.e4 newGame
         Assert.Equal(Games.ExampleGame.White1, result)
         
     [<Fact>]
     let ``d5`` () =
-        let result = UpdateWithMove.makeMove Moves.BlackMove1 Games.ExampleGame.White1
+        let result = UpdateWithMove.makeMove Moves.d5 Games.ExampleGame.White1
         Assert.Equal(Games.ExampleGame.Black1, result)
 
     [<Fact>]
     let ``xd5`` () =
-        let result = UpdateWithMove.makeMove Moves.WhiteMove2 Games.ExampleGame.Black1
+        let result = UpdateWithMove.makeMove Moves.xd5 Games.ExampleGame.Black1
         Assert.Equal(Games.ExampleGame.White2, result)
         
     [<Fact>]
     let ``nf6`` () =
-        let result = UpdateWithMove.makeMove Moves.BlackMove2 Games.ExampleGame.White2
+        let result = UpdateWithMove.makeMove Moves.Nf6 Games.ExampleGame.White2
         Assert.Equal(Games.ExampleGame.Black2, result)
 
 module UndoNormal =

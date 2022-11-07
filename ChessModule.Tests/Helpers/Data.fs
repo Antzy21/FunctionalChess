@@ -69,7 +69,7 @@ module Moves =
             })
             |> fun move -> Promotion (move, Rook)
 
-    let WhiteMove1 : move = 
+    let e4 : move = 
         ({
             coordinates = (4,1);
             piece = Some {pieceType = Pawn; colour = White}
@@ -79,7 +79,7 @@ module Moves =
             piece = None
         })
         |> NormalMove
-    let BlackMove1 : move = 
+    let d5 : move = 
         ({
             coordinates = (3,6);
             piece = Some {pieceType = Pawn; colour = Black}
@@ -89,7 +89,7 @@ module Moves =
             piece = None
         })
         |> NormalMove
-    let WhiteMove2 : move =
+    let xd5 : move =
         ({
             coordinates = (4,3);
             piece = Some {pieceType = Pawn; colour = White}
@@ -99,7 +99,7 @@ module Moves =
             piece = Some {pieceType = Pawn; colour = Black}
         })
         |> NormalMove
-    let BlackMove2 : move = 
+    let Nf6 : move = 
         ({
             coordinates = (6,7);
             piece = Some {pieceType = Knight; colour = Black}
@@ -193,33 +193,33 @@ module Games =
             {
                 gameState = GameState.Create.fromFen "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 1 1";
                 moves = [
-                    Moves.WhiteMove1;
+                    Moves.e4;
                 ]
             }
         let Black1 : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 2 1";
                 moves = [
-                    Moves.BlackMove1;
-                    Moves.WhiteMove1;
+                    Moves.d5;
+                    Moves.e4;
                 ]
             }
         let White2 : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 3 2";
                 moves = [
-                    Moves.WhiteMove2;
-                    Moves.BlackMove1;
-                    Moves.WhiteMove1;
+                    Moves.xd5;
+                    Moves.d5;
+                    Moves.e4;
                 ]
             }
         let Black2 : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq - 4 2";
                 moves = [
-                    Moves.BlackMove2;
-                    Moves.WhiteMove2;
-                    Moves.BlackMove1;
-                    Moves.WhiteMove1;
+                    Moves.Nf6;
+                    Moves.xd5;
+                    Moves.d5;
+                    Moves.e4;
                 ]
             }
