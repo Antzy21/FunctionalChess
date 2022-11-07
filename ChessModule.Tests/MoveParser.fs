@@ -8,12 +8,12 @@ module ParseFull =
     [<Fact>]
     let ``e4`` () =
         let result = MoveParser.FullNotation.parse "Pe2 -> e4"
-        Assert.Equal(Moves.WhiteMove1, NormalMove result)
+        Assert.Equal(Moves.e4, NormalMove result)
         
     [<Fact>]
     let ``d5`` () =
         let result = MoveParser.FullNotation.parse "pd7 -> d5"
-        Assert.Equal(Moves.BlackMove1, NormalMove result)
+        Assert.Equal(Moves.d5, NormalMove result)
         
     [<Fact>]
     let ``xd5`` () =
@@ -79,3 +79,10 @@ module Promotion =
         let game = Games.Promotion.PreWhite2
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "axb8=R"
         Assert.Equal(Moves.Promotion.White2, result)
+
+module pgnTests =
+    [<Fact>]
+    let ``Knights share square to move to`` () =
+        let gamePgn = Game.pgn Games.Special.knightsSharingMoveSquare
+        let expected = "1.e4 e5 2.Nf3 Nf6 3.Nbd2"
+        Assert.Equal(expected, gamePgn)

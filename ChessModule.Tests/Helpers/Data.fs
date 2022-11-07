@@ -89,6 +89,16 @@ module Moves =
             piece = None
         })
         |> NormalMove
+    let e5 : move = 
+        ({
+            coordinates = (4,6);
+            piece = Some {pieceType = Pawn; colour = Black}
+        },
+        {
+            coordinates = (4,4);
+            piece = None
+        })
+        |> NormalMove
     let xd5 : move =
         ({
             coordinates = (4,3);
@@ -106,6 +116,26 @@ module Moves =
         },
         {
             coordinates = (5,5);
+            piece = None
+        })
+        |> NormalMove
+    let Nf3 : move = 
+        ({
+            coordinates = (6,0);
+            piece = Some {pieceType = Knight; colour = White}
+        },
+        {
+            coordinates = (5,2);
+            piece = None
+        })
+        |> NormalMove
+    let Nbd2 : move = 
+        ({
+            coordinates = (1,0);
+            piece = Some {pieceType = Knight; colour = White}
+        },
+        {
+            coordinates = (3,1);
             piece = None
         })
         |> NormalMove
@@ -220,6 +250,19 @@ module Games =
                     Moves.Nf6;
                     Moves.xd5;
                     Moves.d5;
+                    Moves.e4;
+                ]
+            }
+
+    module Special =
+        let knightsSharingMoveSquare : game =
+            {
+                gameState = GameState.Create.fromFen "rnbqkb1r/ppp1pppp/5n2/4p3/4P3/5N2/PPPPNPPP/R1BQKB1R b KQkq - 5 3";
+                moves = [
+                    Moves.Nbd2;
+                    Moves.Nf6;
+                    Moves.Nf3;
+                    Moves.e5;
                     Moves.e4;
                 ]
             }
