@@ -74,6 +74,33 @@ module MoveParser =
             |> Option.failOnNone "Failed to parse notation"
 
     module AlgebraicNotation =
+    
+        let private matchReverseEngineerPieceLocation (piece: piece) (newSquare: square) (board: board) : square option =
+            match Board.GetSquares.reverseEngineerPieceLocations piece newSquare.coordinates board with
+            | oldSquare :: [] ->
+                Some oldSquare
+            | [] ->
+                printfn $"No {piece.pieceType} avaiable to move to {Square.toString newSquare}"
+                None
+            | squares ->
+                printfn $"Too many {piece.pieceType}s are able to move to {Square.toString newSquare}"
+                squares
+                |> List.iter (fun square -> printfn $"{Square.getDescription square}")
+                None
+        
+        let private getNewSquareNotationForPiece (piece: piece) (move: normalMove) (board: board) =
+            match Board.GetSquares.reverseEngineerPieceLocations piece (snd move).coordinates board with
+            | [] -> ""
+            | others ->
+                let piecesOnRow = 
+                    List.filter (fun square ->
+                        Square.getRow square = Square.getRow (fst move)  
+                    ) others
+                match piecesOnRow with
+                    | _ :: [] -> Square.getRow (fst move) 
+                    | _ -> Square.getFile (fst move) 
+            + (snd move |> Square.getCoordinatesName)
+
         let toString (move: move) (board: board) : string =
             match move with
             | Castling (Kingside, _) -> "0-0"
@@ -93,17 +120,20 @@ module MoveParser =
                 + $"x{(move |> snd |> Square.getCoordinatesName)}"
             | NormalMove move ->
                 let taking = Move.getPieceAtDestination move |> Option.isSome
-                match (Move.getMovedPiece move).pieceType with
+                let piece = (Move.getMovedPiece move)
+                match piece.pieceType with
                 | Pawn -> 
                     if taking then
                         $"{(fst move |> Square.getFile)}x"
                     else ""
-                | piece -> 
-                    $"{PieceType.getLetter piece}" +
+                    + (snd move |> Square.getCoordinatesName)            
+                | pieceType -> 
+                    $"{PieceType.getLetter pieceType}" +
                     if taking then
                         "x"
                     else ""
-                + (snd move |> Square.getCoordinatesName)            
+                    +
+                    getNewSquareNotationForPiece piece move board
         let print (move: move) =
             printfn $"{toString move}"
         let private getNewSquareFromMove (board: board) (file: char) (rank: char) : square option =
@@ -120,20 +150,6 @@ module MoveParser =
                 && Square.hasPiece {pieceType = Pawn; colour = colour} square
             )
             |> Option.map (fun (oldSquare: square) -> (oldSquare, newSquare))
-            
-        let private matchReverseEngineerPieceLocation (piece: piece) (newSquare: square) (board: board) : square option =
-            Board.GetSquares.reverseEngineerPieceLocations piece newSquare.coordinates board
-            |> function
-            | oldSquare :: [] ->
-                Some oldSquare
-            | [] ->
-                printfn $"No {piece.pieceType} avaiable to move to {Square.toString newSquare}"
-                None
-            | squares ->
-                printfn $"Too many {piece.pieceType}s are able to move to {Square.toString newSquare}"
-                squares
-                |> List.iter (fun square -> printfn $"{Square.getDescription square}")
-                None
 
         let private parseNonPawnMove (pieceLetter: char) (colour: colour) (board: board) (newSquare: square) : move option =
             PieceType.tryParse pieceLetter

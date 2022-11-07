@@ -57,12 +57,15 @@ module Game =
             makeMove parsedMove game
 
     let pgn (game: game) : string =
+        let tempBoard = Board.Create.starting ()
         game.moves
         |> List.rev
-        |> List.mapi (fun i move -> 
+        |> List.mapi (fun i move ->
+            Board.Update.applyMove move tempBoard
             if i%2 = 0 then
-                $"{(i/2)+1}. "
+                $"{(i/2)+1}."
             else ""
-            + $"{(MoveParser.AlgebraicNotation.toString move)} "
+            + $"{(MoveParser.AlgebraicNotation.toString move tempBoard)} "
         )
         |> List.reduce (+)
+        |> fun s -> s.Trim()
