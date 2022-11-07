@@ -67,7 +67,7 @@ module Castling =
 
     [<Fact>]
     let ``Black Queenside`` () =
-        let result = Game.Update.makeMove (Castling (Queenside, Black)) Games.Castling.PreBlack
+        let result = UpdateWithMove.makeMove (Castling (Queenside, Black)) Games.Castling.PreBlack
         Assert.Equal(Games.Castling.PostBlackQueen, result)
         
 module UndoCastling =
@@ -84,7 +84,7 @@ module UndoCastling =
     [<Fact>]
     let ``Black Kingside`` () =
         let result = UpdateWithMove.undoMove Games.Castling.PostBlackKing
-        Assert.Equal(Games.Castling.PreBlack, result)
+        Assert.Equal(Game.toString Games.Castling.PreBlack, Game.toString result)
 
     [<Fact>]
     let ``Black Queenside`` () =
