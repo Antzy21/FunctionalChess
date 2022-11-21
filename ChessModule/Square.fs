@@ -3,7 +3,7 @@ namespace Chess
 open Checkerboard
 open FSharp.Extensions
 
-type square = square<piece>
+type square = square<piece, sbyte>
 
 module Square =
     let toString (square: square) =

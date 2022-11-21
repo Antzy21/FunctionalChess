@@ -8,41 +8,41 @@ module Moves =
     module EnPassant =
         let PreWhite : move =
             ({
-                coordinates = (0,6);
+                coordinates = (0y,6y);
                 piece = Some {pieceType = Pawn; colour = Black}
             },
             {
-                coordinates = (0,4)
+                coordinates = (0y,4y)
                 piece = None
             })
             |> NormalMove
         let PostWhite : move =
             ({
-                coordinates = (1,4);
+                coordinates = (1y,4y);
                 piece = Some {pieceType = Pawn; colour = White}
             },
             {
-                coordinates = (0,5);
+                coordinates = (0y,5y);
                 piece = None
             })
             |> EnPassant
         let PreBlack : move =
             ({
-                coordinates = (0,1);
+                coordinates = (0y,1y);
                 piece = Some {pieceType = Pawn; colour = White}
             },
             {
-                coordinates = (0,3)
+                coordinates = (0y,3y)
                 piece = None
             })
             |> NormalMove
         let PostBlack : move =
             ({
-                coordinates = (1,3);
+                coordinates = (1y,3y);
                 piece = Some {pieceType = Pawn; colour = Black}
             },
             {
-                coordinates = (0,2);
+                coordinates = (0y,2y);
                 piece = None
             })
             |> EnPassant
@@ -50,92 +50,92 @@ module Moves =
     module Promotion =
         let White1 : move =
             ({
-                coordinates = (0,6);
+                coordinates = (0y,6y);
                 piece = Some {pieceType = Pawn; colour = White}
             },
             {
-                coordinates = (0,7);
+                coordinates = (0y,7y);
                 piece = None
             })
             |> fun move -> Promotion (move, Queen)
         let White2 : move =
             ({
-                coordinates = (0,6);
+                coordinates = (0y,6y);
                 piece = Some {pieceType = Pawn; colour = White}
             },
             {
-                coordinates = (1,7);
+                coordinates = (1y,7y);
                 piece = Some {pieceType = Knight; colour = Black}
             })
             |> fun move -> Promotion (move, Rook)
 
     let e4 : move = 
         ({
-            coordinates = (4,1);
+            coordinates = (4y,1y);
             piece = Some {pieceType = Pawn; colour = White}
         },
         {
-            coordinates = (4,3);
+            coordinates = (4y,3y);
             piece = None
         })
         |> NormalMove
     let d5 : move = 
         ({
-            coordinates = (3,6);
+            coordinates = (3y,6y);
             piece = Some {pieceType = Pawn; colour = Black}
         },
         {
-            coordinates = (3,4);
+            coordinates = (3y,4y);
             piece = None
         })
         |> NormalMove
     let e5 : move = 
         ({
-            coordinates = (4,6);
+            coordinates = (4y,6y);
             piece = Some {pieceType = Pawn; colour = Black}
         },
         {
-            coordinates = (4,4);
+            coordinates = (4y,4y);
             piece = None
         })
         |> NormalMove
     let xd5 : move =
         ({
-            coordinates = (4,3);
+            coordinates = (4y,3y);
             piece = Some {pieceType = Pawn; colour = White}
         },
         {
-            coordinates = (3,4);
+            coordinates = (3y,4y);
             piece = Some {pieceType = Pawn; colour = Black}
         })
         |> NormalMove
     let Nf6 : move = 
         ({
-            coordinates = (6,7);
+            coordinates = (6y,7y);
             piece = Some {pieceType = Knight; colour = Black}
         },
         {
-            coordinates = (5,5);
+            coordinates = (5y,5y);
             piece = None
         })
         |> NormalMove
     let Nf3 : move = 
         ({
-            coordinates = (6,0);
+            coordinates = (6y,0y);
             piece = Some {pieceType = Knight; colour = White}
         },
         {
-            coordinates = (5,2);
+            coordinates = (5y,2y);
             piece = None
         })
         |> NormalMove
     let Nbd2 : move = 
         ({
-            coordinates = (1,0);
+            coordinates = (1y,0y);
             piece = Some {pieceType = Knight; colour = White}
         },
         {
-            coordinates = (3,1);
+            coordinates = (3y,1y);
             piece = None
         })
         |> NormalMove

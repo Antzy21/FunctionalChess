@@ -12,7 +12,7 @@ module MoveParser =
             | Castling (Queenside, _) -> "0-0-0"
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
-                    if Move.getShift move |> fst <> 0 then "x"
+                    if Move.getShift move |> fst <> 0y then "x"
                     else ""
                 $"{move |> fst |> Square.getDescription} -> " +
                 timesSignIfTaken +
@@ -107,7 +107,7 @@ module MoveParser =
             | Castling (Queenside, _) -> "0-0-0"
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
-                    if Move.getShift move |> fst <> 0 then
+                    if Move.getShift move |> fst <> 0y then
                         (fst move |> Square.getFile)
                         + "x"
                     else ""

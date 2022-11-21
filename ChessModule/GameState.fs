@@ -4,7 +4,7 @@ type gameState = {
     board: board;
     playerTurn: colour;
     castlingAllowance: castlingAllowance;
-    enpassantCoordinates: Checkerboard.coordinates option;
+    enpassantCoordinates: Checkerboard.coordinates<sbyte> option;
     halfMoveClock: int;
     fullMoveClock: int;
     }
@@ -24,7 +24,7 @@ module GameState =
             let enpassantCoordinates = 
                 match parts[3] with
                 | "-" -> None
-                | name -> Some (Checkerboard.Coordinates.fromName name)
+                | name -> Some (Checkerboard.Coordinates.parse name)
             let halfMoveClock = int(parts[4])
             let fullMoveClock = int(parts[5])
             {
@@ -97,7 +97,7 @@ module GameState =
                     | White -> gameState.fullMoveClock + 1
                     | Black -> gameState.fullMoveClock
             }
-        let undoMoveSetEnpassantSquare (enpassantCoordinates: Checkerboard.coordinates option) (move: move) (gameState: gameState) =
+        let undoMoveSetEnpassantSquare (enpassantCoordinates: Checkerboard.coordinates<sbyte> option) (move: move) (gameState: gameState) =
             Board.Update.undoMove move gameState.board
             {
                 board = gameState.board

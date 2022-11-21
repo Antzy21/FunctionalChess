@@ -3,7 +3,7 @@
 open Checkerboard
 open FSharp.Extensions
 
-type normalMove = move<piece>
+type normalMove = move<piece, sbyte>
 
 type move = 
     | NormalMove of normalMove
@@ -21,13 +21,13 @@ module Move =
         |> fun piece -> piece.colour
 
     module Enpassant =
-        let getEnPassantCoordinates (move: normalMove) : coordinates option = 
-            if getMovedPieceType move = Pawn && List.contains (Move.getShift move) [(0,2); (0,-2)] then
+        let getEnPassantCoordinates (move: normalMove) : coordinates<sbyte> option = 
+            if getMovedPieceType move = Pawn && List.contains (Move.getShift move) [(0y,2y); (0y,-2y)] then
                 let startingSquare = fst move
                 let shift = 
                     match getMovedPieceColour move with                
-                    | White -> (0,1)
-                    | Black -> (0,-1)
+                    | White -> (0y,1y)
+                    | Black -> (0y,-1y)
                 Some (Coordinates.afterShift shift startingSquare.coordinates)
             else
                 None

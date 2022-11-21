@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Side.fs" />
@@ -16,7 +16,7 @@
     <Compile Include="Game.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Antzy21.Games.Checkerboard" Version="1.2.1" />
+    <PackageReference Include="Antzy21.Games.Checkerboard" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\FSharp.Extensions\FSharp.Extensions.fsproj" />
