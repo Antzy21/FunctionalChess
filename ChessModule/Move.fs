@@ -28,6 +28,6 @@ module Move =
                     match getMovedPieceColour move with                
                     | White -> (0y,1y)
                     | Black -> (0y,-1y)
-                Some (Coordinates.afterShift shift startingSquare.coordinates)
+                Some (Coordinates.getAfterShift shift startingSquare.coordinates)
             else
                 None

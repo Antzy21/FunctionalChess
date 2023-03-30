@@ -1,10 +1,12 @@
 ﻿namespace Chess
 
+open FSharp.Extensions
+
 type gameState = {
     board: board;
     playerTurn: colour;
     castlingAllowance: castlingAllowance;
-    enpassantCoordinates: Checkerboard.coordinates<sbyte> option;
+    enpassantCoordinates: FSharp.Extensions.coordinates<sbyte> option;
     halfMoveClock: int;
     fullMoveClock: int;
     }
@@ -97,7 +99,7 @@ module GameState =
                     | White -> gameState.fullMoveClock + 1
                     | Black -> gameState.fullMoveClock
             }
-        let undoMoveSetEnpassantSquare (enpassantCoordinates: Checkerboard.coordinates<sbyte> option) (move: move) (gameState: gameState) =
+        let undoMoveSetEnpassantSquare (enpassantCoordinates: FSharp.Extensions.coordinates<sbyte> option) (move: move) (gameState: gameState) =
             Board.Update.undoMove move gameState.board
             {
                 board = gameState.board

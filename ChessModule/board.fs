@@ -35,7 +35,7 @@ module Board =
     
     let toFen (board: board) : string =
         board
-        |> Array2D.foldjbacki (fun i j fen square ->
+        |> Array2D.foldjbacki (fun (i, j) fen square ->
             match square.piece with
             | None -> 
                 if fen = "" then
@@ -114,7 +114,7 @@ module Board =
                 | Some piece when piece.colour = colour -> true
                 | _ -> false
             )
-            |> List.ofArray
+            |> Seq.toList
         let playerVision (colour: colour) (board: board) : square list =
             getFromBoardWithPiecesOfColour colour board
             |> List.map (fun oldSquare ->
