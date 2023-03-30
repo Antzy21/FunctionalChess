@@ -10,7 +10,7 @@ module Board =
     
     module Create =
         let fromFen (fen: string) : board =
-            let board = Board.Create.empty 8y
+            let board = Board.init 8y
             fen.Split('/')
             |> Array.rev
             |> Array.iteri (fun (j: int) (row: string) ->
