@@ -5,6 +5,14 @@ type colour =
     | Black
 
 module Colour =
+    let fromBool (bool: bool) : colour =
+        match bool with
+        | true -> White        
+        | false -> Black
+    let toBool (colour: colour) : bool =
+        match colour with
+        | White -> true
+        | Black -> false
     let opposite (colour: colour) : colour =
         match colour with
         | White -> Black
