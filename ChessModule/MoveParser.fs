@@ -139,9 +139,7 @@ module MoveParser =
         let private getNewSquareFromMove (board: board) (file: char) (rank: char) : square option =
             $"{file}{rank}"
             |> Coordinates.tryParse
-            |> Option.map (fun c ->
-                Board.GetSquare.fromCoordinates c board
-            )
+            |> Option.map (Board.GetSquare.fromCoordinates board)
 
         let private parsePawnMove colour board pawnFile newSquare : normalMove option =
             Piece.PawnMoves.getPawnFrom newSquare.coordinates colour board

@@ -166,7 +166,7 @@ module Board =
                     | _ -> false
                 )
                 |> List.map (fun square ->
-                    EnPassant (square, Board.GetSquare.fromCoordinates pos board)
+                    EnPassant (square, Board.GetSquare.fromCoordinates board pos)
                 )
         let internal castling (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
             let row, kingSide, queenSide = 
