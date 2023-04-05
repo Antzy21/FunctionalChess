@@ -91,7 +91,7 @@ module GameState =
                 castlingAllowance = CastlingAllowance.removeBasedOnMove gameState.playerTurn gameState.castlingAllowance move
                 enpassantCoordinates = 
                     match move with
-                    | NormalMove move -> Move.Enpassant.getEnPassantCoordinates move
+                    | NormalMove move -> Move.Enpassant.getEnPassantCoordinates gameState.board move
                     | _ -> None
                 halfMoveClock = gameState.halfMoveClock + 1
                 fullMoveClock = 
