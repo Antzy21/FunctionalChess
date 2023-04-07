@@ -33,29 +33,40 @@ module Board =
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
             |> fromFen
     
+    let private incrementIntegerAtEndOfString (str : string) : string =
+        let revStr = Seq.rev str
+        let addOne = 
+            Seq.head revStr
+            |> Char.GetNumericValue
+            |> int |> (+) 1 |> string
+        (Seq.tail revStr |> Seq.rev |> String.Concat) + addOne
+
+    let private addOrIncrementIntegerAtEndOfString (str: string) =
+        if str = "" then
+            "1"
+        else if Seq.last str |> Char.IsNumber then
+            incrementIntegerAtEndOfString str
+        else
+            str + "1"
+
+    let private addSlashIfEndOfLine ((i, j) : coordinates) (fen: string) : string =
+        if i = 7 && j <> 0 then
+            fen + "/"
+        else
+            fen
+
+    /// Converts a chess board setup into a FEN notation string
     let toFen (board: board) : string =
         board
-        |> Array2D.foldjbacki (fun (i, j) fen square ->
+        |> Array2D.foldjbacki (fun coords fen square ->
             match square.piece with
+            | Some piece ->
+                fen + (Piece.getLetter piece |> string)
             | None -> 
-                if fen = "" then
-                    "1"
-                else if Seq.last fen |> Char.IsNumber then
-                    let nef = Seq.rev fen
-                    let addOne = 
-                        Seq.head nef
-                        |> Char.GetNumericValue
-                        |> int |> (+) 1 |> string
-                    (Seq.tail nef |> Seq.rev |> String.Concat) + addOne
-                else
-                    fen + "1"
-            | Some piece -> fen + (Piece.getLetter piece |> string)
-            +
-            if i = Array2D.length1 board - 1 && j <> 0 then
-                "/"
-            else
-                ""
+                addOrIncrementIntegerAtEndOfString fen
+            |> addSlashIfEndOfLine coords
         ) ""
+
     let print (board : board) : unit =
         printfn "   ________________________"
         printfn "  /                        \\"
