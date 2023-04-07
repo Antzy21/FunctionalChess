@@ -33,6 +33,29 @@ module Board =
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
             |> fromFen
     
+    let private incrementIntegerAtEndOfString (str : string) : string =
+        let revStr = Seq.rev str
+        let addOne = 
+            Seq.head revStr
+            |> Char.GetNumericValue
+            |> int |> (+) 1 |> string
+        (Seq.tail revStr |> Seq.rev |> String.Concat) + addOne
+
+    let private addOrIncrementIntegerAtEndOfString (str: string) =
+        if str = "" then
+            "1"
+        else if Seq.last str |> Char.IsNumber then
+            incrementIntegerAtEndOfString str
+        else
+            str + "1"
+
+    let private addSlashIfEndOfLine (i: int) (fen: string) : string =
+        if i = 7 then
+            fen + "/"
+        else
+            fen
+
+    /// Converts a chess board setup into a FEN notation string
     let toFen (board: board) : string =
         board
         |> Array2D.foldjbacki (fun (i, j) fen square ->
@@ -56,6 +79,7 @@ module Board =
             else
                 ""
         ) ""
+
     let print (board : board) : unit =
         printfn "   ________________________"
         printfn "  /                        \\"
