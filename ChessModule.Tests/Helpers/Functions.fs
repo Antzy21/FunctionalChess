@@ -2,6 +2,7 @@
 
 open Chess
 open Checkerboard
+open Xunit
 
 module GetPossibleMoves = 
 
@@ -75,8 +76,9 @@ let fromFenToFenIsInverseAfterMove (fen: string) (notation: string) : bool =
     |> GameState.toFen
     |> (=) fen
 
-let fromFenToFenIsInverse (fen: string) : bool =
-    fen
-    |> GameState.Create.fromFen
-    |> GameState.toFen
-    |> (=) fen
+let fromFenToFenIsInverse (fen: string) =
+    let actual =
+        fen
+        |> GameState.Create.fromFen
+        |> GameState.toFen
+    Assert.Equal(fen, actual)
