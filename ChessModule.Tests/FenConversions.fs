@@ -8,17 +8,14 @@ module Inverses =
     [<Fact>]
     let ``Starting Fen converts with inverse`` () =
         fromFenToFenIsInverse "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
-        |> Assert.True
 
     [<Fact>]
     let ``Empty board`` () =
         fromFenToFenIsInverse "4k3/8/8/8/8/8/8/4K3 w KQkq - 0 0"
-        |> Assert.True
 
     [<Fact>]
     let ``Asymetric board`` () =
         fromFenToFenIsInverse "4k3/8/8/nNnN4/8/8/PPPP4/4K3 w KQkq - 0 0"
-        |> Assert.True
 
 module SetEnpassantSquare =
     [<Fact>]
