@@ -9,22 +9,24 @@ type board = board<piece, sbyte>
 module Board =
     
     module Create =
+        let private replaceNumbersWithReplicatedOnes =
+            Seq.fold (fun acc (c: char) ->
+                if (System.Char.IsNumber c) then
+                    acc + (String.replicate (int $"{c}") "1")
+                else
+                    acc + $"{c}"
+            ) ""
         let fromFen (fen: string) : board =
             let board = Board.init 8y
-            fen.Split('/')
+            fen
+            |> replaceNumbersWithReplicatedOnes
+            |> fun fen -> fen.Split('/')
             |> Array.rev
             |> Array.iteri (fun (j: int) (row: string) ->
                 row
-                |> Seq.map (fun (c: char) ->
-                    if (System.Char.IsNumber c) then
-                        Seq.init (int $"{c}") (fun _ -> None)
-                    else
-                        seq { Some c }
-                )
-                |> Seq.concat
-                |> Seq.iteri (fun (i: int) (c: char option) ->
-                    if Option.isSome c then
-                        let piece = c |> Option.get |> Piece.getFromLetter
+                |> Seq.iteri (fun (i: int) (c: char) ->
+                    if c <> '1' then
+                        let piece = c |> Piece.getFromLetter
                         board.[i,j] <- Square.updateWithPiece piece board.[i,j]
                 )
             )
