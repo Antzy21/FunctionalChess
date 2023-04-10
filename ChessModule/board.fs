@@ -58,7 +58,7 @@ module Board =
     /// Converts a chess board setup into a FEN notation string
     let toFen (board: board) : string =
         board
-        |> Array2D.foldjbacki (fun coords fen square ->
+        |> Array2D.foldjiback (fun coords fen square ->
             match square.piece with
             | Some piece ->
                 fen + (Piece.getLetter piece |> string)
