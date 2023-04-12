@@ -16,6 +16,10 @@ module Board =
                 else
                     acc + $"{c}"
             ) ""
+        let private updateBoardFromFenChar (fenChar: char) (coords: coordinates) (board: board) =
+            if fenChar <> '1' then
+                let piece = Piece.getFromLetter fenChar |> Some
+                Board.Update.Square.withPieceOption coords piece board
         let fromFen (fen: string) : board =
             let board = Board.init 8
             fen
@@ -25,9 +29,7 @@ module Board =
             |> Array.iteri (fun (j: int) (row: string) ->
                 row
                 |> Seq.iteri (fun (i: int) (c: char) ->
-                    if c <> '1' then
-                        let piece = c |> Piece.getFromLetter
-                        board.[i,j] <- Square.updateWithPiece piece board.[i,j]
+                    updateBoardFromFenChar c (i,j) board
                 )
             )
             board
