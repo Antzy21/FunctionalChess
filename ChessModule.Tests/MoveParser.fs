@@ -84,5 +84,5 @@ module pgnTests =
     [<Fact>]
     let ``Knights share square to move to`` () =
         let gamePgn = Game.pgn (Games.Special.knightsSharingMoveSquare ())
-        let expected = "1.e4 e5 2.Nf3 Nf6 3.Nbd2"
+        let expected = "1.e4 e5 2.Nc3 Nf6 3.Nge2"
         Assert.Equal(expected, gamePgn)

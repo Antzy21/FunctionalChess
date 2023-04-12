@@ -119,6 +119,16 @@ module Moves =
             piece = None
         })
         |> NormalMove
+    let Nc3 : move = 
+        ({
+            coordinates = (1y,0y);
+            piece = Some {pieceType = Knight; colour = White}
+        },
+        {
+            coordinates = (2y,2y);
+            piece = None
+        })
+        |> NormalMove
     let Nf3 : move = 
         ({
             coordinates = (6y,0y);
@@ -129,13 +139,13 @@ module Moves =
             piece = None
         })
         |> NormalMove
-    let Nbd2 : move = 
+    let Nge2 : move = 
         ({
-            coordinates = (1y,0y);
+            coordinates = (6y,0y);
             piece = Some {pieceType = Knight; colour = White}
         },
         {
-            coordinates = (3y,1y);
+            coordinates = (4y,1y);
             piece = None
         })
         |> NormalMove
@@ -259,9 +269,9 @@ module Games =
             {
                 gameState = GameState.Create.fromFen "rnbqkb1r/ppp1pppp/5n2/4p3/4P3/5N2/PPPPNPPP/R1BQKB1R b KQkq - 5 3";
                 moves = [
-                    Moves.Nbd2;
+                    Moves.Nge2;
                     Moves.Nf6;
-                    Moves.Nf3;
+                    Moves.Nc3;
                     Moves.e5;
                     Moves.e4;
                 ]
