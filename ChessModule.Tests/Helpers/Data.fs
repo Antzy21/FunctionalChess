@@ -143,90 +143,90 @@ module Moves =
 module Games =
 
     module Enpassant =
-        let PreWhite : game = 
+        let PreWhite() : game = 
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/pP6/8/8/8/4K3 w - a6 0 0";
                 moves = [Moves.EnPassant.PreWhite]
             }
-        let PostWhite : game = 
+        let PostWhite() : game = 
             {
                 gameState = GameState.Create.fromFen "4k3/8/P7/8/8/8/8/4K3 b - - 1 1"
                 moves = [Moves.EnPassant.PostWhite; Moves.EnPassant.PreWhite]
             }
-        let PreBlack : game = 
+        let PreBlack() : game = 
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/Pp6/8/8/4K3 b - a3 0 0";
                 moves = [Moves.EnPassant.PreBlack]
             }
-        let PostBlack : game =
+        let PostBlack() : game =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/p7/8/4K3 w - - 1 0";
                 moves = [Moves.EnPassant.PostBlack; Moves.EnPassant.PreBlack;]
             }
 
     module Promotion =
-        let PreWhite1 : game =
+        let PreWhite1() : game =
             {
                 gameState = GameState.Create.fromFen "8/P7/8/8/8/8/8/4K2k w - - 0 0";
                 moves = []
             }
-        let PostWhite1 : game =
+        let PostWhite1() : game =
             {
                 gameState = GameState.Create.fromFen "Q7/8/8/8/8/8/8/4K2k b - - 1 1";
                 moves = [Moves.Promotion.White1]
             }
-        let PreWhite2 : game =
+        let PreWhite2() : game =
             {
                 gameState = GameState.Create.fromFen "bn6/P7/8/8/8/8/8/4K2k w - - 0 0";
                 moves = []
             }
-        let PostWhite2 : game =
+        let PostWhite2() : game =
             {
                 gameState = GameState.Create.fromFen "bR6/8/8/8/8/8/8/4K2k b - - 1 1";
                 moves = [Moves.Promotion.White2]
             }
     
     module Castling =
-        let PreWhite : game =
+        let PreWhite() : game =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/8/8/R3K2R w KQkq - 0 0";
                 moves = []
             }
-        let PreBlack : game =
+        let PreBlack() : game =
             {
                 gameState = GameState.Create.fromFen "r3k2r/8/8/8/8/8/8/4K3 b KQkq - 0 0";
                 moves = []
             }
-        let PostWhiteKing : game =
+        let PostWhiteKing() : game =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/8/8/R4RK1 b kq - 1 1";
                 moves = [Castling (Kingside, White)]
             }
-        let PostWhiteQueen : game =
+        let PostWhiteQueen() : game =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/8/8/2KR3R b kq - 1 1";
                 moves = [Castling (Queenside, White)]
             }
-        let PostBlackKing : game =
+        let PostBlackKing() : game =
             {
                 gameState = GameState.Create.fromFen "r4rk1/8/8/8/8/8/8/4K3 w KQ - 1 0";
                 moves = [Castling (Kingside, Black)]
             }
-        let PostBlackQueen : game =
+        let PostBlackQueen() : game =
             {
                 gameState = GameState.Create.fromFen "2kr3r/8/8/8/8/8/8/4K3 w KQ - 1 0";
                 moves = [Castling (Queenside, Black)]
             }
 
     module ExampleGame =
-        let White1 : game =
+        let getWhite1 () : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 1 1";
                 moves = [
                     Moves.e4;
                 ]
             }
-        let Black1 : game =
+        let getBlack1 () : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 2 1";
                 moves = [
@@ -234,7 +234,7 @@ module Games =
                     Moves.e4;
                 ]
             }
-        let White2 : game =
+        let getWhite2 () : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 3 2";
                 moves = [
@@ -243,7 +243,7 @@ module Games =
                     Moves.e4;
                 ]
             }
-        let Black2 : game =
+        let getBlack2 () : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq - 4 2";
                 moves = [
@@ -255,7 +255,7 @@ module Games =
             }
 
     module Special =
-        let knightsSharingMoveSquare : game =
+        let knightsSharingMoveSquare() : game =
             {
                 gameState = GameState.Create.fromFen "rnbqkb1r/ppp1pppp/5n2/4p3/4P3/5N2/PPPPNPPP/R1BQKB1R b KQkq - 5 3";
                 moves = [
