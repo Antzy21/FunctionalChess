@@ -10,19 +10,19 @@ module FromFen =
     let ``Board from Fen contains correctly placed pieces`` () =
         let board = Board.Create.fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
         let pieceAt_0_0 =
-            Board.GetSquare.fromCoordinates board (0y,0y)
+            Board.GetSquare.fromCoordinates board (0,0)
             |> Square.getPieceType
         Assert.Equal(Some Rook, pieceAt_0_0)
         let pieceAt_4_0 =
-            Board.GetSquare.fromCoordinates board (4y,0y)
+            Board.GetSquare.fromCoordinates board (4,0)
             |> Square.getPieceType
         Assert.Equal(Some King, pieceAt_4_0)
         let pieceAt_0_2 =
-            Board.GetSquare.fromCoordinates board (0y,2y)
+            Board.GetSquare.fromCoordinates board (0,2)
             |> Square.getPieceType
         Assert.Equal(None, pieceAt_0_2)
         let colour_0_0 =
-            Board.GetSquare.fromCoordinates board (0y,0y)
+            Board.GetSquare.fromCoordinates board (0,0)
             |> Square.getPieceColour
         Assert.Equal(Some White, colour_0_0)
 

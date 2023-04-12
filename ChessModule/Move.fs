@@ -3,7 +3,7 @@
 open Checkerboard
 open FSharp.Extensions
 
-type normalMove = move<piece, sbyte>
+type normalMove = move<piece, int>
 
 type move = 
     | NormalMove of normalMove
@@ -20,13 +20,13 @@ module Move =
         Move.getMovedPiece move
         |> fun piece -> piece.colour
     /// Get the difference between the starting and destination of the move.
-    let getShift (move: normalMove) : sbyte * sbyte =
+    let getShift (move: normalMove) : int * int =
         Coordinates.getShiftBetweenCoordinates (fst move).coordinates (snd move).coordinates
 
     module Enpassant =
         /// Gets the optional coordinates that a pawn could be taken through an "en passant" move, that only comes by the previous move being a pawn moving two squares.
-        let getEnPassantCoordinates (board: board<piece, sbyte>) (move: normalMove) : coordinates<sbyte> option = 
-            let pawnMovedTwoSquares = List.contains (getShift move) [(0y,2y); (0y,-2y)]
+        let getEnPassantCoordinates (board: board<piece, int>) (move: normalMove) : coordinates option = 
+            let pawnMovedTwoSquares = List.contains (getShift move) [(0,2); (0,-2)]
             let start = fst move
             let moveWasPawn = 
                 start
@@ -35,8 +35,8 @@ module Move =
             if moveWasPawn && pawnMovedTwoSquares then
                 let shift = 
                     match getMovedPieceColour move with                
-                    | White -> (0y,1y)
-                    | Black -> (0y,-1y)
+                    | White -> (0,1)
+                    | Black -> (0,-1)
                 Some (Coordinates.getAfterShift shift start.coordinates)
             else
                 None

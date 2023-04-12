@@ -60,11 +60,11 @@ module CastlingAllowance =
             | Rook ->
                 let rank =
                     match colour with
-                    | White -> 0y
-                    | Black -> 7y
+                    | White -> 0
+                    | Black -> 7
                 match (fst normalMove).coordinates with
-                | (0y, r) when r = rank -> removeRights Queenside colour ca
-                | (7y, r) when r = rank -> removeRights Kingside colour ca
+                | (0, r) when r = rank -> removeRights Queenside colour ca
+                | (7, r) when r = rank -> removeRights Kingside colour ca
                 | _ -> ca
             | _ -> ca
         | _ -> ca
