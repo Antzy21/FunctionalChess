@@ -4,7 +4,7 @@ open System
 open FSharp.Extensions
 open Checkerboard
 
-type board = board<piece, sbyte>
+type board = board<piece, int>
 
 module Board =
     
@@ -17,7 +17,7 @@ module Board =
                     acc + $"{c}"
             ) ""
         let fromFen (fen: string) : board =
-            let board = Board.init 8y
+            let board = Board.init 8
             fen
             |> replaceNumbersWithReplicatedOnes
             |> fun fen -> fen.Split('/')
@@ -87,15 +87,15 @@ module Board =
     
     module GetSquares =
         let private stopAt = Some (fun (otherPiece: piece) -> true)
-        let private knightVision (coordinates: coordinates<sbyte>) (board: board) : square list =
-            Board.GetSquares.afterAllShiftDirections coordinates (1y,2y) board
-        let private bishopVision (coordinates: coordinates<sbyte>) (board: board) : square list =
+        let private knightVision (coordinates: coordinates) (board: board) : square list =
+            Board.GetSquares.afterAllShiftDirections coordinates (1,2) board
+        let private bishopVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.onDiagonals coordinates stopAt board
-        let private rookVision (coordinates: coordinates<sbyte>) (board: board) : square list =
+        let private rookVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.onRowAndFile coordinates stopAt board
-        let private queenVision (coordinates: coordinates<sbyte>) (board: board) : square list =
+        let private queenVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.onRowFileAndDiagonals coordinates stopAt board
-        let private kingVision (coordinates: coordinates<sbyte>) (board: board) : square list =
+        let private kingVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.adjacent coordinates board
         let pieceVision (square: square) (board: board) : square list =
             let piece, coordinates = Square.getPiece square, square.coordinates
@@ -106,7 +106,7 @@ module Board =
                 | Queen -> queenVision coordinates board
                 | King -> kingVision coordinates board
                 | Pawn -> Piece.PawnMoves.getPawnVision coordinates board piece.colour
-        let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates<sbyte>) (board: board) : square list =
+        let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) : square list =
             match piece.pieceType with
                 | Knight -> knightVision coordinates board
                 | Bishop -> bishopVision coordinates board
@@ -138,7 +138,7 @@ module Board =
             playerVision colour board
             |> List.contains square
         let isAtEndsOfBoard (square: square) : bool =
-            List.contains (snd square.coordinates) [0y; 7y]
+            List.contains (snd square.coordinates) [0; 7]
 
     module Move =
         let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
@@ -149,7 +149,7 @@ module Board =
             | None -> true
         let getNormalMoves (colour: colour) (board: board) : normalMove list =
             Square.getFromBoardWithPiecesOfColour colour board
-            |> List.map (fun (oldSquare : square<piece, sbyte>) ->
+            |> List.map (fun (oldSquare : square<piece, int>) ->
                 GetSquares.pieceVision oldSquare board
                 |> List.filter (blockSelfTaking oldSquare board)
                 |> List.map (fun newSquare -> oldSquare, newSquare)
@@ -163,16 +163,16 @@ module Board =
         |> Square.isVisibleByPlayer (Colour.opposite colour) board
 
     module GetMoves =
-        let internal enpassant (colour: colour) (enpassantSquareOption: coordinates<sbyte> option) (board: board) : move list =
+        let internal enpassant (colour: colour) (enpassantSquareOption: coordinates option) (board: board) : move list =
             match enpassantSquareOption with
             | None -> []
             | Some enpassantCoordinates -> 
                 let direction =
                     match colour with
-                    | White -> -1y
-                    | Black -> 1y
+                    | White -> -1
+                    | Black -> 1
                 let pos = enpassantCoordinates
-                Board.GetSquares.afterShifts pos board [(-1y, direction);(+1y, direction);]
+                Board.GetSquares.afterShifts pos board [(-1, direction);(+1, direction);]
                 |> List.filter (fun square -> 
                     match square.piece with
                     | Some piece when piece.pieceType = Pawn && piece.colour = colour -> true
@@ -265,12 +265,12 @@ module Board =
         let private castlingMove (side: side) (colour: colour) (board: board) : normalMove * normalMove =
             let rank = 
                 match colour with
-                | White -> 0y
-                | Black -> 7y
+                | White -> 0
+                | Black -> 7
             let kingStart, kingEnd, rookStart, rookEnd = 
                 match side with
-                | Kingside -> (4y, rank), (6y, rank), (7y, rank), (5y, rank)
-                | Queenside -> (4y, rank), (2y, rank), (0y, rank), (3y, rank)
+                | Kingside -> (4, rank), (6, rank), (7, rank), (5, rank)
+                | Queenside -> (4, rank), (2, rank), (0, rank), (3, rank)
             (
                 {piece = Some {pieceType = King; colour = colour}; coordinates = kingStart},
                 {piece = None; coordinates = kingEnd}

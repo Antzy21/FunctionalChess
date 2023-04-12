@@ -6,7 +6,7 @@ type gameState = {
     board: board;
     playerTurn: colour;
     castlingAllowance: castlingAllowance;
-    enpassantCoordinates: FSharp.Extensions.coordinates<sbyte> option;
+    enpassantCoordinates: coordinates option;
     halfMoveClock: int;
     fullMoveClock: int;
     }
@@ -99,7 +99,7 @@ module GameState =
                     | White -> gameState.fullMoveClock + 1
                     | Black -> gameState.fullMoveClock
             }
-        let undoMoveSetEnpassantSquare (enpassantCoordinates: FSharp.Extensions.coordinates<sbyte> option) (move: move) (gameState: gameState) =
+        let undoMoveSetEnpassantSquare (enpassantCoordinates: coordinates option) (move: move) (gameState: gameState) =
             Board.Update.undoMove move gameState.board
             {
                 board = gameState.board
