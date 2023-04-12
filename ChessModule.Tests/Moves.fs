@@ -9,131 +9,131 @@ module Normal =
     [<Fact>]
     let ``e4`` () =
         let newGame = Game.Create.newGame ()
-        let result = UpdateWithMove.makeMove Moves.e4 newGame
-        Assert.Equal(Games.ExampleGame.White1, result)
+        let result = Game.Update.makeMove Moves.e4 newGame
+        Assert.Equal(Games.ExampleGame.getWhite1 (), result)
         
     [<Fact>]
     let ``d5`` () =
-        let result = UpdateWithMove.makeMove Moves.d5 Games.ExampleGame.White1
-        Assert.Equal(Games.ExampleGame.Black1, result)
+        let result = Game.Update.makeMove Moves.d5 (Games.ExampleGame.getWhite1 ())
+        Assert.Equal(Games.ExampleGame.getBlack1 (), result)
 
     [<Fact>]
     let ``xd5`` () =
-        let result = UpdateWithMove.makeMove Moves.xd5 Games.ExampleGame.Black1
-        Assert.Equal(Games.ExampleGame.White2, result)
+        let result = Game.Update.makeMove Moves.xd5 (Games.ExampleGame.getBlack1 ())
+        Assert.Equal(Games.ExampleGame.getWhite2 (), result)
         
     [<Fact>]
     let ``nf6`` () =
-        let result = UpdateWithMove.makeMove Moves.Nf6 Games.ExampleGame.White2
-        Assert.Equal(Games.ExampleGame.Black2, result)
+        let result = Game.Update.makeMove Moves.Nf6 (Games.ExampleGame.getWhite2 ())
+        Assert.Equal(Games.ExampleGame.getBlack2 (), result)
 
 module UndoNormal =
     [<Fact>]
     let ``e4`` () =
         let newGame = Game.Create.newGame ()
-        let result = UpdateWithMove.undoMove Games.ExampleGame.White1
+        let result = Game.Update.undoMove (Games.ExampleGame.getWhite1 ())
         Assert.Equal(newGame, result)
         
     [<Fact>]
     let ``d5`` () =
-        let result = UpdateWithMove.undoMove Games.ExampleGame.Black1
-        Assert.Equal(Games.ExampleGame.White1, result)
+        let result = Game.Update.undoMove (Games.ExampleGame.getBlack1 ())
+        Assert.Equal(Games.ExampleGame.getWhite1 (), result)
 
     [<Fact>]
     let ``xd5`` () =
-        let result = UpdateWithMove.undoMove Games.ExampleGame.White2
-        Assert.Equal(Games.ExampleGame.Black1, result)
+        let result = Game.Update.undoMove (Games.ExampleGame.getWhite2 ())
+        Assert.Equal(Games.ExampleGame.getBlack1 (), result)
         
     [<Fact>]
     let ``nf6`` () =
-        let result = UpdateWithMove.undoMove Games.ExampleGame.Black2
-        Assert.Equal(Games.ExampleGame.White2, result)
+        let result = Game.Update.undoMove (Games.ExampleGame.getBlack2 ())
+        Assert.Equal(Games.ExampleGame.getWhite2 (), result)
 
 module Castling =
     [<Fact>]
     let ``White Kingside`` () =
-        let result = UpdateWithMove.makeMove (Castling (Kingside, White)) Games.Castling.PreWhite
-        Assert.Equal(Games.Castling.PostWhiteKing, result)
+        let result = Game.Update.makeMove (Castling (Kingside, White)) (Games.Castling.PreWhite ())
+        Assert.Equal(Games.Castling.PostWhiteKing (), result)
 
     [<Fact>]
     let ``White Queenside`` () =
-        let result = UpdateWithMove.makeMove (Castling (Queenside, White)) Games.Castling.PreWhite
-        Assert.Equal(Games.Castling.PostWhiteQueen, result)
+        let result = Game.Update.makeMove (Castling (Queenside, White)) (Games.Castling.PreWhite ())
+        Assert.Equal(Games.Castling.PostWhiteQueen (), result)
 
     [<Fact>]
     let ``Black Kingside`` () =
-        let result = UpdateWithMove.makeMove (Castling (Kingside, Black)) Games.Castling.PreBlack
-        Assert.Equal(Games.Castling.PostBlackKing, result)
+        let result = Game.Update.makeMove (Castling (Kingside, Black)) (Games.Castling.PreBlack ())
+        Assert.Equal(Games.Castling.PostBlackKing (), result)
 
     [<Fact>]
     let ``Black Queenside`` () =
-        let result = UpdateWithMove.makeMove (Castling (Queenside, Black)) Games.Castling.PreBlack
-        Assert.Equal(Games.Castling.PostBlackQueen, result)
+        let result = Game.Update.makeMove (Castling (Queenside, Black)) (Games.Castling.PreBlack ())
+        Assert.Equal(Games.Castling.PostBlackQueen (), result)
         
 module UndoCastling =
     [<Fact>]
     let ``White Kingside`` () =
-        let result = UpdateWithMove.undoMove Games.Castling.PostWhiteKing
-        Assert.Equal(Games.Castling.PreWhite, result)
+        let result = Game.Update.undoMove (Games.Castling.PostWhiteKing ())
+        Assert.Equal(Games.Castling.PreWhite (), result)
 
     [<Fact>]
     let ``White Queenside`` () =
-        let result = UpdateWithMove.undoMove Games.Castling.PostWhiteQueen
-        Assert.Equal(Games.Castling.PreWhite, result)
+        let result = Game.Update.undoMove (Games.Castling.PostWhiteQueen ())
+        Assert.Equal(Games.Castling.PreWhite (), result)
 
     [<Fact>]
     let ``Black Kingside`` () =
-        let result = UpdateWithMove.undoMove Games.Castling.PostBlackKing
-        Assert.Equal(Game.toString Games.Castling.PreBlack, Game.toString result)
+        let result = Game.Update.undoMove (Games.Castling.PostBlackKing ())
+        Assert.Equal(Game.toString (Games.Castling.PreBlack ()), Game.toString result)
 
     [<Fact>]
     let ``Black Queenside`` () =
-        let result = UpdateWithMove.undoMove Games.Castling.PostBlackQueen
-        Assert.Equal(Games.Castling.PreBlack, result)
+        let result = Game.Update.undoMove (Games.Castling.PostBlackQueen ())
+        Assert.Equal(Games.Castling.PreBlack (), result)
 
 module Enpassant =
     [<Fact>]
     let ``White`` () =
-        let result = UpdateWithMove.makeMove Moves.EnPassant.PostWhite Games.Enpassant.PreWhite
-        Assert.Equal(Games.Enpassant.PostWhite, result)
+        let result = Game.Update.makeMove Moves.EnPassant.PostWhite (Games.Enpassant.PreWhite ())
+        Assert.Equal(Games.Enpassant.PostWhite (), result)
     
     [<Fact>]
     let ``Black`` () =
-        let result = UpdateWithMove.makeMove Moves.EnPassant.PostBlack Games.Enpassant.PreBlack
-        Assert.Equal(Games.Enpassant.PostBlack, result)
+        let result = Game.Update.makeMove Moves.EnPassant.PostBlack (Games.Enpassant.PreBlack ())
+        Assert.Equal(Games.Enpassant.PostBlack (), result)
         
 module UndoEnpassant =
     [<Fact>]
     let ``White`` () =
-        let result = UpdateWithMove.undoMove Games.Enpassant.PostWhite
-        Assert.Equal(Games.Enpassant.PreWhite, result)
+        let result = Game.Update.undoMove (Games.Enpassant.PostWhite ())
+        Assert.Equal(Games.Enpassant.PreWhite (), result)
     
     [<Fact>]
     let ``Black`` () =
-        let result = UpdateWithMove.undoMove Games.Enpassant.PostBlack
-        Assert.Equal(Games.Enpassant.PreBlack, result)
+        let result = Game.Update.undoMove (Games.Enpassant.PostBlack ())
+        Assert.Equal(Games.Enpassant.PreBlack (), result)
 
 module Promotion =
     [<Fact>]
     let ``White`` () =
-        let result = UpdateWithMove.makeMove Moves.Promotion.White1 Games.Promotion.PreWhite1
-        Assert.Equal(Games.Promotion.PostWhite1, result)
+        let result = Game.Update.makeMove Moves.Promotion.White1 (Games.Promotion.PreWhite1 ())
+        Assert.Equal(Games.Promotion.PostWhite1 (), result)
     
     [<Fact>]
     let ``White taking`` () =
-        let result = UpdateWithMove.makeMove Moves.Promotion.White2 Games.Promotion.PreWhite2
-        Assert.Equal(Games.Promotion.PostWhite2, result)
+        let result = Game.Update.makeMove Moves.Promotion.White2 (Games.Promotion.PreWhite2 ())
+        Assert.Equal(Games.Promotion.PostWhite2 (), result)
         
 module UndoPromotion =
     [<Fact>]
     let ``White`` () =
-        let result = UpdateWithMove.undoMove Games.Promotion.PostWhite1
-        Assert.Equal(Games.Promotion.PreWhite1, result)
+        let result = Game.Update.undoMove (Games.Promotion.PostWhite1 ())
+        Assert.Equal(Games.Promotion.PreWhite1 (), result)
     
     [<Fact>]
     let ``White taking`` () =
-        let result = UpdateWithMove.undoMove Games.Promotion.PostWhite2
-        Assert.Equal(Games.Promotion.PreWhite2, result)
+        let result = Game.Update.undoMove (Games.Promotion.PostWhite2 ())
+        Assert.Equal(Games.Promotion.PreWhite2 (), result)
 
 module MovesFromPositions =
     [<Fact>]

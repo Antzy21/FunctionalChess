@@ -35,54 +35,54 @@ module ParseAlgebraic =
 module Castling =
     [<Fact>]
     let ``White Kingside`` () =
-        let game = Games.Castling.PreWhite
+        let game = Games.Castling.PreWhite ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0"
         Assert.Equal(Castling (Kingside, White), result)
     [<Fact>]
     let ``White Queenside`` () =
-        let game = Games.Castling.PreWhite
+        let game = Games.Castling.PreWhite ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0-0"
         Assert.Equal(Castling (Queenside, White), result)
     [<Fact>]
     let ``Black Kingside`` () =
-        let game = Games.Castling.PreBlack
+        let game = Games.Castling.PreBlack ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0"
         Assert.Equal(Castling (Kingside, Black), result)
     [<Fact>]
     let ``Black Queenside`` () =
-        let game = Games.Castling.PreBlack
+        let game = Games.Castling.PreBlack ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "0-0-0"
         Assert.Equal(Castling (Queenside, Black), result)
 
 module Enpassant =
     [<Fact>]
     let ``White`` () =
-        let game = Games.Enpassant.PreWhite
+        let game = Games.Enpassant.PreWhite ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "bxa6"
         Assert.Equal(Moves.EnPassant.PostWhite, result)
     
     [<Fact>]
     let ``Black`` () =
-        let game = Games.Enpassant.PreBlack
+        let game = Games.Enpassant.PreBlack ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "bxa3"
         Assert.Equal(Moves.EnPassant.PostBlack, result)
 
 module Promotion =
     [<Fact>]
     let ``White`` () =
-        let game = Games.Promotion.PreWhite1
+        let game = Games.Promotion.PreWhite1 ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "a8=Q"
         Assert.Equal(Moves.Promotion.White1, result)
     
     [<Fact>]
     let ``White taking`` () =
-        let game = Games.Promotion.PreWhite2
+        let game = Games.Promotion.PreWhite2 ()
         let result = MoveParser.parse game.gameState.playerTurn game.gameState.board "axb8=R"
         Assert.Equal(Moves.Promotion.White2, result)
 
 module pgnTests =
     [<Fact>]
     let ``Knights share square to move to`` () =
-        let gamePgn = Game.pgn Games.Special.knightsSharingMoveSquare
+        let gamePgn = Game.pgn (Games.Special.knightsSharingMoveSquare ())
         let expected = "1.e4 e5 2.Nf3 Nf6 3.Nbd2"
         Assert.Equal(expected, gamePgn)
