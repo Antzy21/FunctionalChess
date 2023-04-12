@@ -18,15 +18,10 @@ module Game =
                 moves = [];
                 gameState = GameState.Create.fromFen fen
             }
-        let deepCopy (game: game) : game =
-            {
-                moves = game.moves;
-                gameState = GameState.Create.deepCopy game.gameState
-            }
 
     let toString (game: game) =
         List.fold (fun s move ->
-            s + $"\n{MoveParser.FullNotation.toString move}"
+            s + $"\n{MoveParser.FullNotation.toString game.gameState.board move}"
         ) $"{GameState.toString game.gameState}" game.moves
     let print = toString >> printf "%s"
 
@@ -36,22 +31,6 @@ module Game =
                 moves = move :: game.moves;
                 gameState = GameState.Update.makeMove move game.gameState
             }
-        let undoMove (game: game) : game =
-            let moveToUndo, moves =
-                match game.moves with
-                | [] -> failwith "No moves to undo"
-                | moveToUndo :: moves -> moveToUndo, moves 
-            let gameState = 
-                match moves with
-                | NormalMove normalMove :: _ ->
-                    let enpassantCoordinates = Move.Enpassant.getEnPassantCoordinates game.gameState.board normalMove
-                    GameState.Update.undoMoveSetEnpassantSquare enpassantCoordinates moveToUndo game.gameState
-                | _ ->
-                    GameState.Update.undoMove moveToUndo game.gameState
-            {
-                moves = moves;
-                gameState = gameState
-            }
         let makeMoveFromNotation (move: string) (game: game) : game =
             let parsedMove = MoveParser.parse game.gameState.playerTurn game.gameState.board move
             makeMove parsedMove game
@@ -60,12 +39,15 @@ module Game =
         let tempBoard = Board.Create.starting ()
         game.moves
         |> List.rev
-        |> List.mapi (fun i move ->
-            Board.Update.applyMove move tempBoard
-            if i%2 = 0 then
-                $"{(i/2)+1}."
-            else ""
-            + $"{(MoveParser.AlgebraicNotation.toString move tempBoard)} "
-        )
-        |> List.reduce (+)
-        |> fun s -> s.Trim()
+        |> List.fold (fun (board, i, pgn) move ->
+            let pgn = 
+                pgn +
+                if i%2 = 0 then
+                    $"{(i/2)+1}."
+                else ""
+                + $"{(MoveParser.AlgebraicNotation.toString move board)} "
+            let board = Board.Update.applyMove move board
+            Board.print board
+            (board, i+1, pgn)
+        ) (tempBoard, 0, "")
+        |> fun (b, i, pgn) -> pgn.Trim()
