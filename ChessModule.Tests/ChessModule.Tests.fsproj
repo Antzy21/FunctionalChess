@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="FenConversions.fs" />
     <Compile Include="Moves.fs" />
+    <Compile Include="Board.fs" />
     <Compile Include="GetMoves.fs" />
     <Compile Include="Check.fs" />
     <Compile Include="MoveParser.fs" />
