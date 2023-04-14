@@ -107,7 +107,7 @@ module Board =
                 | Rook -> rookVision coordinates board
                 | Queen -> queenVision coordinates board
                 | King -> kingVision coordinates board
-                | Pawn -> Piece.PawnMoves.getPawnVision coordinates board piece.colour
+                | Pawn -> Move.PawnMoves.getPawnVision coordinates board piece.colour
         let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) : square list =
             match piece.pieceType with
                 | Knight -> knightVision coordinates board
@@ -115,7 +115,7 @@ module Board =
                 | Rook -> rookVision coordinates board
                 | Queen -> queenVision coordinates board
                 | King -> kingVision coordinates board
-                | Pawn -> Piece.PawnMoves.getPawnFrom coordinates piece.colour board
+                | Pawn -> Move.PawnMoves.getPawnFrom coordinates piece.colour board
             |> List.filter (fun square ->
                 square.piece
                 |> Option.filter ((=) piece)
