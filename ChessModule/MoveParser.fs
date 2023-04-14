@@ -142,7 +142,7 @@ module MoveParser =
             |> Option.map (Board.GetSquare.fromCoordinates board)
 
         let private parsePawnMove colour board pawnFile newSquare : normalMove option =
-            Piece.PawnMoves.getPawnFrom newSquare.coordinates colour board
+            Move.PawnMoves.getPawnFrom newSquare.coordinates colour board
             |> List.tryFind (fun square ->
                 Square.getFile square = pawnFile.ToString()
                 && Square.hasPiece {pieceType = Pawn; colour = colour} square
