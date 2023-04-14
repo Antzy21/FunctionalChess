@@ -2,6 +2,11 @@
 
 open Chess
 open Checkerboard
+
+module Pieces =
+
+    let WhiteBishop =
+        Some {pieceType = Bishop; colour = White}
     
 module Moves =
 
