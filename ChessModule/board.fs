@@ -151,17 +151,17 @@ module Board =
             List.contains (snd square.coordinates) [0; 7]
 
     module Move =
-        let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
-            match Board.GetPiece.fromCoordinates newSquare.coordinates board with
-            | Some newPiece -> 
-                let piece = Square.getPiece square
-                newPiece.colour <> piece.colour
-            | None -> true
+        let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (squareList: square list) : square list =
+            squareList
+            |> List.filter (fun sqr -> 
+                Square.getPieceColour sqr = Some pieceColour
+                |> not
+            )
         let getNormalMoves (colour: colour) (board: board) : normalMove list =
             Square.getFromBoardWithPiecesOfColour colour board
             |> List.map (fun (oldSquare : square<piece, int>) ->
                 GetSquares.pieceVision oldSquare board
-                |> List.filter (blockSelfTaking oldSquare board)
+                |> filterOutSameColouredPieces colour board
                 |> List.map (fun newSquare -> oldSquare, newSquare)
             )
             |> List.concat
