@@ -92,13 +92,21 @@ module Board =
         let private knightVision (coordinates: coordinates) (board: board) : square list =
             Board.GetSquares.afterAllShiftDirections coordinates (1,2) board
         let private bishopVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.onDiagonals coordinates stopAt board
+            Board.GetSquares.afterRepeatedShift (1,1) coordinates stopAt board
+            |> List.append <| Board.GetSquares.afterRepeatedShift (1,-1) coordinates stopAt board
+            |> List.append <| Board.GetSquares.afterRepeatedShift (-1,1) coordinates stopAt board
+            |> List.append <| Board.GetSquares.afterRepeatedShift (-1,-1) coordinates stopAt board
         let private rookVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.onRowAndFile coordinates stopAt board
+            Board.GetSquares.afterRepeatedShift (1,0) coordinates stopAt board
+            |> List.append <| Board.GetSquares.afterRepeatedShift (-1,0) coordinates stopAt board
+            |> List.append <| Board.GetSquares.afterRepeatedShift (0,1) coordinates stopAt board
+            |> List.append <| Board.GetSquares.afterRepeatedShift (0,-1) coordinates stopAt board
         let private queenVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.onRowFileAndDiagonals coordinates stopAt board
+            rookVision coordinates board
+            |> List.append <| bishopVision coordinates board
         let private kingVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.adjacent coordinates board
+            Board.GetSquares.afterAllShiftDirections coordinates (1,0) board
+            |> List.append <| Board.GetSquares.afterAllShiftDirections coordinates (1,1) board
         let pieceVision (square: square) (board: board) : square list =
             let piece, coordinates = Square.getPiece square, square.coordinates
             match piece.pieceType with
