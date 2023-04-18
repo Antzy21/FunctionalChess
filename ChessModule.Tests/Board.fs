@@ -11,7 +11,7 @@ module ContainsPiece =
     let ``Piece exists check`` () =
         let board : board = 
             (Games.ExampleGame.getWhite1 ()).gameState.board
-        Board.Update.Square.withPieceOption (2,0) Pieces.WhiteBishop board
+            |> Board.updateSquare (2,0) Pieces.WhiteBishop
         Assert.True(Board.containsPiece (2,0) board)
 
     [<Fact>]

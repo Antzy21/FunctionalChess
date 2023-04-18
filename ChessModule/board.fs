@@ -4,8 +4,6 @@ open System
 open FSharp.Extensions
 open Checkerboard
 
-type board = board<piece, int>
-
 module Board =
     
     module Create =
@@ -16,23 +14,26 @@ module Board =
                 else
                     acc + $"{c}"
             ) ""
-        let private updateBoardFromFenChar (fenChar: char) (coords: coordinates) (board: board) =
+        let private updateBoardFromFenChar (fenChar: char) (coords: coordinates) (board: board) : board =
             if fenChar <> '1' then
-                let piece = Piece.getFromLetter fenChar |> Some
-                Board.Update.Square.withPieceOption coords piece board
+                let piece = Piece.getFromLetter fenChar |> Some |> Square.Parser.toBitMaps
+                Board.updateSquare coords piece board
+            else
+                board
         let fromFen (fen: string) : board =
-            let board = Board.init 8
+            let board = Board.init 5
             fen
             |> replaceNumbersWithReplicatedOnes
             |> fun fen -> fen.Split('/')
             |> Array.rev
-            |> Array.iteri (fun (j: int) (row: string) ->
+            |> Array.fold (fun (j, board) (row: string) ->
                 row
-                |> Seq.iteri (fun (i: int) (c: char) ->
-                    updateBoardFromFenChar c (i,j) board
-                )
-            )
-            board
+                |> Seq.fold (fun (((i,j), b): coordinates * board) (c: char) ->
+                    (i+1,j), (updateBoardFromFenChar c (i,j) b)
+                ) ((0,j), board)
+                |> fun ((_,j), board) -> (j+1, board)
+            ) (0, board)
+            |> snd
         let starting () : board =
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
             |> fromFen
@@ -62,8 +63,8 @@ module Board =
     /// Converts a chess board setup into a FEN notation string
     let toFen (board: board) : string =
         board
-        |> Array2D.foldjiback (fun coords fen square ->
-            match square.piece with
+        |> Board.foldjiback (fun coords fen squareBitMap ->
+            match Square.Parser.fromBitMaps squareBitMap with
             | Some piece ->
                 fen + (Piece.getLetter piece |> string)
             | None -> 
@@ -74,21 +75,24 @@ module Board =
     let print (board : board) : unit =
         printfn "   ________________________"
         printfn "  /                        \\"
-        [0..7]
-        |> List.rev
-        |> List.iter (fun j ->
-            printf $"{j+1} |"
-            [0..7]
-            |> List.iter (fun i ->
-                printf " %c " <| Square.toString board.[i,j]
-            )
-            printfn "|"
-        )
+
+        Board.foldjiback (fun (i,j) acc sqr ->
+            if i = 0 then
+                printf $"{j+1} |"
+            Square.Parser.fromBitMaps sqr
+            |> Square.toString
+            |> printf " %c "
+            if i = 7 then
+                printfn "|"
+            acc
+        ) "" board
+        |> ignore
+
         printfn "  \\________________________/"
         printfn "    a  b  c  d  e  f  g  h"
     
     module GetSquares =
-        let private stopAt = fun sqr -> sqr.piece |> Option.isSome
+        let private stopAt = PieceBitMap.containsPiece
         let private knightVision (coordinates: coordinates) (board: board): coordinates list =
             Board.GetCoordinates.getAfterShiftInAllDirections (1,2) coordinates board
         let private bishopVision (coordinates: coordinates) (board: board) : coordinates list =
@@ -105,14 +109,16 @@ module Board =
             rookVision coordinates board
             |> List.append <| bishopVision coordinates board
         let private kingVision (coordinates: coordinates) (board: board) : coordinates list =
-            Board.GetCoordinates.getAfterShiftInAllDirections (1,0) coordinates board
-            |> List.append <| Board.GetCoordinates.getAfterShiftInAllDirections (1,1) coordinates board
+            Board.GetCoordinates.getAfterShiftInAllDirections (1,1) coordinates board
+            |> List.append <| Board.GetCoordinates.getAfterShiftInAllDirections (1,0) coordinates board
         let pieceVisionResult (board: board) ((i,j): coordinates) : coordinates list result =
-            let square = Board.GetSquare.fromCoordinates board (i,j)
-            match square.piece with
+            let square =
+                Board.GetSquare.fromCoordinates board (i,j)
+                |> Square.Parser.fromBitMaps
+            match square with
             | None -> Error $"No Piece to get vision for at ({i}, {j})"
             | Some piece ->
-            match piece.pieceType with
+                match piece.pieceType with
                 | Knight -> knightVision (i,j) board
                 | Bishop -> bishopVision (i,j) board
                 | Rook -> rookVision (i,j) board
@@ -122,6 +128,9 @@ module Board =
                 |> Ok
         let pieceVision (board: board) (coords: coordinates) : coordinates list =
             pieceVisionResult board coords |> Result.failOnError
+
+        /// Gets the locations that a piece could have come from given some destination coordinates.
+        /// Filters the coordinates list based on if the piece type is on the board at the calculated starting coordinates.
         let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) =
             match piece.pieceType with
                 | Knight -> knightVision coordinates board
@@ -130,64 +139,104 @@ module Board =
                 | Queen -> queenVision coordinates board
                 | King -> kingVision coordinates board
                 | Pawn -> Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coordinates piece.colour board
-            |> List.filter (fun square ->
-                Board.GetPiece.fromCoordinates square board
-                |> Option.filter ((=) piece)
-                |> Option.isSome
+            |> List.filter (fun coords ->
+                Board.GetSquare.fromCoordinates board coords
+                |> Square.Parser.fromBitMaps
+                |> (=) (Some piece)
             )
 
     module Square =
-        let private getFromBoardWithPiecesOfColour (colour: colour) (board: board) : coordinates list =
-            board |> Array2D.filterForCoordinates (fun (square: square) ->
-                match square.piece with
-                | Some piece when piece.colour = colour -> true
-                | _ -> false
+        let internal playerVision (colour: colour) (board: board) : coordinates list =
+            board
+            |> Board.filterCoordinates (fun sqr ->
+                Square.BitMap.isColour colour sqr
             )
-            |> Seq.toList
-        let playerVision (colour: colour) (board: board) : coordinates list =
-            getFromBoardWithPiecesOfColour colour board
-            |> List.map (fun oldSquare ->
-                GetSquares.pieceVision board oldSquare
-            )
+            |> List.map (GetSquares.pieceVision board)
             |> List.concat
-        let isVisibleByPlayer (colour: colour) (board: board) (square: square) : bool =
+        let internal isVisibleByPlayer (colour: colour) (board: board) (coords: coordinates) : bool =
             playerVision colour board
-            |> List.contains square.coordinates
-        let isAtEndsOfBoard (square: square) : bool =
-            List.contains (snd square.coordinates) [0; 7]
+            |> List.contains coords
+        let isAtEndsOfBoard (coords: coordinates) : bool =
+            List.contains (snd coords) [0; 7]
 
     module Move =
         let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (coordsList: coordinates list) : coordinates list =
             coordsList
             |> List.filter (fun coords -> 
                 Board.GetSquare.fromCoordinates board coords
-                |> fun sqr -> Square.getPieceColour sqr = Some pieceColour
+                |> Square.BitMap.containsColouredPiece pieceColour
                 |> not
             )
         let getNormalMoves (colour: colour) (board: board) : normalMove list =
             board
-            |> Array2D.filterForCoordinates (fun sqr -> 
-                sqr.piece
-                |> Option.map(fun piece -> piece.colour = colour)
-                |> Option.defaultValue false
-            )
-            |> Array.map (fun oldCoords ->
+            |> Board.filterCoordinates (Square.BitMap.containsColouredPiece colour)
+            |> List.map (fun oldCoords ->
                 GetSquares.pieceVision board oldCoords
                 |> filterOutSameColouredPieces colour board
-                |> List.map (fun newCoords -> 
-                    let newSqr = Board.GetSquare.fromCoordinates board newCoords
-                    let oldSqr = Board.GetSquare.fromCoordinates board oldCoords
-                    (oldSqr, newSqr)
-                )
+                |> List.map (fun newCoords -> {startingCoords = oldCoords; destinationCoords = newCoords})
             )
             |> List.concat
 
     let isInCheck (colour: colour) (board: board) : bool =
         board
-        |> Array2D.tryFind (fun square -> square.piece = Some {pieceType = King; colour = colour})
+        |> Board.tryFindCoordinates (fun squareBitMaps -> squareBitMaps = (Some {pieceType = King; colour = colour} |> Square.Parser.toBitMaps))
         |> Option.failOnNone "No king found on the board"
         |> Square.isVisibleByPlayer (Colour.opposite colour) board
 
+    let containsPieceResult (coords: coordinates) (board: board) : bool result =
+        Board.GetSquare.fromCoordinatesResult board coords
+        |> Result.map Square.BitMap.containsPiece
+    let containsPieceOption (coords: coordinates) (board: board) : bool option =
+        containsPieceResult coords board |> Result.toOption
+    let containsPiece (coords: coordinates) (board: board) : bool =
+        containsPieceResult coords board |> Result.failOnError
+
+    module Update =
+        let removePiece (coords: coordinates) (board: board) : board =
+            Board.updateSquare coords (Square.Parser.toBitMaps None) board
+        let internal applyNormalMove (move: normalMove) (board: board) : board =
+            let square = Board.GetSquare.fromCoordinates board move.startingCoords
+            Board.updateSquare move.destinationCoords square board
+            |> removePiece move.startingCoords
+        let private applyEnpassant (move: normalMove) (board: board) : board =
+            let coordinatesOfPawnToBeRemoved = move.destinationCoords |> fst, move.startingCoords |> snd
+            applyNormalMove move board
+            |> removePiece coordinatesOfPawnToBeRemoved
+        let private applyPromotion (move: normalMove) (promotedPieceType: pieceType) (board: board) =
+            let colour = 
+                Board.GetSquare.fromCoordinates board move.startingCoords
+                |> Square.getPieceColour
+                |> Option.get
+            let promotedPiece = {pieceType = promotedPieceType; colour = colour}
+            applyNormalMove move board
+            |> Board.updateSquare move.destinationCoords (Square.Parser.toBitMaps (Some promotedPiece))
+        let private getMovesForCastling (side: side) (colour: colour) : normalMove * normalMove =
+            let rank = 
+                match colour with
+                | White -> 0
+                | Black -> 7
+            let kingStart, kingEnd, rookStart, rookEnd = 
+                match side with
+                | Kingside -> (4, rank), (6, rank), (7, rank), (5, rank)
+                | Queenside -> (4, rank), (2, rank), (0, rank), (3, rank)
+            {startingCoords = kingStart; destinationCoords = kingEnd},
+            {startingCoords = rookStart; destinationCoords = rookEnd}
+        let private applyCastling (side: side) (colour: colour) (board: board) : board =
+            let kingMove, rookMove = getMovesForCastling side colour
+            board
+            |> applyNormalMove kingMove
+            |> applyNormalMove rookMove
+        let applyMove (move: move) (board: board) = 
+            match move with
+            | Castling (side, colour) -> 
+                applyCastling side colour board
+            | Promotion (move, promotedPiece) ->
+                applyPromotion move promotedPiece board
+            | EnPassant move ->
+                applyEnpassant move board
+            | NormalMove move ->
+                applyNormalMove move board
+    
     module GetMoves =
         let internal enpassant (colour: colour) (enpassantSquareOption: coordinates option) (board: board) : move list =
             match enpassantSquareOption with
@@ -198,14 +247,13 @@ module Board =
                     | White -> -1
                     | Black -> 1
                 let pos = enpassantCoordinates
-                Board.GetSquares.afterShifts pos board [(-1, direction);(+1, direction);]
-                |> List.filter (fun square -> 
-                    match square.piece with
-                    | Some piece when piece.pieceType = Pawn && piece.colour = colour -> true
-                    | _ -> false
+                Board.GetCoordinates.afterShifts pos board [(-1, direction);(+1, direction);]
+                |> List.filter (fun coords ->
+                    Board.GetSquare.fromCoordinates board coords
+                    |> Square.BitMap.contains {pieceType = Pawn; colour = colour}
                 )
-                |> List.map (fun square ->
-                    EnPassant (square, Board.GetSquare.fromCoordinates board pos)
+                |> List.map (fun coordsOfPawnDoingEnPassant ->
+                    EnPassant {startingCoords = coordsOfPawnDoingEnPassant; destinationCoords = enpassantCoordinates}
                 )
         let internal castling (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
             let row, kingSide, queenSide = 
@@ -220,24 +268,26 @@ module Board =
                 : bool =
                 let castlingThroughCheck =
                     squaresToInspectForCastlingThroughCheck
-                    |> List.map (fun name -> Board.GetSquare.fromCoordinatesName name board)
-                    |> List.fold (fun passingThroughCheck sqr ->
+                    |> List.map (fun name -> (Coordinates.tryParse name).Value)
+                    |> List.fold (fun passingThroughCheck coords ->
                         passingThroughCheck || 
-                        Square.isVisibleByPlayer (Colour.opposite colour) board sqr
+                        Square.isVisibleByPlayer (Colour.opposite colour) board coords
                     ) false
                 let squaresAreEmpty =
                     squaresThatMustBeEmpty
-                    |> List.exists (fun name -> 
-                        let square = Board.GetSquare.fromCoordinatesName name board
-                        Option.isSome square.piece
-                    ) |> not
-                let rookInPosition = Board.hasPieceOnSquare squareThatNeedsRook {pieceType = Rook; colour = colour} board
-                let kingInPosition = Board.hasPieceOnSquare squareThatNeedsKing {pieceType = King; colour = colour} board
+                    |> List.forall (fun name -> 
+                        let coords = (Coordinates.tryParse name).Value
+                        Board.GetSquare.fromCoordinates board coords
+                        |> Square.BitMap.containsPiece
+                        |> not
+                    )
+                let rookInPosition = (Board.GetSquare.fromCoordinatesName squareThatNeedsRook board) = Ok (Square.Parser.toBitMaps <| Some {pieceType = Rook; colour = colour})
+                let kingInPosition = (Board.GetSquare.fromCoordinatesName squareThatNeedsKing board) = Ok (Square.Parser.toBitMaps <| Some {pieceType = King; colour = colour})
                 
-                let squareKingShouldBeOn =
-                    Board.GetSquare.fromCoordinatesName $"e{row}" board
-                let squareKingShouldBeOn =
-                    Board.GetSquare.fromCoordinatesName $"e{row}" board
+                //let squareKingShouldBeOn =
+                //    Board.GetSquare.fromCoordinatesName $"e{row}" board
+                //let squareKingShouldBeOn =
+                //    Board.GetSquare.fromCoordinatesName $"e{row}" board
                 (not castlingThroughCheck) && squaresAreEmpty && rookInPosition && kingInPosition
             let kingSideCastling : move option = 
                 if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"] ($"h{row}") ($"e{row}")) then
@@ -255,7 +305,10 @@ module Board =
             |> List.map Option.get
         let internal promotion (board: board) =
             List.map (fun normalMove ->
-                if Move.getMovedPieceType normalMove = Pawn && Square.isAtEndsOfBoard (snd normalMove) then
+                let movedPieceIsPawn =
+                    Board.GetSquare.fromCoordinates board normalMove.startingCoords
+                    |> Square.BitMap.containsPieceOfType Pawn
+                if movedPieceIsPawn && Square.isAtEndsOfBoard normalMove.destinationCoords then
                     [ Queen; Rook; Bishop; Knight ]
                     |> List.map (fun pieceType ->
                         Promotion (normalMove, pieceType)
@@ -263,73 +316,10 @@ module Board =
                 else
                     [NormalMove normalMove]
             ) >> List.concat
-        let normal (colour: colour) (board: board) : normalMove list =
+        let internal normal (colour: colour) (board: board) : normalMove list =
             Move.getNormalMoves colour board
             |> List.filter (fun move ->
-                Board.applyMove move board
-                let isLegalMove = isInCheck colour board |> not
-                Board.undoMove move board
-                isLegalMove
+                Update.applyNormalMove move board
+                |> isInCheck colour
+                |> not
             )
-
-    module Update =
-        let applyEnpassant (move: normalMove) (board: board) =
-            Board.applyMove move board
-            let coordinates = (snd move).coordinates |> fst, (fst move).coordinates |> snd
-            Board.Update.Square.removePiece coordinates board
-        let undoEnpassant (move: normalMove) (board: board) =
-            Board.undoMove move board
-            let coordinates = (snd move).coordinates |> fst, (fst move).coordinates |> snd
-            let pawn = {pieceType = Pawn; colour = Move.getMovedPieceColour move |> Colour.opposite}
-            Board.Update.Square.withPiece coordinates pawn board
-        let applyPromotion (move: normalMove) (promotedPieceType: pieceType) (board: board) =
-            Board.applyMove move board
-            let promotionCoordinates = (snd move).coordinates
-            let colour = Move.getMovedPiece move |> fun piece -> piece.colour
-            let promotedPiece = {pieceType = promotedPieceType; colour = colour}
-            Board.Update.Square.withPiece promotionCoordinates promotedPiece board
-        let private castlingMove (side: side) (colour: colour) (board: board) : normalMove * normalMove =
-            let rank = 
-                match colour with
-                | White -> 0
-                | Black -> 7
-            let kingStart, kingEnd, rookStart, rookEnd = 
-                match side with
-                | Kingside -> (4, rank), (6, rank), (7, rank), (5, rank)
-                | Queenside -> (4, rank), (2, rank), (0, rank), (3, rank)
-            (
-                {piece = Some {pieceType = King; colour = colour}; coordinates = kingStart},
-                {piece = None; coordinates = kingEnd}
-            ),
-            (
-                {piece = Some {pieceType = Rook; colour = colour}; coordinates = rookStart},
-                {piece = None; coordinates = rookEnd}
-            )
-        let applyCastling (side: side) (colour: colour) (board: board) =
-            let kingMove, rookMove = castlingMove side colour board
-            Board.applyMove kingMove board
-            Board.applyMove rookMove board
-        let undoCastling (side: side) (colour: colour) (board: board) =
-            let kingMove, rookMove = castlingMove side colour board
-            Board.undoMove kingMove board
-            Board.undoMove rookMove board
-        let applyMove (move: move) (board: board) = 
-            match move with
-            | Castling (side, colour) -> 
-                applyCastling side colour board
-            | Promotion (move, promotedPiece) ->
-                applyPromotion move promotedPiece board
-            | EnPassant move ->
-                applyEnpassant move board
-            | NormalMove move ->
-                Board.applyMove move board
-        let undoMove (move: move) (board: board) = 
-            match move with
-            | Castling (side, colour) -> 
-                undoCastling side colour board
-            | Promotion (move, _) ->
-                Board.undoMove move board
-            | EnPassant move ->
-                undoEnpassant move board
-            | NormalMove move ->
-                Board.undoMove move board

@@ -44,15 +44,20 @@ module CastlingAllowance =
         | Black, Kingside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = setting; blackQueenside = ca.blackQueenside}
         | Black, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = setting}
     let removeRights = modifyRights false
-    let addRights = modifyRights true   
-    let removeBasedOnMove (colour: colour) (ca: castlingAllowance) (move: move) =
+    let addRights = modifyRights true
+    /// Remove castling allowance if the current move is castling, or the king or one of the rooks move.
+    let removeBasedOnMove (colour: colour) (ca: castlingAllowance) (board: board) (move: move) =
         match move with
         | Castling (_, colour) -> 
             ca
             |> removeRights Kingside colour
             |> removeRights Queenside colour
         | NormalMove normalMove ->
-            match Move.getMovedPieceType normalMove with
+            let movedPieceType =
+                Board.GetSquare.fromCoordinates board normalMove.startingCoords
+                |> Square.Parser.fromBitMaps
+                |> fun sqr -> sqr.Value.pieceType
+            match movedPieceType with
             | King ->
                 ca
                 |> removeRights Kingside colour
@@ -62,7 +67,7 @@ module CastlingAllowance =
                     match colour with
                     | White -> 0
                     | Black -> 7
-                match (fst normalMove).coordinates with
+                match normalMove.startingCoords with
                 | (0, r) when r = rank -> removeRights Queenside colour ca
                 | (7, r) when r = rank -> removeRights Kingside colour ca
                 | _ -> ca

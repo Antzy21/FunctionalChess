@@ -11,7 +11,7 @@ module GetPossibleMoves =
         gs
         |> GameState.getMoves
         |> List.filter (filter gs.board)
-        |> List.map MoveParser.FullNotation.toString
+        |> List.map (MoveParser.FullNotation.toString gs.board)
     
     let all (fen: string) : string list =
         getPossibleMovesWithFilter (fun _ _ -> true) fen
@@ -23,14 +23,14 @@ module GetPossibleMoves =
             | EnPassant move -> Some move
             | Promotion (move, _) -> Some move
             | Castling _ -> None
-            |> Option.map (fun move -> Board.GetSquare.fromCoordinates board (fst move).coordinates |> fun sqr -> sqr.piece.Value.pieceType = pieceType)
+            |> Option.map (fun move -> Board.GetSquare.fromCoordinates board move.startingCoords |> Square.BitMap.containsPieceOfType pieceType)
             |> Option.defaultValue false
         ) fen
     
     let fromSquare (squareName: string) (fen: string) : string list =
         getPossibleMovesWithFilter (fun board move ->
             match move with
-            | NormalMove move -> (fst move).coordinates |> Coordinates.getName |> (=) squareName
+            | NormalMove move -> move.startingCoords |> Coordinates.getName |> (=) squareName
             | _ -> false
         ) fen
 
@@ -47,7 +47,7 @@ let gameStateIsInCheck (fen: string) : bool =
 
 let moveNotationFromMoveParser (game: gameState) (notation: string) : string = 
     MoveParser.parse game.playerTurn game.board notation
-    |> MoveParser.FullNotation.toString
+    |> MoveParser.FullNotation.toString game.board
 
 module UpdateWithMove =
 

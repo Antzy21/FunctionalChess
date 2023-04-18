@@ -6,7 +6,7 @@ open FSharp.Extensions
 module MoveParser =
 
     module FullNotation =
-        let toString (move: move) : string =
+        let toString (board: board) (move: move) : string =
             match move with
             | Castling (Kingside, _) -> "0-0"
             | Castling (Queenside, _) -> "0-0-0"
@@ -14,31 +14,31 @@ module MoveParser =
                 let timesSignIfTaken =
                     if Move.getShift move |> fst <> 0 then "x"
                     else ""
-                $"{move |> fst |> Square.getDescription} -> " +
+                $"{Square.getDescription move.startingCoords (Board.GetSquare.fromCoordinates board move.startingCoords)} -> " +
                 timesSignIfTaken +
-                $"{(move |> snd |> Square.getCoordinatesName)}" +
+                $"{Coordinates.getName move.destinationCoords}" +
                 " = " +
                 $"{(PieceType.getLetter promotedPieceType)}"
             | EnPassant move ->
-                $"{move |> fst |> Square.getDescription} -> " +
+                $"{Square.getDescription move.startingCoords (Board.GetSquare.fromCoordinates board move.startingCoords)} -> " +
                 $"x" +
-                match (Move.getMovedPiece move).colour with 
+                match Board.GetSquare.fromCoordinates board move.startingCoords |> Square.getPieceColour |> Option.get with 
                 | White -> "p"
                 | Black -> "P"
-                + $"{(move |> snd |> Square.getCoordinatesName)}"
+                + $"{Coordinates.getName move.destinationCoords}"
                 + $" e.p."
             | NormalMove move ->
-                match Move.getPieceAtDestination move with
+                match Board.GetSquare.fromCoordinates board move.destinationCoords |> Square.Parser.fromBitMaps with
                 | Some takenPiece ->
-                    $"{move |> fst |> Square.getDescription} -> " +
+                    $"{Square.getDescription move.startingCoords (Board.GetSquare.fromCoordinates board move.startingCoords)} -> " +
                     $"x{(Piece.getLetter takenPiece)}" +
-                    $"{(move |> snd |> Square.getCoordinatesName)}"
+                    $"{Coordinates.getName move.destinationCoords}"
                 | None -> 
-                    $"{move |> fst |> Square.getDescription} -> " +
-                    $"{(move |> snd |> Square.getCoordinatesName)}"
-        let print (move: move) =
-            printfn $"{toString move}"
-        let private tryParseSquare (square: string) : square option =
+                    $"{Square.getDescription move.startingCoords (Board.GetSquare.fromCoordinates board move.startingCoords)} -> " +
+                    $"{Coordinates.getName move.destinationCoords}"
+        let print (move: move) (board: board) =
+            printfn $"{toString board move}"
+        let private tryParseSquare (square: string) : coordinates option =
             let square =
                 match List.ofSeq square with
                 | 'x'::sqr -> sqr
@@ -48,26 +48,16 @@ module MoveParser =
             else
                 match square with
                 | pieceLetter::coordinates when square.Length = 3 ->
-                    Some {
-                        piece = Piece.getFromLetter pieceLetter |> Some;
-                        coordinates = 
-                            String.ofSeq coordinates
-                            |> Coordinates.tryParse
-                            |> Option.get
-                    }
+                    String.ofSeq coordinates
+                    |> Coordinates.tryParse
                 | coordinates ->
-                    Some {
-                        piece = None
-                        coordinates = 
-                            String.ofSeq coordinates
-                            |> Coordinates.tryParse
-                            |> Option.get
-                    }
+                    String.ofSeq coordinates
+                    |> Coordinates.tryParse
         let tryParse (move: string) : normalMove option =
             match move.Split(' ') with
             | [|fstSquare; _; sndSquare |] ->
                 (tryParseSquare fstSquare, tryParseSquare sndSquare)
-                ||> Option.map2 (fun fs ss -> (fs, ss))
+                ||> Option.map2 (fun fs ss -> {startingCoords = fs; destinationCoords= ss})
             | _ -> None
         let parse (move: string) : normalMove =
             tryParse move
@@ -87,19 +77,19 @@ module MoveParser =
                 squares
                 |> List.iter (fun coords -> printfn $"{Coordinates.getName coords}")
                 None
-        
+
         let private getNewSquareNotationForPiece (piece: piece) (move: normalMove) (board: board) =
-            match Board.GetSquares.reverseEngineerPieceLocations piece (snd move).coordinates board with
-            | [] -> ""
+            match Board.GetSquares.reverseEngineerPieceLocations piece move.destinationCoords board with
+            | _ :: [] -> ""
             | others ->
                 let piecesOnRow = 
-                    List.filter (fun coords ->
-                        Coordinates.getRow coords = Square.getRow (fst move)  
+                    List.filter (fun square ->
+                        Coordinates.getRow square = Coordinates.getRow move.destinationCoords
                     ) others
                 match piecesOnRow with
-                    | _ :: [] -> Square.getRow (fst move) 
-                    | _ -> Square.getFile (fst move) 
-            + (snd move |> Square.getCoordinatesName)
+                    | _ :: [] -> Coordinates.getRow move.startingCoords
+                    | _ -> Coordinates.getFile move.startingCoords 
+            + Coordinates.getName move.destinationCoords
 
         let toString (move: move) (board: board) : string =
             match move with
@@ -108,25 +98,25 @@ module MoveParser =
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
                     if Move.getShift move |> fst <> 0 then
-                        (fst move |> Square.getFile)
+                        Coordinates.getFile move.startingCoords
                         + "x"
                     else ""
                 timesSignIfTaken +
-                $"{(move |> snd |> Square.getCoordinatesName)}" +
+                $"{Coordinates.getName move.destinationCoords}" +
                 "=" +
                 $"{(PieceType.getLetter promotedPieceType)}"
             | EnPassant move ->
-                (fst move |> Square.getFile)
-                + $"x{(move |> snd |> Square.getCoordinatesName)}"
+                Coordinates.getFile move.startingCoords
+                + $"x{Coordinates.getName move.destinationCoords}"
             | NormalMove move ->
-                let taking = Move.getPieceAtDestination move |> Option.isSome
-                let piece = (Move.getMovedPiece move)
+                let taking = Board.GetSquare.fromCoordinates board move.destinationCoords |> Square.BitMap.containsPiece
+                let piece = Board.GetSquare.fromCoordinates board move.startingCoords |> Square.Parser.fromBitMaps |> Option.get
                 match piece.pieceType with
                 | Pawn -> 
                     if taking then
-                        $"{(fst move |> Square.getFile)}x"
+                        $"{Coordinates.getFile move.startingCoords}x"
                     else ""
-                    + (snd move |> Square.getCoordinatesName)            
+                    + (Coordinates.getName move.destinationCoords)            
                 | pieceType -> 
                     $"{PieceType.getLetter pieceType}" +
                     if taking then
@@ -136,29 +126,25 @@ module MoveParser =
                     getNewSquareNotationForPiece piece move board
         let print (move: move) =
             printfn $"{toString move}"
-        let private getNewSquareFromMove (board: board) (file: char) (rank: char) : coordinates option =
-            $"{file}{rank}"
-            |> Coordinates.tryParse
 
-        let private parsePawnMove colour board pawnFile newSquare : normalMove option =
-            Move.PawnMoves.getPawnOriginPossibilitiesFromDestination newSquare colour board
-            |> List.tryFind (fun coords ->
-                Coordinates.getFile coords = pawnFile.ToString()
-                && (Board.GetSquare.fromCoordinates board coords).piece |> (=) <| (Some {pieceType = Pawn; colour = colour})
+        let private parsePawnMove colour board pawnFile coords : normalMove option =
+            Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coords colour board
+            |> Board.GetCoordinates.afterShifts coords board
+            |> List.tryFind (fun square ->
+                Coordinates.getFile square = pawnFile.ToString()
+                && Board.GetSquare.fromCoordinates board square |> Square.Parser.fromBitMaps |> (=) <| Some {pieceType = Pawn; colour = colour}
             )
-            |> Option.map (fun (oldSquare: coordinates) -> (Board.GetSquare.fromCoordinates board oldSquare, Board.GetSquare.fromCoordinates board newSquare))
+            |> Option.map (fun oldCoords -> {startingCoords = oldCoords; destinationCoords = coords})
 
-        let private parseNonPawnMove (pieceLetter: char) (colour: colour) (board: board) (newSquare: coordinates) : move option =
+        let private parseNonPawnMove (pieceLetter: char) (colour: colour) (board: board) (newCoords: coordinates) : move option =
             PieceType.tryParse pieceLetter
             |> Option.map (fun pieceType -> {pieceType = pieceType; colour = colour})
             |> Option.bind (fun piece ->
-                newSquare
+                newCoords
                 |> fun (newCoords: coordinates) ->
                     let temp = matchReverseEngineerPieceLocation piece newCoords board
-                    Option.map (fun (oldSquare: coordinates) ->
-                        let oldSqr = Board.GetSquare.fromCoordinates board newCoords
-                        let newSqr = Board.GetSquare.fromCoordinates board newCoords
-                        NormalMove (oldSqr, newSqr)
+                    Option.map (fun (oldCoords: coordinates) ->
+                        NormalMove {startingCoords = oldCoords; destinationCoords = newCoords}
                     ) temp
             )
 
@@ -172,8 +158,8 @@ module MoveParser =
                         )
                     , file, rank
                 | [file; rank; '='; promotionPiece] ->
-                    fun newCoordinates ->
-                        parsePawnMove colour board (Coordinates.getFile newCoordinates) newCoordinates
+                    fun newCoords ->
+                        parsePawnMove colour board (Coordinates.getFile newCoords) newCoords
                         |> Option.map (fun parsedMove -> 
                             Promotion (parsedMove, PieceType.fromLetter promotionPiece)
                         )
@@ -183,22 +169,23 @@ module MoveParser =
                 | [fstLetter; 'x'; file; rank] when System.Char.IsLower(fstLetter) ->
                     fun coords -> 
                         parsePawnMove colour board fstLetter coords
-                        |> Option.map (
-                            if Board.containsPiece coords board then
-                                NormalMove
+                        |> Option.map (fun move ->
+                            if Board.GetSquare.fromCoordinates board move.destinationCoords |> Square.BitMap.containsPiece then
+                                NormalMove move
                             else
-                                EnPassant
+                                EnPassant move
                         )
                     , file, rank
                 | [pieceLetter; file; rank] -> 
                     parseNonPawnMove pieceLetter colour board, file, rank
                 | [file; rank] -> 
-                    fun newcoordinates ->
-                        parsePawnMove colour board (Coordinates.getFile newcoordinates) newcoordinates
+                    fun newCoords ->
+                        parsePawnMove colour board (Coordinates.getFile newCoords) newCoords
                     >> Option.map NormalMove
                     , file, rank
                 | _ -> failwith "Error parsing normal move"
-            getNewSquareFromMove board file rank
+            $"{file}{rank}"
+            |> Coordinates.tryParse
             |> Option.bind getMoveFunc
 
         let rec tryParse (colour: colour) (board: board) (move: string) : move option =

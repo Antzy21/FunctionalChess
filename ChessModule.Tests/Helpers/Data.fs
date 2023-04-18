@@ -4,154 +4,85 @@ open Chess
 open Checkerboard
 
 module Pieces =
-
+    
     let WhiteBishop =
         Some {pieceType = Bishop; colour = White}
+        |> Square.Parser.toBitMaps
     
 module Moves =
 
     module EnPassant =
         let PreWhite : move =
             ({
-                coordinates = (0,6);
-                piece = Some {pieceType = Pawn; colour = Black}
-            },
-            {
-                coordinates = (0,4)
-                piece = None
+                startingCoords = (0,6); destinationCoords = (0,4)
             })
             |> NormalMove
         let PostWhite : move =
             ({
-                coordinates = (1,4);
-                piece = Some {pieceType = Pawn; colour = White}
-            },
-            {
-                coordinates = (0,5);
-                piece = None
+                startingCoords = (1, 4); destinationCoords = (0, 5);
             })
             |> EnPassant
         let PreBlack : move =
             ({
-                coordinates = (0,1);
-                piece = Some {pieceType = Pawn; colour = White}
-            },
-            {
-                coordinates = (0,3)
-                piece = None
+                startingCoords = (0, 1); destinationCoords = (0,3)
             })
             |> NormalMove
         let PostBlack : move =
             ({
-                coordinates = (1,3);
-                piece = Some {pieceType = Pawn; colour = Black}
-            },
-            {
-                coordinates = (0,2);
-                piece = None
+                startingCoords = (1, 3); destinationCoords = (0, 2);
             })
             |> EnPassant
     
     module Promotion =
         let White1 : move =
             ({
-                coordinates = (0,6);
-                piece = Some {pieceType = Pawn; colour = White}
-            },
-            {
-                coordinates = (0,7);
-                piece = None
+                startingCoords = (0, 6); destinationCoords = (0, 7);
             })
             |> fun move -> Promotion (move, Queen)
         let White2 : move =
             ({
-                coordinates = (0,6);
-                piece = Some {pieceType = Pawn; colour = White}
-            },
-            {
-                coordinates = (1,7);
-                piece = Some {pieceType = Knight; colour = Black}
+                startingCoords = (0, 6); destinationCoords = (1, 7);
             })
             |> fun move -> Promotion (move, Rook)
 
     let e4 : move = 
         ({
-            coordinates = (4,1);
-            piece = Some {pieceType = Pawn; colour = White}
-        },
-        {
-            coordinates = (4,3);
-            piece = None
+            startingCoords = (4, 1); destinationCoords = (4, 3);
         })
         |> NormalMove
     let d5 : move = 
         ({
-            coordinates = (3,6);
-            piece = Some {pieceType = Pawn; colour = Black}
-        },
-        {
-            coordinates = (3,4);
-            piece = None
+            startingCoords = (3, 6); destinationCoords = (3, 4);
         })
         |> NormalMove
     let e5 : move = 
         ({
-            coordinates = (4,6);
-            piece = Some {pieceType = Pawn; colour = Black}
-        },
-        {
-            coordinates = (4,4);
-            piece = None
+            startingCoords = (4, 6); destinationCoords = (4, 4);
         })
         |> NormalMove
     let xd5 : move =
         ({
-            coordinates = (4,3);
-            piece = Some {pieceType = Pawn; colour = White}
-        },
-        {
-            coordinates = (3,4);
-            piece = Some {pieceType = Pawn; colour = Black}
+            startingCoords = (4, 3); destinationCoords = (3, 4);
         })
         |> NormalMove
     let Nf6 : move = 
         ({
-            coordinates = (6,7);
-            piece = Some {pieceType = Knight; colour = Black}
-        },
-        {
-            coordinates = (5,5);
-            piece = None
+            startingCoords = (6, 7); destinationCoords = (5, 5);
         })
         |> NormalMove
     let Nc3 : move = 
         ({
-            coordinates = (1,0);
-            piece = Some {pieceType = Knight; colour = White}
-        },
-        {
-            coordinates = (2,2);
-            piece = None
+            startingCoords = (1, 0); destinationCoords = (2, 2);
         })
         |> NormalMove
     let Nf3 : move = 
         ({
-            coordinates = (6,0);
-            piece = Some {pieceType = Knight; colour = White}
-        },
-        {
-            coordinates = (5,2);
-            piece = None
+            startingCoords = (6, 0); destinationCoords = (5, 2);
         })
         |> NormalMove
     let Nge2 : move = 
         ({
-            coordinates = (6,0);
-            piece = Some {pieceType = Knight; colour = White}
-        },
-        {
-            coordinates = (4,1);
-            piece = None
+            startingCoords = (6, 0); destinationCoords = (4, 1);
         })
         |> NormalMove
 

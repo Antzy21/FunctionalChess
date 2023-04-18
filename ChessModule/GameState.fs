@@ -3,7 +3,7 @@
 open FSharp.Extensions
 
 type gameState = {
-    board: board;
+    board: Checkerboard.board;
     playerTurn: colour;
     castlingAllowance: castlingAllowance;
     enpassantCoordinates: coordinates option;
@@ -26,7 +26,7 @@ module GameState =
             let enpassantCoordinates = 
                 match parts[3] with
                 | "-" -> None
-                | name -> Some (Checkerboard.Coordinates.parse name)
+                | name -> Some (Checkerboard.Coordinates.parse name |> Result.failOnError)
             let halfMoveClock = int(parts[4])
             let fullMoveClock = int(parts[5])
             {
@@ -39,15 +39,6 @@ module GameState =
             }
         let newGame () : gameState =
             fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
-        let deepCopy (gameState: gameState) : gameState =
-            {
-                board = Array2D.copy gameState.board;
-                playerTurn = gameState.playerTurn
-                castlingAllowance = gameState.castlingAllowance;
-                enpassantCoordinates = gameState.enpassantCoordinates;
-                halfMoveClock = gameState.halfMoveClock;
-                fullMoveClock = gameState.fullMoveClock;
-            }
 
     let toFen (game: gameState) : string =
         let enpassant =
@@ -84,11 +75,10 @@ module GameState =
     
     module Update = 
         let makeMove (move: move) (gameState: gameState) : gameState =
-            Board.Update.applyMove move gameState.board
             {
-                board = gameState.board
+                board = Board.Update.applyMove move gameState.board
                 playerTurn = Colour.opposite gameState.playerTurn
-                castlingAllowance = CastlingAllowance.removeBasedOnMove gameState.playerTurn gameState.castlingAllowance move
+                castlingAllowance = CastlingAllowance.removeBasedOnMove gameState.playerTurn gameState.castlingAllowance gameState.board move
                 enpassantCoordinates = 
                     match move with
                     | NormalMove move -> Move.Enpassant.getEnPassantCoordinates gameState.board move
@@ -99,26 +89,6 @@ module GameState =
                     | White -> gameState.fullMoveClock + 1
                     | Black -> gameState.fullMoveClock
             }
-        let undoMoveSetEnpassantSquare (enpassantCoordinates: coordinates option) (move: move) (gameState: gameState) =
-            Board.Update.undoMove move gameState.board
-            {
-                board = gameState.board
-                playerTurn = Colour.opposite gameState.playerTurn
-                castlingAllowance = 
-                    match move with
-                    | Castling (_, colour) -> 
-                        gameState.castlingAllowance
-                        |> CastlingAllowance.addRights Kingside colour
-                        |> CastlingAllowance.addRights Queenside colour
-                    | _ -> gameState.castlingAllowance
-                enpassantCoordinates = enpassantCoordinates
-                halfMoveClock = gameState.halfMoveClock - 1
-                fullMoveClock = 
-                    match gameState.playerTurn with 
-                    | White -> gameState.fullMoveClock
-                    | Black -> gameState.fullMoveClock - 1
-            }
-        let undoMove = undoMoveSetEnpassantSquare None
         let makeMoveFromNotation (move: string) (game: gameState) : gameState =
             let parsedMove = MoveParser.parse game.playerTurn game.board move
             makeMove parsedMove game
