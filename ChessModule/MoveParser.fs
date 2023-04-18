@@ -75,17 +75,17 @@ module MoveParser =
 
     module AlgebraicNotation =
     
-        let private matchReverseEngineerPieceLocation (piece: piece) (newSquare: square) (board: board) : square option =
-            match Board.GetSquares.reverseEngineerPieceLocations piece newSquare.coordinates board with
-            | oldSquare :: [] ->
-                Some oldSquare
+        let private matchReverseEngineerPieceLocation (piece: piece) ((i, j): coordinates) (board: board) : coordinates option =
+            match Board.GetSquares.reverseEngineerPieceLocations piece (i,j) board with
+            | oldCoordinates :: [] ->
+                Some oldCoordinates
             | [] ->
-                printfn $"No {piece.pieceType} avaiable to move to {Square.toString newSquare}"
+                printfn $"No {piece.pieceType} avaiable to move to {i}, {j}"
                 None
             | squares ->
-                printfn $"Too many {piece.pieceType}s are able to move to {Square.toString newSquare}"
+                printfn $"Too many {piece.pieceType}s are able to move to {i}, {j}"
                 squares
-                |> List.iter (fun square -> printfn $"{Square.getDescription square}")
+                |> List.iter (fun coords -> printfn $"{Coordinates.getName coords}")
                 None
         
         let private getNewSquareNotationForPiece (piece: piece) (move: normalMove) (board: board) =
@@ -93,8 +93,8 @@ module MoveParser =
             | [] -> ""
             | others ->
                 let piecesOnRow = 
-                    List.filter (fun square ->
-                        Square.getRow square = Square.getRow (fst move)  
+                    List.filter (fun coords ->
+                        Coordinates.getRow coords = Square.getRow (fst move)  
                     ) others
                 match piecesOnRow with
                     | _ :: [] -> Square.getRow (fst move) 
@@ -136,33 +136,34 @@ module MoveParser =
                     getNewSquareNotationForPiece piece move board
         let print (move: move) =
             printfn $"{toString move}"
-        let private getNewSquareFromMove (board: board) (file: char) (rank: char) : square option =
+        let private getNewSquareFromMove (board: board) (file: char) (rank: char) : coordinates option =
             $"{file}{rank}"
             |> Coordinates.tryParse
-            |> Option.map (Board.GetSquare.fromCoordinates board)
 
         let private parsePawnMove colour board pawnFile newSquare : normalMove option =
-            Move.PawnMoves.getPawnFrom newSquare.coordinates colour board
-            |> List.tryFind (fun square ->
-                Square.getFile square = pawnFile.ToString()
-                && Square.hasPiece {pieceType = Pawn; colour = colour} square
+            Move.PawnMoves.getPawnOriginPossibilitiesFromDestination newSquare colour board
+            |> List.tryFind (fun coords ->
+                Coordinates.getFile coords = pawnFile.ToString()
+                && (Board.GetSquare.fromCoordinates board coords).piece |> (=) <| (Some {pieceType = Pawn; colour = colour})
             )
-            |> Option.map (fun (oldSquare: square) -> (oldSquare, newSquare))
+            |> Option.map (fun (oldSquare: coordinates) -> (Board.GetSquare.fromCoordinates board oldSquare, Board.GetSquare.fromCoordinates board newSquare))
 
-        let private parseNonPawnMove (pieceLetter: char) (colour: colour) (board: board) (newSquare: square) : move option =
+        let private parseNonPawnMove (pieceLetter: char) (colour: colour) (board: board) (newSquare: coordinates) : move option =
             PieceType.tryParse pieceLetter
             |> Option.map (fun pieceType -> {pieceType = pieceType; colour = colour})
             |> Option.bind (fun piece ->
                 newSquare
-                |> fun (newSquare: square) ->
-                    let temp = matchReverseEngineerPieceLocation piece newSquare board
-                    Option.map (fun (oldSquare: square) ->
-                        NormalMove (oldSquare, newSquare)
+                |> fun (newCoords: coordinates) ->
+                    let temp = matchReverseEngineerPieceLocation piece newCoords board
+                    Option.map (fun (oldSquare: coordinates) ->
+                        let oldSqr = Board.GetSquare.fromCoordinates board newCoords
+                        let newSqr = Board.GetSquare.fromCoordinates board newCoords
+                        NormalMove (oldSqr, newSqr)
                     ) temp
             )
 
         let private normalMoveParsing (colour: colour) (board: board) (move: string) : move option =
-            let (getMoveFunc: square -> move option), file, rank =
+            let (getMoveFunc: coordinates -> move option), file, rank =
                 match List.ofSeq move with
                 | [fstLetter; 'x'; file; rank; '='; promotionPiece] when System.Char.IsLower(fstLetter) ->
                     parsePawnMove colour board fstLetter >> 
@@ -171,8 +172,8 @@ module MoveParser =
                         )
                     , file, rank
                 | [file; rank; '='; promotionPiece] ->
-                    fun newSquare ->
-                        parsePawnMove colour board (Coordinates.getFile (newSquare.coordinates)) newSquare
+                    fun newCoordinates ->
+                        parsePawnMove colour board (Coordinates.getFile newCoordinates) newCoordinates
                         |> Option.map (fun parsedMove -> 
                             Promotion (parsedMove, PieceType.fromLetter promotionPiece)
                         )
@@ -180,10 +181,10 @@ module MoveParser =
                 | [fstLetter; 'x'; file; rank] when System.Char.IsUpper(fstLetter) ->
                     parseNonPawnMove fstLetter colour board, file, rank
                 | [fstLetter; 'x'; file; rank] when System.Char.IsLower(fstLetter) ->
-                    fun ns -> 
-                        parsePawnMove colour board fstLetter ns
+                    fun coords -> 
+                        parsePawnMove colour board fstLetter coords
                         |> Option.map (
-                            if Option.isSome ns.piece then
+                            if Board.containsPiece coords board then
                                 NormalMove
                             else
                                 EnPassant
@@ -192,8 +193,8 @@ module MoveParser =
                 | [pieceLetter; file; rank] -> 
                     parseNonPawnMove pieceLetter colour board, file, rank
                 | [file; rank] -> 
-                    fun newSquare ->
-                        parsePawnMove colour board (Coordinates.getFile (newSquare.coordinates)) newSquare
+                    fun newcoordinates ->
+                        parsePawnMove colour board (Coordinates.getFile newcoordinates) newcoordinates
                     >> Option.map NormalMove
                     , file, rank
                 | _ -> failwith "Error parsing normal move"

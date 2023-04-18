@@ -88,73 +88,97 @@ module Board =
         printfn "    a  b  c  d  e  f  g  h"
     
     module GetSquares =
-        let private stopAt = Some (fun (otherPiece: piece) -> true)
-        let private knightVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.afterAllShiftDirections coordinates (1,2) board
-        let private bishopVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.onDiagonals coordinates stopAt board
-        let private rookVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.onRowAndFile coordinates stopAt board
-        let private queenVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.onRowFileAndDiagonals coordinates stopAt board
-        let private kingVision (coordinates: coordinates) (board: board) : square list =
-            Board.GetSquares.adjacent coordinates board
-        let pieceVision (square: square) (board: board) : square list =
-            let piece, coordinates = Square.getPiece square, square.coordinates
+        let private stopAt = fun sqr -> sqr.piece |> Option.isSome
+        let private knightVision (coordinates: coordinates) (board: board): coordinates list =
+            Board.GetCoordinates.getAfterShiftInAllDirections (1,2) coordinates board
+        let private bishopVision (coordinates: coordinates) (board: board) : coordinates list =
+            Board.GetCoordinates.afterRepeatedShiftWithStopper (1,1) coordinates stopAt board
+            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (1,-1) coordinates stopAt board
+            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (-1,1) coordinates stopAt board
+            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (-1,-1) coordinates stopAt board
+        let private rookVision (coordinates: coordinates) (board: board) : coordinates list =
+            Board.GetCoordinates.afterRepeatedShiftWithStopper (1,0) coordinates stopAt board
+            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (-1,0) coordinates stopAt board
+            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (0,1) coordinates stopAt board
+            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (0,-1) coordinates stopAt board
+        let private queenVision (coordinates: coordinates) (board: board) : coordinates list =
+            rookVision coordinates board
+            |> List.append <| bishopVision coordinates board
+        let private kingVision (coordinates: coordinates) (board: board) : coordinates list =
+            Board.GetCoordinates.getAfterShiftInAllDirections (1,0) coordinates board
+            |> List.append <| Board.GetCoordinates.getAfterShiftInAllDirections (1,1) coordinates board
+        let pieceVisionResult (board: board) ((i,j): coordinates) : coordinates list result =
+            let square = Board.GetSquare.fromCoordinates board (i,j)
+            match square.piece with
+            | None -> Error $"No Piece to get vision for at ({i}, {j})"
+            | Some piece ->
+            match piece.pieceType with
+                | Knight -> knightVision (i,j) board
+                | Bishop -> bishopVision (i,j) board
+                | Rook -> rookVision (i,j) board
+                | Queen -> queenVision (i,j) board
+                | King -> kingVision (i,j) board
+                | Pawn -> Move.PawnMoves.getPawnVision (i,j) board piece.colour
+                |> Ok
+        let pieceVision (board: board) (coords: coordinates) : coordinates list =
+            pieceVisionResult board coords |> Result.failOnError
+        let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) =
             match piece.pieceType with
                 | Knight -> knightVision coordinates board
                 | Bishop -> bishopVision coordinates board
                 | Rook -> rookVision coordinates board
                 | Queen -> queenVision coordinates board
                 | King -> kingVision coordinates board
-                | Pawn -> Move.PawnMoves.getPawnVision coordinates board piece.colour
-        let reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) : square list =
-            match piece.pieceType with
-                | Knight -> knightVision coordinates board
-                | Bishop -> bishopVision coordinates board
-                | Rook -> rookVision coordinates board
-                | Queen -> queenVision coordinates board
-                | King -> kingVision coordinates board
-                | Pawn -> Move.PawnMoves.getPawnFrom coordinates piece.colour board
+                | Pawn -> Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coordinates piece.colour board
             |> List.filter (fun square ->
-                square.piece
+                Board.GetPiece.fromCoordinates square board
                 |> Option.filter ((=) piece)
                 |> Option.isSome
             )
 
     module Square =
-        let getFromBoardWithPiecesOfColour (colour: colour) (board: board) : square list =
-            board |> Array2D.filter (fun (square: square) ->
+        let private getFromBoardWithPiecesOfColour (colour: colour) (board: board) : coordinates list =
+            board |> Array2D.filterForCoordinates (fun (square: square) ->
                 match square.piece with
                 | Some piece when piece.colour = colour -> true
                 | _ -> false
             )
             |> Seq.toList
-        let playerVision (colour: colour) (board: board) : square list =
+        let playerVision (colour: colour) (board: board) : coordinates list =
             getFromBoardWithPiecesOfColour colour board
             |> List.map (fun oldSquare ->
-                GetSquares.pieceVision oldSquare board
+                GetSquares.pieceVision board oldSquare
             )
             |> List.concat
         let isVisibleByPlayer (colour: colour) (board: board) (square: square) : bool =
             playerVision colour board
-            |> List.contains square
+            |> List.contains square.coordinates
         let isAtEndsOfBoard (square: square) : bool =
             List.contains (snd square.coordinates) [0; 7]
 
     module Move =
-        let private blockSelfTaking (square: square) (board: board) (newSquare: square) : bool =
-            match Board.GetPiece.fromCoordinates newSquare.coordinates board with
-            | Some newPiece -> 
-                let piece = Square.getPiece square
-                newPiece.colour <> piece.colour
-            | None -> true
+        let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (coordsList: coordinates list) : coordinates list =
+            coordsList
+            |> List.filter (fun coords -> 
+                Board.GetSquare.fromCoordinates board coords
+                |> fun sqr -> Square.getPieceColour sqr = Some pieceColour
+                |> not
+            )
         let getNormalMoves (colour: colour) (board: board) : normalMove list =
-            Square.getFromBoardWithPiecesOfColour colour board
-            |> List.map (fun (oldSquare : square<piece, int>) ->
-                GetSquares.pieceVision oldSquare board
-                |> List.filter (blockSelfTaking oldSquare board)
-                |> List.map (fun newSquare -> oldSquare, newSquare)
+            board
+            |> Array2D.filterForCoordinates (fun sqr -> 
+                sqr.piece
+                |> Option.map(fun piece -> piece.colour = colour)
+                |> Option.defaultValue false
+            )
+            |> Array.map (fun oldCoords ->
+                GetSquares.pieceVision board oldCoords
+                |> filterOutSameColouredPieces colour board
+                |> List.map (fun newCoords -> 
+                    let newSqr = Board.GetSquare.fromCoordinates board newCoords
+                    let oldSqr = Board.GetSquare.fromCoordinates board oldCoords
+                    (oldSqr, newSqr)
+                )
             )
             |> List.concat
 
