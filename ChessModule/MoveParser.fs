@@ -77,15 +77,15 @@ module MoveParser =
     
         let private matchReverseEngineerPieceLocation (piece: piece) ((i, j): coordinates) (board: board) : coordinates option =
             match Board.GetSquares.reverseEngineerPieceLocations piece (i,j) board with
-            | oldSquare :: [] ->
-                Some oldSquare.coordinates
+            | oldCoordinates :: [] ->
+                Some oldCoordinates
             | [] ->
                 printfn $"No {piece.pieceType} avaiable to move to {i}, {j}"
                 None
             | squares ->
                 printfn $"Too many {piece.pieceType}s are able to move to {i}, {j}"
                 squares
-                |> List.iter (fun square -> printfn $"{Coordinates.getName square.coordinates}")
+                |> List.iter (fun coords -> printfn $"{Coordinates.getName coords}")
                 None
         
         let private getNewSquareNotationForPiece (piece: piece) (move: normalMove) (board: board) =
@@ -93,8 +93,8 @@ module MoveParser =
             | [] -> ""
             | others ->
                 let piecesOnRow = 
-                    List.filter (fun square ->
-                        Square.getRow square = Square.getRow (fst move)  
+                    List.filter (fun coords ->
+                        Coordinates.getRow coords = Square.getRow (fst move)  
                     ) others
                 match piecesOnRow with
                     | _ :: [] -> Square.getRow (fst move) 
@@ -141,8 +141,7 @@ module MoveParser =
             |> Coordinates.tryParse
 
         let private parsePawnMove colour board pawnFile newSquare : normalMove option =
-            Move.PawnMoves.getPawnFrom newSquare colour board
-            |> List.map (fun sqr -> sqr.coordinates)
+            Move.PawnMoves.getPawnOriginPossibilitiesFromDestination newSquare colour board
             |> List.tryFind (fun coords ->
                 Coordinates.getFile coords = pawnFile.ToString()
                 && (Board.GetSquare.fromCoordinates board coords).piece |> (=) <| (Some {pieceType = Pawn; colour = colour})
