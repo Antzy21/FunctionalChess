@@ -137,38 +137,48 @@ module Board =
             )
 
     module Square =
-        let getFromBoardWithPiecesOfColour (colour: colour) (board: board) : square list =
-            board |> Array2D.filter (fun (square: square) ->
+        let private getFromBoardWithPiecesOfColour (colour: colour) (board: board) : coordinates list =
+            board |> Array2D.filterForCoordinates (fun (square: square) ->
                 match square.piece with
                 | Some piece when piece.colour = colour -> true
                 | _ -> false
             )
             |> Seq.toList
-        let playerVision (colour: colour) (board: board) : square list =
+        let playerVision (colour: colour) (board: board) : coordinates list =
             getFromBoardWithPiecesOfColour colour board
             |> List.map (fun oldSquare ->
-                GetSquares.pieceVision oldSquare board
+                GetSquares.pieceVision board oldSquare
             )
             |> List.concat
         let isVisibleByPlayer (colour: colour) (board: board) (square: square) : bool =
             playerVision colour board
-            |> List.contains square
+            |> List.contains square.coordinates
         let isAtEndsOfBoard (square: square) : bool =
             List.contains (snd square.coordinates) [0; 7]
 
     module Move =
-        let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (squareList: square list) : square list =
-            squareList
-            |> List.filter (fun sqr -> 
-                Square.getPieceColour sqr = Some pieceColour
+        let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (coordsList: coordinates list) : coordinates list =
+            coordsList
+            |> List.filter (fun coords -> 
+                Board.GetSquare.fromCoordinates board coords
+                |> fun sqr -> Square.getPieceColour sqr = Some pieceColour
                 |> not
             )
         let getNormalMoves (colour: colour) (board: board) : normalMove list =
-            Square.getFromBoardWithPiecesOfColour colour board
-            |> List.map (fun (oldSquare : square<piece, int>) ->
-                GetSquares.pieceVision oldSquare board
+            board
+            |> Array2D.filterForCoordinates (fun sqr -> 
+                sqr.piece
+                |> Option.map(fun piece -> piece.colour = colour)
+                |> Option.defaultValue false
+            )
+            |> Array.map (fun oldCoords ->
+                GetSquares.pieceVision board oldCoords
                 |> filterOutSameColouredPieces colour board
-                |> List.map (fun newSquare -> oldSquare, newSquare)
+                |> List.map (fun newCoords -> 
+                    let newSqr = Board.GetSquare.fromCoordinates board newCoords
+                    let oldSqr = Board.GetSquare.fromCoordinates board oldCoords
+                    (oldSqr, newSqr)
+                )
             )
             |> List.concat
 
