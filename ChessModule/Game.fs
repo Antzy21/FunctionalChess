@@ -23,7 +23,7 @@ module Game =
         List.fold (fun s move ->
             s + $"\n{MoveParser.FullNotation.toString game.gameState.board move}"
         ) $"{GameState.toString game.gameState}" game.moves
-    let print = toString >> printf "%s"
+    let print = toString >> printfn "%s"
 
     module Update = 
         let makeMove (move: move) (game: game) : game =
