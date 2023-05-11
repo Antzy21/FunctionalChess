@@ -93,5 +93,5 @@ module GameState =
             let parsedMove = MoveParser.parse game.playerTurn game.board move
             makeMove parsedMove game
 
-    let isGameOver (game: gameState) : bool =
+    let checkmateOrStatemate (game: gameState) : bool =
         getMoves game |> List.isEmpty

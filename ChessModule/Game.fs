@@ -52,6 +52,15 @@ module Game =
             let parsedMove = MoveParser.parse game.gameState.playerTurn game.gameState.board move
             makeMove parsedMove game
 
+    let private threeMovesRepeated (game: game) : bool =
+        game.fens
+        |> Map.exists (fun fen count ->
+            count >= 3
+        )
+
+    let isGameOver (game: game) : bool =
+        GameState.checkmateOrStatemate game.gameState || threeMovesRepeated game
+
     let pgn (game: game) : string =
         let tempBoard = Board.Create.starting ()
         game.moves
