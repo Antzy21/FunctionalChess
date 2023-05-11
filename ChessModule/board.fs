@@ -76,7 +76,7 @@ module Board =
         printfn "   ________________________"
         printfn "  /                        \\"
 
-        Board.foldjiback (fun (i,j) acc sqr ->
+        Board.foldjiback (fun struct (i,j) acc sqr ->
             if i = 0 then
                 printf $"{j+1} |"
             Square.Parser.fromBitMaps sqr
@@ -157,7 +157,7 @@ module Board =
             playerVision colour board
             |> List.contains coords
         let isAtEndsOfBoard (coords: coordinates) : bool =
-            List.contains (snd coords) [0; 7]
+            List.contains (coords |> fun struct (x,y) -> y) [0; 7]
 
     module Move =
         let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (coordsList: coordinates list) : coordinates list =
@@ -199,7 +199,9 @@ module Board =
             Board.updateSquare move.destinationCoords square board
             |> removePiece move.startingCoords
         let private applyEnpassant (move: normalMove) (board: board) : board =
-            let coordinatesOfPawnToBeRemoved = move.destinationCoords |> fst, move.startingCoords |> snd
+            let coordinatesOfPawnToBeRemoved = 
+                move.destinationCoords |> fun struct (x,y) -> x, move.startingCoords |> fun struct (x,y) -> y
+                |> (fun (x,y) -> (struct (x,y)))
             applyNormalMove move board
             |> removePiece coordinatesOfPawnToBeRemoved
         let private applyPromotion (move: normalMove) (promotedPieceType: pieceType) (board: board) =
@@ -217,8 +219,8 @@ module Board =
                 | Black -> 7
             let kingStart, kingEnd, rookStart, rookEnd = 
                 match side with
-                | Kingside -> (4, rank), (6, rank), (7, rank), (5, rank)
-                | Queenside -> (4, rank), (2, rank), (0, rank), (3, rank)
+                | Kingside -> struct (4, rank), struct (6, rank), struct (7, rank), struct (5, rank)
+                | Queenside -> struct (4, rank), struct (2, rank), struct (0, rank), struct (3, rank)
             {startingCoords = kingStart; destinationCoords = kingEnd},
             {startingCoords = rookStart; destinationCoords = rookEnd}
         let private applyCastling (side: side) (colour: colour) (board: board) : board =

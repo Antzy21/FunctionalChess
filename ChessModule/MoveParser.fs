@@ -12,7 +12,7 @@ module MoveParser =
             | Castling (Queenside, _) -> "0-0-0"
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
-                    if Move.getShift move |> fst <> 0 then "x"
+                    if (Move.getShift move |> fun (struct (x,y)) -> x <> 0) then "x"
                     else ""
                 $"{Square.getDescription move.startingCoords (Board.GetSquare.fromCoordinates board move.startingCoords)} -> " +
                 timesSignIfTaken +
@@ -97,7 +97,7 @@ module MoveParser =
             | Castling (Queenside, _) -> "0-0-0"
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
-                    if Move.getShift move |> fst <> 0 then
+                    if (Move.getShift move |> fun (struct (x,y)) -> x <> 0) then
                         Coordinates.getFile move.startingCoords
                         + "x"
                     else ""

@@ -3,6 +3,7 @@
 open Checkerboard
 open FSharp.Extensions
 
+[<Struct>]
 type normalMove = {startingCoords: coordinates; destinationCoords: coordinates}
 
 type move = 
@@ -13,7 +14,7 @@ type move =
 
 module Move =
 
-    let getShift (move: normalMove) : (int*int) =
+    let getShift (move: normalMove) : struct (int*int) =
         Coordinates.getShiftBetweenCoordinates move.startingCoords move.destinationCoords
 
     module Enpassant =
@@ -27,8 +28,8 @@ module Move =
             if moveWasPawn && pawnMovedTwoSquares then
                 let shift = 
                     match Square.getPieceColour start with                
-                    | Some White -> (0,1)
-                    | Some Black -> (0,-1)
+                    | Some White -> struct (0,1)
+                    | Some Black -> struct (0,-1)
                     | None -> failwith "No piece"
                 Some (Coordinates.getAfterShift shift move.startingCoords)
             else
@@ -61,7 +62,7 @@ module Move =
 
         let private getPawnVisionForColour (start: coordinates) (board: board) (direction: int) (startingRow: int) : coordinates list =
             let diagonalMoves =
-                [(-1,direction); (1,direction)]
+                [struct (-1,direction); struct (1,direction)]
                 |> List.map (Coordinates.getAfterShift start)
                 |> List.filter (fun coords ->
                     match Board.GetSquare.fromCoordinatesOption board coords with
@@ -77,7 +78,7 @@ module Move =
                     if PieceBitMap.containsPiece squareBitMap then
                         []
                     else
-                        if snd start = startingRow then
+                        if (start |> fun (struct (x,y)) -> y = startingRow) then
                             getPawnVisionFromStartingRow direction start board
                         else [coords]
                 )
@@ -95,14 +96,14 @@ module Move =
             if containsPieceAtStart then
                 [(-1, -direction); (1, -direction)]
             else
-                if snd destination = rowIfMovedTwo then
+                if (destination |> fun (struct (x,y)) -> y = rowIfMovedTwo) then
                     [(0, -direction); (0,-direction*2)]
-                else                    
+                else
                     Board.GetSquare.afterShift (0, -direction) destination board
                     |> Option.map (fun square ->
                         if PieceBitMap.containsPieceOfColour pieceColour square then
-                            [(0, -direction)]
+                            [struct (0, -direction)]
                         else
-                            [(-1, -direction); (1, -direction)]
+                            [struct (-1, -direction); struct (1, -direction)]
                     )
                     |> Option.get
