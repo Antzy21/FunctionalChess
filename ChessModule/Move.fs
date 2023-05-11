@@ -3,6 +3,7 @@
 open Checkerboard
 open FSharp.Extensions
 
+[<Struct>]
 type normalMove = {startingCoords: coordinates; destinationCoords: coordinates}
 
 type move = 
