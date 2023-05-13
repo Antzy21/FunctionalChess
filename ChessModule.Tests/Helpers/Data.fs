@@ -93,25 +93,25 @@ module Games =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/pP6/8/8/8/4K3 w - a6 0 0";
                 fens = Map[];
-                moves = [Moves.EnPassant.PreWhite]
+                moves = ["a5"]
             }
         let PostWhite() : game = 
             {
                 gameState = GameState.Create.fromFen "4k3/8/P7/8/8/8/8/4K3 b - - 1 1"
                 fens = Map[("4k3/8/P7/8/8/8/8/4K3 b - - 1 1", 1)];
-                moves = [Moves.EnPassant.PostWhite; Moves.EnPassant.PreWhite]
+                moves = ["bxa6"; "a5"]
             }
         let PreBlack() : game = 
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/Pp6/8/8/4K3 b - a3 0 0";
                 fens = Map[];
-                moves = [Moves.EnPassant.PreBlack]
+                moves = ["a4"]
             }
         let PostBlack() : game =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/p7/8/4K3 w - - 1 0";
                 fens = Map[("4k3/8/8/8/8/p7/8/4K3 w - - 1 0", 1)];
-                moves = [Moves.EnPassant.PostBlack; Moves.EnPassant.PreBlack;]
+                moves = ["bxa3"; "a4"]
             }
 
     module Promotion =
@@ -125,7 +125,7 @@ module Games =
             {
                 gameState = GameState.Create.fromFen "Q7/8/8/8/8/8/8/4K2k b - - 1 1";
                 fens = Map[("Q7/8/8/8/8/8/8/4K2k b - - 1 1", 1)];
-                moves = [Moves.Promotion.White1]
+                moves = ["a8=Q"]
             }
         let PreWhite2() : game =
             {
@@ -137,7 +137,7 @@ module Games =
             {
                 gameState = GameState.Create.fromFen "bR6/8/8/8/8/8/8/4K2k b - - 1 1";
                 fens = Map[("bR6/8/8/8/8/8/8/4K2k b - - 1 1", 1)];
-                moves = [Moves.Promotion.White2]
+                moves = ["axb8=R"]
             }
     
     module Castling =
@@ -157,25 +157,25 @@ module Games =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/8/8/R4RK1 b kq - 1 1";
                 fens = Map[("4k3/8/8/8/8/8/8/R4RK1 b kq - 1 1", 1)];
-                moves = [Castling (Kingside, White)]
+                moves = ["0-0"]
             }
         let PostWhiteQueen() : game =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/8/8/2KR3R b kq - 1 1";
                 fens = Map[("4k3/8/8/8/8/8/8/2KR3R b kq - 1 1", 1)];
-                moves = [Castling (Queenside, White)]
+                moves = ["0-0-0"]
             }
         let PostBlackKing() : game =
             {
                 gameState = GameState.Create.fromFen "r4rk1/8/8/8/8/8/8/4K3 w KQ - 1 0";
                 fens = Map[("r4rk1/8/8/8/8/8/8/4K3 w KQ - 1 0", 1)];
-                moves = [Castling (Kingside, Black)]
+                moves = ["0-0"]
             }
         let PostBlackQueen() : game =
             {
                 gameState = GameState.Create.fromFen "2kr3r/8/8/8/8/8/8/4K3 w KQ - 1 0";
                 fens = Map[("2kr3r/8/8/8/8/8/8/4K3 w KQ - 1 0", 1)];
-                moves = [Castling (Queenside, Black)]
+                moves = ["0-0-0"]
             }
 
     module ExampleGame =
@@ -186,7 +186,7 @@ module Games =
                     ("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 1 1", 1)
                 ];
                 moves = [
-                    Moves.e4;
+                    "e4";
                 ]
             }
         let getBlack1 () : game =
@@ -197,8 +197,8 @@ module Games =
                     ("rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 2 1", 1)
                 ];
                 moves = [
-                    Moves.d5;
-                    Moves.e4;
+                    "d5";
+                    "e4";
                 ]
             }
         let getWhite2 () : game =
@@ -210,9 +210,9 @@ module Games =
                     ("rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 3 2", 1)
                 ];
                 moves = [
-                    Moves.xd5;
-                    Moves.d5;
-                    Moves.e4;
+                    "exd5";
+                    "d5";
+                    "e4";
                 ]
             }
         let getBlack2 () : game =
@@ -225,10 +225,10 @@ module Games =
                     ("rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq - 4 2", 1)
                 ];
                 moves = [
-                    Moves.Nf6;
-                    Moves.xd5;
-                    Moves.d5;
-                    Moves.e4;
+                    "Nf6";
+                    "exd5";
+                    "d5";
+                    "e4";
                 ]
             }
 
@@ -238,10 +238,10 @@ module Games =
                 gameState = GameState.Create.fromFen "rnbqkb1r/ppp1pppp/5n2/4p3/4P3/5N2/PPPPNPPP/R1BQKB1R b KQkq - 5 3";
                 fens = Map[];
                 moves = [
-                    Moves.Nge2;
-                    Moves.Nf6;
-                    Moves.Nc3;
-                    Moves.e5;
-                    Moves.e4;
+                    "Nge2";
+                    "Nf6";
+                    "Nc3";
+                    "e5";
+                    "e4";
                 ]
             }

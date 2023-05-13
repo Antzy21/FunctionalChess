@@ -7,7 +7,7 @@ type fens = Map<string, int>
 type game = {
     gameState: gameState;
     fens: fens ;
-    moves: move list
+    moves: string list
 }
 
 module Game =
@@ -28,9 +28,8 @@ module Game =
             }
 
     let toString (game: game) =
-        List.fold (fun s move ->
-            s + $"\n{MoveParser.FullNotation.toString game.gameState.board move}"
-        ) $"{GameState.toString game.gameState}" game.moves
+        $"{GameState.toString game.gameState}" +
+        String.concat "\n" game.moves
     let print = toString >> printfn "%s"
 
     module Update = 
@@ -44,7 +43,7 @@ module Game =
         let makeMove (move: move) (game: game) : game =
             let newGameState = GameState.Update.makeMove move game.gameState
             {
-                moves = move :: game.moves;
+                moves = MoveParser.AlgebraicNotation.toString move game.gameState.board :: game.moves;
                 fens = updateFens game.fens (GameState.toFen newGameState)
                 gameState = newGameState
             }
@@ -62,18 +61,15 @@ module Game =
         GameState.checkmateOrStatemate game.gameState || threeMovesRepeated game
 
     let pgn (game: game) : string =
-        let tempBoard = Board.Create.starting ()
         game.moves
         |> List.rev
-        |> List.fold (fun (board, i, pgn) move ->
+        |> List.fold (fun (i, pgn) move ->
             let pgn = 
                 pgn +
                 if i%2 = 0 then
                     $"{(i/2)+1}."
                 else ""
-                + $"{(MoveParser.AlgebraicNotation.toString move board)} "
-            let board = Board.Update.applyMove move board
-            Board.print board
-            (board, i+1, pgn)
-        ) (tempBoard, 0, "")
-        |> fun (b, i, pgn) -> pgn.Trim()
+                + $"{move} "
+            (i+1, pgn)
+        ) (0, "")
+        |> fun (i, pgn) -> pgn.Trim()
