@@ -283,8 +283,16 @@ module Board =
                         |> Square.BitMap.containsPiece
                         |> not
                     )
-                let rookInPosition = (Board.GetSquare.fromCoordinatesName squareThatNeedsRook board) = Ok (Square.Parser.toBitMaps <| Some {pieceType = Rook; colour = colour})
-                let kingInPosition = (Board.GetSquare.fromCoordinatesName squareThatNeedsKing board) = Ok (Square.Parser.toBitMaps <| Some {pieceType = King; colour = colour})
+                let rookInPosition =
+                    Coordinates.parse squareThatNeedsRook
+                    |> Result.bind (Board.GetSquare.fromCoordinatesResult board)
+                    |> Result.failOnError
+                    |> (=) (Square.Parser.toBitMaps <| Some {pieceType = Rook; colour = colour})
+                let kingInPosition =
+                    Coordinates.parse squareThatNeedsKing
+                    |> Result.bind (Board.GetSquare.fromCoordinatesResult board)
+                    |> Result.failOnError
+                    |> (=) (Square.Parser.toBitMaps <| Some {pieceType = King; colour = colour})
                 
                 //let squareKingShouldBeOn =
                 //    Board.GetSquare.fromCoordinatesName $"e{row}" board
