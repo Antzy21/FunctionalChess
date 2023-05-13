@@ -340,14 +340,13 @@ module Board =
                         let isInCheck =
                             Update.applyNormalMove move board
                             |> isInCheck colour
-                            |> not
                         if isInCheck then
                             return None
                         else
                             return (Some move)
                     }
             ]
-            |> fun comp -> Async.Parallel(comp, 3)
+            |> fun comp -> Async.Parallel(comp, 8)
             |> Async.StartAsTask
             |> (fun task ->
                 task.Wait()
