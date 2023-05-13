@@ -167,7 +167,7 @@ module Board =
                 |> Square.BitMap.containsColouredPiece pieceColour
                 |> not
             )
-        let getNormalMoves (colour: colour) (board: board) : normalMove list =
+        let internal getNormalMoves (colour: colour) (board: board) : normalMove list =
             board
             |> Board.filterCoordinates (Square.BitMap.containsColouredPiece colour)
             |> List.map (fun oldCoords ->
