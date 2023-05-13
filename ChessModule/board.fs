@@ -167,7 +167,7 @@ module Board =
                 |> Square.BitMap.containsColouredPiece pieceColour
                 |> not
             )
-        let getNormalMoves (colour: colour) (board: board) : normalMove list =
+        let internal getNormalMoves (colour: colour) (board: board) : normalMove list =
             board
             |> Board.filterCoordinates (Square.BitMap.containsColouredPiece colour)
             |> List.map (fun oldCoords ->
@@ -333,3 +333,26 @@ module Board =
                 |> isInCheck colour
                 |> not
             )
+        let internal asyncNormal (colour: colour) (board: board) : normalMove list =
+            [
+                for move in List.toSeq (Move.getNormalMoves colour board) do
+                    async {
+                        let isInCheck =
+                            Update.applyNormalMove move board
+                            |> isInCheck colour
+                            |> not
+                        if isInCheck then
+                            return None
+                        else
+                            return (Some move)
+                    }
+            ]
+            |> fun comp -> Async.Parallel(comp, 3)
+            |> Async.StartAsTask
+            |> (fun task ->
+                task.Wait()
+                task.Result
+            )
+            |> Seq.filterSome
+            |> List.ofSeq
+

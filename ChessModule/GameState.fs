@@ -72,6 +72,12 @@ module GameState =
         |> Board.GetMoves.promotion board
         |> List.append <| Board.GetMoves.enpassant gameState.playerTurn gameState.enpassantCoordinates board
         |> List.append <| Board.GetMoves.castling gameState.playerTurn gameState.castlingAllowance board
+    let getMovesAsync (gameState: gameState) : move list =
+        let board = gameState.board
+        Board.GetMoves.asyncNormal gameState.playerTurn board
+        |> Board.GetMoves.promotion board
+        |> List.append <| Board.GetMoves.enpassant gameState.playerTurn gameState.enpassantCoordinates board
+        |> List.append <| Board.GetMoves.castling gameState.playerTurn gameState.castlingAllowance board
     
     module Update = 
         let makeMove (move: move) (gameState: gameState) : gameState =
