@@ -113,7 +113,7 @@ module Board =
             |> List.append <| Board.GetCoordinates.getAfterShiftInAllDirections (1,0) coordinates board
         let pieceVisionResult (board: board) ((i,j): coordinates) : coordinates list result =
             let square =
-                Board.GetSquare.fromCoordinates board (i,j)
+                Board.getSquareFromCoordinates board (i,j)
                 |> Square.Parser.fromBitMaps
             match square with
             | None -> Error $"No Piece to get vision for at ({i}, {j})"
@@ -140,7 +140,7 @@ module Board =
                 | King -> kingVision coordinates board
                 | Pawn -> Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coordinates piece.colour board
             |> List.filter (fun coords ->
-                Board.GetSquare.fromCoordinates board coords
+                Board.getSquareFromCoordinates board coords
                 |> Square.Parser.fromBitMaps
                 |> (=) (Some piece)
             )
@@ -163,7 +163,7 @@ module Board =
         let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (coordsList: coordinates list) : coordinates list =
             coordsList
             |> List.filter (fun coords -> 
-                Board.GetSquare.fromCoordinates board coords
+                Board.getSquareFromCoordinates board coords
                 |> Square.BitMap.containsColouredPiece pieceColour
                 |> not
             )
@@ -184,7 +184,7 @@ module Board =
         |> Square.isVisibleByPlayer (Colour.opposite colour) board
 
     let containsPieceResult (coords: coordinates) (board: board) : bool result =
-        Board.GetSquare.fromCoordinatesResult board coords
+        Board.getSquareFromCoordinatesResult board coords
         |> Result.map Square.BitMap.containsPiece
     let containsPieceOption (coords: coordinates) (board: board) : bool option =
         containsPieceResult coords board |> Result.toOption
@@ -195,7 +195,7 @@ module Board =
         let removePiece (coords: coordinates) (board: board) : board =
             Board.updateSquare coords (Square.Parser.toBitMaps None) board
         let internal applyNormalMove (move: normalMove) (board: board) : board =
-            let square = Board.GetSquare.fromCoordinates board move.startingCoords
+            let square = Board.getSquareFromCoordinates board move.startingCoords
             Board.updateSquare move.destinationCoords square board
             |> removePiece move.startingCoords
         let private applyEnpassant (move: normalMove) (board: board) : board =
@@ -206,7 +206,7 @@ module Board =
             |> removePiece coordinatesOfPawnToBeRemoved
         let private applyPromotion (move: normalMove) (promotedPieceType: pieceType) (board: board) =
             let colour = 
-                Board.GetSquare.fromCoordinates board move.startingCoords
+                Board.getSquareFromCoordinates board move.startingCoords
                 |> Square.getPieceColour
                 |> Option.get
             let promotedPiece = {pieceType = promotedPieceType; colour = colour}
@@ -251,7 +251,7 @@ module Board =
                 let pos = enpassantCoordinates
                 Board.GetCoordinates.afterShifts pos board [(-1, direction);(+1, direction);]
                 |> List.filter (fun coords ->
-                    Board.GetSquare.fromCoordinates board coords
+                    Board.getSquareFromCoordinates board coords
                     |> Square.BitMap.contains {pieceType = Pawn; colour = colour}
                 )
                 |> List.map (fun coordsOfPawnDoingEnPassant ->
@@ -279,18 +279,18 @@ module Board =
                     squaresThatMustBeEmpty
                     |> List.forall (fun name -> 
                         let coords = (Coordinates.tryParse name).Value
-                        Board.GetSquare.fromCoordinates board coords
+                        Board.getSquareFromCoordinates board coords
                         |> Square.BitMap.containsPiece
                         |> not
                     )
                 let rookInPosition =
                     Coordinates.parse squareThatNeedsRook
-                    |> Result.bind (Board.GetSquare.fromCoordinatesResult board)
+                    |> Result.bind (Board.getSquareFromCoordinatesResult board)
                     |> Result.failOnError
                     |> (=) (Square.Parser.toBitMaps <| Some {pieceType = Rook; colour = colour})
                 let kingInPosition =
                     Coordinates.parse squareThatNeedsKing
-                    |> Result.bind (Board.GetSquare.fromCoordinatesResult board)
+                    |> Result.bind (Board.getSquareFromCoordinatesResult board)
                     |> Result.failOnError
                     |> (=) (Square.Parser.toBitMaps <| Some {pieceType = King; colour = colour})
                 
@@ -316,7 +316,7 @@ module Board =
         let internal promotion (board: board) =
             List.map (fun normalMove ->
                 let movedPieceIsPawn =
-                    Board.GetSquare.fromCoordinates board normalMove.startingCoords
+                    Board.getSquareFromCoordinates board normalMove.startingCoords
                     |> Square.BitMap.containsPieceOfType Pawn
                 if movedPieceIsPawn && Square.isAtEndsOfBoard normalMove.destinationCoords then
                     [ Queen; Rook; Bishop; Knight ]

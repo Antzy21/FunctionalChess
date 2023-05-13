@@ -21,7 +21,7 @@ module Move =
         /// Gets the optional coordinates that a pawn could be taken through an "en passant" move, that only comes by the previous move being a pawn moving two squares.
         let getEnPassantCoordinates (board: board) (move: normalMove) : coordinates option = 
             let pawnMovedTwoSquares = List.contains (getShift move) [(0,2); (0,-2)]
-            let start = Board.GetSquare.fromCoordinates board move.startingCoords
+            let start = Board.getSquareFromCoordinates board move.startingCoords
             let moveWasPawn = 
                 start
                 |> Square.BitMap.containsPieceOfType Pawn
@@ -49,9 +49,9 @@ module Move =
         let private getPawnVisionFromStartingRow direction start board : coordinates list =
             let pawn1SquareJumpCoords = Coordinates.getAfterShift (0,direction*1) start
             let pawn2SquareJumpCoords = Coordinates.getAfterShift (0,direction*2) start
-            Board.GetSquare.fromCoordinatesResult board pawn2SquareJumpCoords
+            Board.getSquareFromCoordinatesResult board pawn2SquareJumpCoords
             |> (fun pawn2SquareJump -> 
-                Board.GetSquare.fromCoordinates board pawn2SquareJumpCoords
+                Board.getSquareFromCoordinates board pawn2SquareJumpCoords
                 |> Square.Parser.fromBitMaps
                 |> fun sqr -> 
                     if sqr.IsSome then
@@ -65,14 +65,14 @@ module Move =
                 [struct (-1,direction); struct (1,direction)]
                 |> List.map (Coordinates.getAfterShift start)
                 |> List.filter (fun coords ->
-                    match Board.GetSquare.fromCoordinatesOption board coords with
+                    match Board.getSquareFromCoordinatesOption board coords with
                     | None -> false
                     | Some bitmap -> PieceBitMap.containsPiece bitmap
                 )
                 
             let forwardMoves = 
                 let coords = Coordinates.getAfterShift (0,direction) start
-                Board.GetSquare.fromCoordinatesOption board coords
+                Board.getSquareFromCoordinatesOption board coords
                 |> Option.failOnNone "Pawn shouldn't be at the end of the board"
                 |> (fun squareBitMap ->
                     if PieceBitMap.containsPiece squareBitMap then
@@ -92,7 +92,7 @@ module Move =
         let getPawnOriginPossibilitiesFromDestination (destination: coordinates) (pieceColour: colour) (board: board): coordinates list =
             let direction = getPawnMovementDirection pieceColour
             let rowIfMovedTwo = getPawnStartingRow pieceColour + direction*2
-            let containsPieceAtStart = Board.GetSquare.fromCoordinates board destination |> List.head // Should be Square.BitMaps.containsPiece function here.
+            let containsPieceAtStart = Board.getSquareFromCoordinates board destination |> List.head // Should be Square.BitMaps.containsPiece function here.
             if containsPieceAtStart then
                 [(-1, -direction); (1, -direction)]
             else
@@ -100,7 +100,7 @@ module Move =
                     [(0, -direction); (0,-direction*2)]
                 else
                     Coordinates.getAfterShift (0, -direction) destination
-                    |> Board.GetSquare.fromCoordinatesOption board
+                    |> Board.getSquareFromCoordinatesOption board
                     |> Option.map (fun square ->
                         if PieceBitMap.containsPieceOfColour pieceColour square then
                             [struct (0, -direction)]

@@ -23,7 +23,7 @@ module GetPossibleMoves =
             | EnPassant move -> Some move
             | Promotion (move, _) -> Some move
             | Castling _ -> None
-            |> Option.map (fun move -> Board.GetSquare.fromCoordinates board move.startingCoords |> Square.BitMap.containsPieceOfType pieceType)
+            |> Option.map (fun move -> Board.getSquareFromCoordinates board move.startingCoords |> Square.BitMap.containsPieceOfType pieceType)
             |> Option.defaultValue false
         ) fen
     
