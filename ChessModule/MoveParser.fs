@@ -61,7 +61,7 @@ module MoveParser =
             | _ -> None
         let parse (move: string) : normalMove =
             tryParse move
-            |> Option.failOnNone "Failed to parse notation"
+            |> Option.failOnNone $"Failed to parse notation {move}"
 
     module AlgebraicNotation =
     
@@ -198,7 +198,7 @@ module MoveParser =
                 normalMoveParsing colour board move
         let parse (colour: colour) (board: board) (move: string) : move =
             tryParse colour board move
-            |> Option.failOnNone "Failed to parse notation"
+            |> Option.failOnNone $"Failed to parse notation {move}"
 
     let tryParse (playerTurn: colour) (board: board) (move: string) =
         AlgebraicNotation.tryParse playerTurn board move
@@ -208,4 +208,4 @@ module MoveParser =
         )
     let parse (colour: colour) (board: board) (move: string) : move =
         tryParse colour board move
-        |> Option.failOnNone "Failed to parse notation"
+        |> Option.failOnNone $"Failed to parse notation {move}"
