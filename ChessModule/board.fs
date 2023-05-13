@@ -94,23 +94,23 @@ module Board =
     module GetSquares =
         let private stopAt = PieceBitMap.containsPiece
         let private knightVision (coordinates: coordinates) (board: board): coordinates list =
-            Board.GetCoordinates.getAfterShiftInAllDirections (1,2) coordinates board
+            Board.getCoordinatesAfterShiftInAllDirections (1,2) coordinates board
         let private bishopVision (coordinates: coordinates) (board: board) : coordinates list =
-            Board.GetCoordinates.afterRepeatedShiftWithStopper (1,1) coordinates stopAt board
-            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (1,-1) coordinates stopAt board
-            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (-1,1) coordinates stopAt board
-            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (-1,-1) coordinates stopAt board
+            Board.getCoordinatesAfterRepeatedShiftWithStopper (1,1) coordinates stopAt board
+            |> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (1,-1) coordinates stopAt board
+            |> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (-1,1) coordinates stopAt board
+            |> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (-1,-1) coordinates stopAt board
         let private rookVision (coordinates: coordinates) (board: board) : coordinates list =
-            Board.GetCoordinates.afterRepeatedShiftWithStopper (1,0) coordinates stopAt board
-            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (-1,0) coordinates stopAt board
-            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (0,1) coordinates stopAt board
-            |> List.append <| Board.GetCoordinates.afterRepeatedShiftWithStopper (0,-1) coordinates stopAt board
+            Board.getCoordinatesAfterRepeatedShiftWithStopper (1,0) coordinates stopAt board
+            |> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (-1,0) coordinates stopAt board
+            |> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (0,1) coordinates stopAt board
+            |> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (0,-1) coordinates stopAt board
         let private queenVision (coordinates: coordinates) (board: board) : coordinates list =
             rookVision coordinates board
             |> List.append <| bishopVision coordinates board
         let private kingVision (coordinates: coordinates) (board: board) : coordinates list =
-            Board.GetCoordinates.getAfterShiftInAllDirections (1,1) coordinates board
-            |> List.append <| Board.GetCoordinates.getAfterShiftInAllDirections (1,0) coordinates board
+            Board.getCoordinatesAfterShiftInAllDirections (1,1) coordinates board
+            |> List.append <| Board.getCoordinatesAfterShiftInAllDirections (1,0) coordinates board
         let pieceVisionResult (board: board) ((i,j): coordinates) : coordinates list result =
             let square =
                 Board.getSquareFromCoordinates board (i,j)
@@ -249,7 +249,7 @@ module Board =
                     | White -> -1
                     | Black -> 1
                 let pos = enpassantCoordinates
-                Board.GetCoordinates.afterShifts pos board [(-1, direction);(+1, direction);]
+                Board.getCoordinatesAfterShifts pos board [(-1, direction);(+1, direction);]
                 |> List.filter (fun coords ->
                     Board.getSquareFromCoordinates board coords
                     |> Square.BitMap.contains {pieceType = Pawn; colour = colour}

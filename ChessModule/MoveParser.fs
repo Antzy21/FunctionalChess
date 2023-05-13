@@ -129,7 +129,7 @@ module MoveParser =
 
         let private parsePawnMove colour board pawnFile coords : normalMove option =
             Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coords colour board
-            |> Board.GetCoordinates.afterShifts coords board
+            |> Board.getCoordinatesAfterShifts coords board
             |> List.tryFind (fun square ->
                 Coordinates.getFile square = pawnFile.ToString()
                 && Board.getSquareFromCoordinates board square |> Square.Parser.fromBitMaps |> (=) <| Some {pieceType = Pawn; colour = colour}
