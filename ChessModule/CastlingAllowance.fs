@@ -54,7 +54,7 @@ module CastlingAllowance =
             |> removeRights Queenside colour
         | NormalMove normalMove ->
             let movedPieceType =
-                Board.GetSquare.fromCoordinates board normalMove.startingCoords
+                Board.getSquareFromCoordinates board normalMove.startingCoords
                 |> Square.Parser.fromBitMaps
                 |> fun sqr -> sqr.Value.pieceType
             match movedPieceType with
