@@ -34,7 +34,7 @@ module Game =
     let print = toString >> printfn "%s"
 
     module Update = 
-        let updateFens (fens: fens) (newFen: string) =
+        let private updateFens (fens: fens) (newFen: string) =
             match Map.tryFind newFen fens with
             | Some count ->
                 count + 1
