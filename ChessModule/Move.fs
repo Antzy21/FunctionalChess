@@ -99,7 +99,8 @@ module Move =
                 if (destination |> fun (struct (x,y)) -> y = rowIfMovedTwo) then
                     [(0, -direction); (0,-direction*2)]
                 else
-                    Board.GetSquare.afterShift (0, -direction) destination board
+                    Coordinates.getAfterShift (0, -direction) destination
+                    |> Board.GetSquare.fromCoordinatesOption board
                     |> Option.map (fun square ->
                         if PieceBitMap.containsPieceOfColour pieceColour square then
                             [struct (0, -direction)]
