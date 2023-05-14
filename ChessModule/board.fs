@@ -211,7 +211,8 @@ module Board =
         board
         |> Board.tryFindCoordinates (fun squareBitMaps -> squareBitMaps = (Some {pieceType = King; colour = colour} |> Square.Parser.toBitMaps))
         |> Option.failOnNone "No king found on the board"
-        |> Square.isVisibleByPlayer (Colour.opposite colour) board
+        |> GetSquares.kingIsInCheckByPlayer (Colour.opposite colour) board
+        //|> Square.isVisibleByPlayer (Colour.opposite colour) board
 
     let containsPieceResult (coords: coordinates) (board: board) : bool result =
         Board.getSquareFromCoordinatesResult board coords
