@@ -124,7 +124,9 @@ module Board =
                 | Rook -> rookVision (i,j) board
                 | Queen -> queenVision (i,j) board
                 | King -> kingVision (i,j) board
-                | Pawn -> Move.PawnMoves.getPawnVision (i,j) board piece.colour
+                | Pawn ->
+                    Move.PawnMoves.getPawnVision (i,j) board piece.colour
+                    |> Result.failOnError
                 |> Ok
         let pieceVision (board: board) (coords: coordinates) : coordinates list =
             pieceVisionResult board coords |> Result.failOnError
@@ -169,11 +171,13 @@ module Board =
                 |> (=) <| Some {pieceType = Knight; colour = oppColour}
             ) ||
             Move.PawnMoves.getPawnVision coordsOfKing board oppColour
-            |> List.exists (fun coords -> 
-                Board.getSquareFromCoordinates board coords
-                |> Square.Parser.fromBitMaps
-                |> (=) <| Some {pieceType = Pawn; colour = oppColour}
-            )
+            |> Result.map (
+                List.exists (fun coords -> 
+                    Board.getSquareFromCoordinates board coords
+                    |> Square.Parser.fromBitMaps
+                    |> (=) <| Some {pieceType = Pawn; colour = oppColour}
+                )
+            ) |> Result.defaultValue false
 
     module Square =
         let internal playerVision (colour: colour) (board: board) : coordinates list =
