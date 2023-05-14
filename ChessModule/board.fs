@@ -124,7 +124,9 @@ module Board =
                 | Rook -> rookVision (i,j) board
                 | Queen -> queenVision (i,j) board
                 | King -> kingVision (i,j) board
-                | Pawn -> Move.PawnMoves.getPawnVision (i,j) board piece.colour
+                | Pawn ->
+                    Move.PawnMoves.getPawnVision (i,j) board piece.colour
+                    |> Result.failOnError
                 |> Ok
         let pieceVision (board: board) (coords: coordinates) : coordinates list =
             pieceVisionResult board coords |> Result.failOnError
@@ -144,6 +146,38 @@ module Board =
                 |> Square.Parser.fromBitMaps
                 |> (=) (Some piece)
             )
+
+        let kingIsInCheckByPlayer (oppColour: colour) (board: board) (coordsOfKing: coordinates) : bool =
+            rookVision coordsOfKing board
+            |> List.exists (fun coords -> 
+                let bitMaps = Board.getSquareFromCoordinates board coords
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Rook; colour = oppColour} ||
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Queen; colour = oppColour}
+            ) ||
+            bishopVision coordsOfKing board
+            |> List.exists (fun coords -> 
+                let bitMaps = Board.getSquareFromCoordinates board coords
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Bishop; colour = oppColour} ||
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Queen; colour = oppColour}
+            ) ||
+            knightVision coordsOfKing board
+            |> List.exists (fun coords -> 
+                Board.getSquareFromCoordinates board coords
+                |> Square.Parser.fromBitMaps
+                |> (=) <| Some {pieceType = Knight; colour = oppColour}
+            ) ||
+            Move.PawnMoves.getPawnVision coordsOfKing board oppColour
+            |> Result.map (
+                List.exists (fun coords -> 
+                    Board.getSquareFromCoordinates board coords
+                    |> Square.Parser.fromBitMaps
+                    |> (=) <| Some {pieceType = Pawn; colour = oppColour}
+                )
+            ) |> Result.defaultValue false
 
     module Square =
         let internal playerVision (colour: colour) (board: board) : coordinates list =
@@ -181,7 +215,8 @@ module Board =
         board
         |> Board.tryFindCoordinates (fun squareBitMaps -> squareBitMaps = (Some {pieceType = King; colour = colour} |> Square.Parser.toBitMaps))
         |> Option.failOnNone "No king found on the board"
-        |> Square.isVisibleByPlayer (Colour.opposite colour) board
+        |> GetSquares.kingIsInCheckByPlayer (Colour.opposite colour) board
+        //|> Square.isVisibleByPlayer (Colour.opposite colour) board
 
     let containsPieceResult (coords: coordinates) (board: board) : bool result =
         Board.getSquareFromCoordinatesResult board coords

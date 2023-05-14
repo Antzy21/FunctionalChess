@@ -60,7 +60,7 @@ module Move =
                         [pawn1SquareJumpCoords; pawn2SquareJumpCoords]
             )
 
-        let private getPawnVisionForColour (start: coordinates) (board: board) (direction: int) (startingRow: int) : coordinates list =
+        let private getPawnVisionForColour (start: coordinates) (board: board) (direction: int) (startingRow: int) : coordinates list result =
             let diagonalMoves =
                 [struct (-1,direction); struct (1,direction)]
                 |> List.map (Coordinates.getAfterShift start)
@@ -72,19 +72,21 @@ module Move =
                 
             let forwardMoves = 
                 let coords = Coordinates.getAfterShift (0,direction) start
-                Board.getSquareFromCoordinatesOption board coords
-                |> Option.failOnNone "Pawn shouldn't be at the end of the board"
-                |> (fun squareBitMap ->
+                match Board.getSquareFromCoordinatesOption board coords with
+                | Some squareBitMap ->
                     if PieceBitMap.containsPiece squareBitMap then
                         []
                     else
                         if (start |> fun (struct (x,y)) -> y = startingRow) then
                             getPawnVisionFromStartingRow direction start board
                         else [coords]
-                )
-            List.append forwardMoves diagonalMoves        
+                    |> Ok
+                | None -> Error "Pawn shouldn't be at the end of the board"
 
-        let getPawnVision (start: coordinates) (board: board) (pieceColour: colour) : coordinates list =
+            forwardMoves
+            |> Result.map (List.append diagonalMoves)
+
+        let getPawnVision (start: coordinates) (board: board) (pieceColour: colour) : coordinates list result =
             let direction = getPawnMovementDirection pieceColour
             let startingRow = getPawnStartingRow pieceColour
             getPawnVisionForColour start board direction startingRow
