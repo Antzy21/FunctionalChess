@@ -124,8 +124,8 @@ module MoveParser =
                     else ""
                     +
                     getNewSquareNotationForPiece piece move board
-        let print (move: move) =
-            printfn $"{toString move}"
+        let print (board: board) (move: move) =
+            printfn $"{(toString move board)}"
 
         let private parsePawnMove colour board pawnFile coords : normalMove option =
             Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coords colour board
