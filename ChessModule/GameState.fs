@@ -100,4 +100,4 @@ module GameState =
             makeMove parsedMove game
 
     let checkmateOrStatemate (game: gameState) : bool =
-        getMoves game |> List.isEmpty
+        getMovesAsync game |> List.isEmpty
