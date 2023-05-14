@@ -145,6 +145,36 @@ module Board =
                 |> (=) (Some piece)
             )
 
+        let kingIsInCheckByPlayer (oppColour: colour) (board: board) (coordsOfKing: coordinates) : bool =
+            rookVision coordsOfKing board
+            |> List.exists (fun coords -> 
+                let bitMaps = Board.getSquareFromCoordinates board coords
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Rook; colour = oppColour} ||
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Queen; colour = oppColour}
+            ) ||
+            bishopVision coordsOfKing board
+            |> List.exists (fun coords -> 
+                let bitMaps = Board.getSquareFromCoordinates board coords
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Bishop; colour = oppColour} ||
+                Square.Parser.fromBitMaps bitMaps
+                |> (=) <| Some {pieceType = Queen; colour = oppColour}
+            ) ||
+            knightVision coordsOfKing board
+            |> List.exists (fun coords -> 
+                Board.getSquareFromCoordinates board coords
+                |> Square.Parser.fromBitMaps
+                |> (=) <| Some {pieceType = Knight; colour = oppColour}
+            ) ||
+            Move.PawnMoves.getPawnVision coordsOfKing board oppColour
+            |> List.exists (fun coords -> 
+                Board.getSquareFromCoordinates board coords
+                |> Square.Parser.fromBitMaps
+                |> (=) <| Some {pieceType = Pawn; colour = oppColour}
+            )
+
     module Square =
         let internal playerVision (colour: colour) (board: board) : coordinates list =
             board
