@@ -16,7 +16,7 @@
     <Compile Include="Game.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Antzy21.FSharp.Extensions" Version="1.1.1" />
+    <PackageReference Include="Antzy21.FSharp.Extensions" Version="1.1.3" />
     <PackageReference Include="Antzy21.Games.Checkerboard" Version="4.0.0" />
   </ItemGroup>
 </Project>
