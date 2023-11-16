@@ -66,7 +66,7 @@ module MoveParser =
     module AlgebraicNotation =
     
         let private matchReverseEngineerPieceLocation (piece: piece) ((i, j): coordinates) (board: board) : coordinates option =
-            match Board.GetSquares.reverseEngineerPieceLocations piece (i,j) board with
+            match Board.Vision.reverseEngineerPieceLocations piece (i,j) board with
             | oldCoordinates :: [] ->
                 Some oldCoordinates
             | [] ->
@@ -79,7 +79,7 @@ module MoveParser =
                 None
 
         let private getNewSquareNotationForPiece (piece: piece) (move: normalMove) (board: board) =
-            match Board.GetSquares.reverseEngineerPieceLocations piece move.destinationCoords board with
+            match Board.Vision.reverseEngineerPieceLocations piece move.destinationCoords board with
             | _ :: [] -> ""
             | others ->
                 let piecesOnRow = 
