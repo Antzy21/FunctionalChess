@@ -10,8 +10,9 @@
     <Compile Include="Square.fs" />
     <Compile Include="Move.fs" />
     <Compile Include="CastlingAllowance.fs" />
+    <Compile Include="Board.Parser.fs" />
     <Compile Include="Board.fs" />
-    <Compile Include="MoveParser.fs" />
+    <Compile Include="Move.Parser.fs" />
     <Compile Include="GameState.fs" />
     <Compile Include="Game.fs" />
   </ItemGroup>
