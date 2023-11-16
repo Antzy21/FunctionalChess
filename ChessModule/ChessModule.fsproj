@@ -3,6 +3,7 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="readme.md" />
     <Compile Include="Side.fs" />
     <Compile Include="PieceType.fs" />
     <Compile Include="Colour.fs" />
@@ -16,6 +17,7 @@
     <Compile Include="GameState.fs" />
     <Compile Include="Game.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Antzy21.FSharp.Extensions" Version="1.1.3" />
     <PackageReference Include="Antzy21.Games.Checkerboard" Version="4.0.0" />
