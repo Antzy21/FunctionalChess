@@ -28,7 +28,7 @@ module ParseFull =
 module ParseAlgebraic =
     [<Fact>]
     let ``e4`` () =
-        let board = Board.Create.starting ()
+        let board = Board.createStarting ()
         let result = MoveParser.AlgebraicNotation.parse White board "e4"
         Assert.Equal(Moves.e4, result)
         

@@ -8,7 +8,7 @@ open Checkerboard
 module FromFen =
     [<Fact>]
     let ``Board from Fen contains correctly placed pieces`` () =
-        let board = Board.Create.fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+        let board = BoardParser.fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
         let pieceAt_0_0 =
             Board.getSquareFromCoordinates board (0,0)
             |> Square.getPieceType

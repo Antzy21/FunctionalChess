@@ -16,7 +16,7 @@ module GameState =
     module Create =
         let fromFen (fen: string) : gameState =
             let parts = fen.Split(' ')
-            let board = Board.Create.fromFen(parts[0])
+            let board = BoardParser.fromFen(parts[0])
             let playerTurn =
                 match parts[1] with
                 | "w" -> White
@@ -50,7 +50,7 @@ module GameState =
             match game.playerTurn with
             | White -> "w"
             | Black -> "b"
-        $"{Board.toFen game.board} "
+        $"{BoardParser.toFen game.board} "
         + $"{playerTurn} "
         + $"{castling} "
         + $"{enpassant} "
