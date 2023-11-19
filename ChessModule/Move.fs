@@ -7,7 +7,7 @@ open FSharp.Extensions
 type normalMove = {startingCoords: coordinates; destinationCoords: coordinates}
 
 type move = 
-| NormalMove of normalMove
+    | NormalMove of normalMove
     | Castling of (side * colour)
     | Promotion of (normalMove * pieceType)
     | EnPassant of normalMove

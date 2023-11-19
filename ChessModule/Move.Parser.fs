@@ -14,13 +14,13 @@ module MoveParser =
                 let timesSignIfTaken =
                     if (Move.getShift move |> fun (struct (x,y)) -> x <> 0) then "x"
                     else ""
-                $"{Square.getDescription move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
+                $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                 timesSignIfTaken +
                 $"{Coordinates.getName move.destinationCoords}" +
                 " = " +
                 $"{(PieceType.getLetter promotedPieceType)}"
             | EnPassant move ->
-                $"{Square.getDescription move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
+                $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                 $"x" +
                 match Board.getSquareFromCoordinates board move.startingCoords |> Square.getPieceColour |> Option.get with 
                 | White -> "p"
@@ -30,11 +30,11 @@ module MoveParser =
             | NormalMove move ->
                 match Board.getSquareFromCoordinates board move.destinationCoords |> Square.Parser.fromBitMaps with
                 | Some takenPiece ->
-                    $"{Square.getDescription move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
+                    $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                     $"x{(Piece.getLetter takenPiece)}" +
                     $"{Coordinates.getName move.destinationCoords}"
                 | None -> 
-                    $"{Square.getDescription move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
+                    $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                     $"{Coordinates.getName move.destinationCoords}"
 
         let private tryParseSquare (square: string) : coordinates option =

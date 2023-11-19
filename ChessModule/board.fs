@@ -18,8 +18,9 @@ module Board =
         Board.foldjiback (fun struct (i,j) acc sqr ->
             if i = 0 then
                 printf $"{j+1} |"
-            Square.Parser.fromBitMaps sqr
-            |> Square.toString
+            match Square.Parser.fromBitMaps sqr with
+            | Some piece -> Piece.getLetter piece
+            | None -> '.'
             |> printf " %c "
             if i = 7 then
                 printfn "|"
