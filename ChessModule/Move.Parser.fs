@@ -36,8 +36,7 @@ module MoveParser =
                 | None -> 
                     $"{Square.getDescription move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                     $"{Coordinates.getName move.destinationCoords}"
-        let print (move: move) (board: board) =
-            printfn $"{toString board move}"
+
         let private tryParseSquare (square: string) : coordinates option =
             let square =
                 match List.ofSeq square with
@@ -53,31 +52,16 @@ module MoveParser =
                 | coordinates ->
                     String.ofSeq coordinates
                     |> Coordinates.tryParse
-        let tryParse (move: string) : normalMove option =
+
+        let tryParse (move: string) : normalMove result =
             match move.Split(' ') with
             | [|fstSquare; _; sndSquare |] ->
                 (tryParseSquare fstSquare, tryParseSquare sndSquare)
                 ||> Option.map2 (fun fs ss -> {startingCoords = fs; destinationCoords= ss})
-            | _ -> None
-        let parse (move: string) : normalMove =
-            tryParse move
-            |> Option.failOnNone $"Failed to parse notation {move}"
+                |> Result.fromOption $"Error parsing squares {fstSquare}, {sndSquare}"
+            | _ -> Error "Move is an unexpected length of chars"
 
     module AlgebraicNotation =
-    
-        let private matchReverseEngineerPieceLocation (piece: piece) ((i, j): coordinates) (board: board) : coordinates option =
-            match Board.Vision.reverseEngineerPieceLocations piece (i,j) board with
-            | oldCoordinates :: [] ->
-                Some oldCoordinates
-            | [] ->
-                printfn $"No {piece.pieceType} avaiable to move to {i}, {j}"
-                None
-            | squares ->
-                printfn $"Too many {piece.pieceType}s are able to move to {i}, {j}"
-                squares
-                |> List.iter (fun coords -> printfn $"{Coordinates.getName coords}")
-                None
-
         let private getNewSquareNotationForPiece (piece: piece) (move: normalMove) (board: board) =
             match Board.Vision.reverseEngineerPieceLocations piece move.destinationCoords board with
             | _ :: [] -> ""
@@ -124,43 +108,57 @@ module MoveParser =
                     else ""
                     +
                     getNewSquareNotationForPiece piece move board
-        let print (board: board) (move: move) =
-            printfn $"{(toString move board)}"
 
-        let private parsePawnMove colour board pawnFile coords : normalMove option =
+        let private matchReverseEngineerPieceLocation (piece: piece) ((i, j): coordinates) (board: board) : coordinates result =
+            match Board.Vision.reverseEngineerPieceLocations piece (i,j) board with
+            | oldCoordinates :: [] ->
+                Ok oldCoordinates
+            | [] ->
+                Error $"No {piece.pieceType} avaiable to move to {i}, {j}"
+            | squares ->
+                squares
+                |> List.map Coordinates.getName
+                |> List.fold (fun c1 c2 ->
+                    $"{c1}\n{c2}"
+                ) $"Too many {piece.pieceType}s are able to move to {i}, {j}."
+                |> Error 
+
+        let private parsePawnMove colour board pawnFile coords : normalMove result =
             Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coords colour board
             |> Board.getCoordinatesAfterShifts coords board
             |> List.tryFind (fun square ->
                 Coordinates.getFile square = pawnFile.ToString()
                 && Board.getSquareFromCoordinates board square |> Square.Parser.fromBitMaps |> (=) <| Some {pieceType = Pawn; colour = colour}
             )
-            |> Option.map (fun oldCoords -> {startingCoords = oldCoords; destinationCoords = coords})
+            |> Result.fromOption "No possible pawn origin found."
+            |> Result.map (fun oldCoords -> {startingCoords = oldCoords; destinationCoords = coords})
 
-        let private parseNonPawnMove (pieceLetter: char) (colour: colour) (board: board) (newCoords: coordinates) : move option =
+        let private parseNonPawnMove (pieceLetter: char) (colour: colour) (board: board) (newCoords: coordinates) : move result =
             PieceType.tryParse pieceLetter
-            |> Option.map (fun pieceType -> {pieceType = pieceType; colour = colour})
-            |> Option.bind (fun piece ->
+            |> Result.fromOption "Unable to parse piece"
+            |> Result.map (fun pieceType -> {pieceType = pieceType; colour = colour})
+            |> Result.bind (fun piece ->
                 newCoords
                 |> fun (newCoords: coordinates) ->
                     let temp = matchReverseEngineerPieceLocation piece newCoords board
-                    Option.map (fun (oldCoords: coordinates) ->
+                    Result.map (fun (oldCoords: coordinates) ->
                         NormalMove {startingCoords = oldCoords; destinationCoords = newCoords}
                     ) temp
             )
 
-        let private normalMoveParsing (colour: colour) (board: board) (move: string) : move option =
-            let (getMoveFunc: coordinates -> move option), file, rank =
+        let private normalMoveParsing (colour: colour) (board: board) (move: string) : move result =
+            let (getMoveFunc: coordinates -> move result), file, rank =
                 match List.ofSeq move with
                 | [fstLetter; 'x'; file; rank; '='; promotionPiece] when System.Char.IsLower(fstLetter) ->
                     parsePawnMove colour board fstLetter >> 
-                        Option.map (fun parsedMove -> 
+                        Result.map (fun parsedMove -> 
                             Promotion (parsedMove, PieceType.fromLetter promotionPiece)
                         )
                     , file, rank
                 | [file; rank; '='; promotionPiece] ->
                     fun newCoords ->
                         parsePawnMove colour board (Coordinates.getFile newCoords) newCoords
-                        |> Option.map (fun parsedMove -> 
+                        |> Result.map (fun parsedMove -> 
                             Promotion (parsedMove, PieceType.fromLetter promotionPiece)
                         )
                     , file, rank
@@ -169,7 +167,7 @@ module MoveParser =
                 | [fstLetter; 'x'; file; rank] when System.Char.IsLower(fstLetter) ->
                     fun coords -> 
                         parsePawnMove colour board fstLetter coords
-                        |> Option.map (fun move ->
+                        |> Result.map (fun move ->
                             if Board.getSquareFromCoordinates board move.destinationCoords |> Square.BitMap.containsPiece then
                                 NormalMove move
                             else
@@ -181,31 +179,26 @@ module MoveParser =
                 | [file; rank] -> 
                     fun newCoords ->
                         parsePawnMove colour board (Coordinates.getFile newCoords) newCoords
-                    >> Option.map NormalMove
+                    >> Result.map NormalMove
                     , file, rank
                 | _ -> failwith "Error parsing normal move"
             $"{file}{rank}"
             |> Coordinates.tryParse
-            |> Option.bind getMoveFunc
+            |> Result.fromOption $"Error parsing coordinates {file}{rank}"
+            |> Result.bind getMoveFunc
 
-        let rec tryParse (colour: colour) (board: board) (move: string) : move option =
+        let tryParse (colour: colour) (board: board) (move: string) : move result =
             match move with
             | "0-0-0" ->
-                Some <| Castling (Queenside, colour)
+                Ok <| Castling (Queenside, colour)
             | "0-0" ->
-                Some <| Castling (Kingside, colour)
+                Ok <| Castling (Kingside, colour)
             | move -> 
                 normalMoveParsing colour board move
-        let parse (colour: colour) (board: board) (move: string) : move =
-            tryParse colour board move
-            |> Option.failOnNone $"Failed to parse notation {move}"
 
     let tryParse (playerTurn: colour) (board: board) (move: string) =
         AlgebraicNotation.tryParse playerTurn board move
-        |> Option.orElseWith (fun () -> 
+        |> Result.orElseWith (fun () -> 
             FullNotation.tryParse move
-            |> Option.map NormalMove
+            |> Result.map NormalMove
         )
-    let parse (colour: colour) (board: board) (move: string) : move =
-        tryParse colour board move
-        |> Option.failOnNone $"Failed to parse notation {move}"

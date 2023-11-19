@@ -2,17 +2,21 @@
 
 open Checkerboard
 
+[<Struct>]
 type castlingAllowance = {whiteKingside: bool; whiteQueenside: bool; blackKingside: bool; blackQueenside: bool;}
 
-module CastlingAllowance =
-    let fromFen (fen: string) : castlingAllowance =
+module internal CastlingAllowance =
+
+    /// Parse the part of the fen string that represents castling allowance into a castlingAllowance record
+    let internal fromFenPart (fen: string) : castlingAllowance =
         {
             whiteKingside = fen.Contains('K');
             whiteQueenside = fen.Contains('Q');
             blackKingside = fen.Contains('k');
             blackQueenside = fen.Contains('q')
         }
-    let toFen (castling: castlingAllowance) : string =
+
+    let internal toFenPart (castling: castlingAllowance) : string =
         let allowances = 
             if castling.whiteKingside then
                 "K"
@@ -37,16 +41,18 @@ module CastlingAllowance =
             "-"
         else
             allowances
+
     let private modifyRights (setting: bool) (side: side) (colour: colour) (ca: castlingAllowance) : castlingAllowance =
         match colour, side with
         | White, Kingside -> {whiteKingside = setting; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = ca.blackQueenside}
         | White, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = setting; blackKingside = ca.blackKingside; blackQueenside = ca.blackQueenside}
         | Black, Kingside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = setting; blackQueenside = ca.blackQueenside}
         | Black, Queenside -> {whiteKingside = ca.whiteKingside; whiteQueenside = ca.whiteQueenside; blackKingside = ca.blackKingside; blackQueenside = setting}
-    let removeRights = modifyRights false
-    let addRights = modifyRights true
+
+    let private removeRights = modifyRights false
+
     /// Remove castling allowance if the current move is castling, or the king or one of the rooks move.
-    let removeBasedOnMove (colour: colour) (ca: castlingAllowance) (board: board) (move: move) =
+    let internal removeBasedOnMove (colour: colour) (ca: castlingAllowance) (board: board) (move: move) =
         match move with
         | Castling (_, colour) -> 
             ca
@@ -73,7 +79,8 @@ module CastlingAllowance =
                 | _ -> ca
             | _ -> ca
         | _ -> ca
-    let print (castling: castlingAllowance) : string=
+
+    let internal toString (castling: castlingAllowance) : string =
         if castling.whiteKingside then
             "W 0-0, "
         else

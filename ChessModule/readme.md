@@ -2,16 +2,33 @@
 
 WIP
 
-### Board
+## Board
 
 `createStarting`
 `isInCheck`
 `containsPiece`
 
-### GameState
+### Board Parser
+
+`fromFen`
+`toFen`
+
+## GameState
 
 ### Game
 
-### Move
+## Move
+
+### Move Parser
+
+`tryParse`
+
+**Full Notation**
+`toString`
+`tryParse`
+
+**Algebraic Notation**
+`toString`
+`tryParse`
 
 ### Colour
