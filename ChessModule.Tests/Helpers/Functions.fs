@@ -3,6 +3,7 @@
 open Chess
 open Checkerboard
 open Xunit
+open FSharp.Extensions
 
 module GetPossibleMoves = 
 
@@ -46,14 +47,17 @@ let gameStateIsInCheck (fen: string) : bool =
     |> fun gs -> gs.board |> Board.isInCheck gs.playerTurn
 
 let moveNotationFromMoveParser (game: gameState) (notation: string) : string = 
-    MoveParser.parse game.playerTurn game.board notation
+    MoveParser.tryParse game.playerTurn game.board notation
+    |> Result.failOnError
     |> MoveParser.FullNotation.toString game.board
 
 module UpdateWithMove =
 
     let parseMoveAndApplyIt (fen: string) (notation: string) : string =
         let gs = GameState.Create.fromFen fen
-        let move = MoveParser.parse (Colour.opposite gs.playerTurn) gs.board notation
+        let move = 
+            MoveParser.tryParse (Colour.opposite gs.playerTurn) gs.board notation
+            |> Result.failOnError
         GameState.Update.makeMove move gs
         |> GameState.toFen
 

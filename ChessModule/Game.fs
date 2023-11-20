@@ -1,6 +1,6 @@
 namespace Chess
 
-open System.Collections.Generic
+open FSharp.Extensions
 
 type fens = Map<string, int>
 
@@ -47,9 +47,11 @@ module Game =
                 fens = updateFens game.fens (GameState.toFen newGameState)
                 gameState = newGameState
             }
-        let makeMoveFromNotation (move: string) (game: game) : game =
-            let parsedMove = MoveParser.parse game.gameState.playerTurn game.gameState.board move
-            makeMove parsedMove game
+        let makeMoveFromNotation (move: string) (game: game) : game result =
+            MoveParser.tryParse game.gameState.playerTurn game.gameState.board move
+            |> Result.map (fun parsedMove ->
+                makeMove parsedMove game
+            )
 
     let private threeMovesRepeated (game: game) : bool =
         game.fens

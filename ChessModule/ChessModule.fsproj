@@ -3,6 +3,7 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="readme.md" />
     <Compile Include="Side.fs" />
     <Compile Include="PieceType.fs" />
     <Compile Include="Colour.fs" />
@@ -10,13 +11,16 @@
     <Compile Include="Square.fs" />
     <Compile Include="Move.fs" />
     <Compile Include="CastlingAllowance.fs" />
+    <Compile Include="Board.Parser.fs" />
     <Compile Include="Board.fs" />
-    <Compile Include="MoveParser.fs" />
+    <Compile Include="Move.Parser.fs" />
     <Compile Include="GameState.fs" />
     <Compile Include="Game.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Antzy21.FSharp.Extensions" Version="1.1.3" />
-    <PackageReference Include="Antzy21.Games.Checkerboard" Version="4.0.0" />
+    <PackageReference Include="Antzy21.FSharp.Extensions" Version="1.1.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Checkerboard\Checkerboard\Checkerboard.fsproj" />
   </ItemGroup>
 </Project>

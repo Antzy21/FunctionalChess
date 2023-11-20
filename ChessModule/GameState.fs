@@ -16,13 +16,13 @@ module GameState =
     module Create =
         let fromFen (fen: string) : gameState =
             let parts = fen.Split(' ')
-            let board = Board.Create.fromFen(parts[0])
+            let board = BoardParser.fromFen(parts[0])
             let playerTurn =
                 match parts[1] with
                 | "w" -> White
                 | "b" -> Black
                 | c -> failwith $"Error in FEN: Cannot determine player turn from {c}" 
-            let castlingAllowance = CastlingAllowance.fromFen parts[2]
+            let castlingAllowance = CastlingAllowance.fromFenPart parts[2]
             let enpassantCoordinates = 
                 match parts[3] with
                 | "-" -> None
@@ -45,12 +45,12 @@ module GameState =
             game.enpassantCoordinates
             |> Option.map (Checkerboard.Coordinates.getName)
             |> Option.defaultValue "-"
-        let castling = CastlingAllowance.toFen game.castlingAllowance
+        let castling = CastlingAllowance.toFenPart game.castlingAllowance
         let playerTurn = 
             match game.playerTurn with
             | White -> "w"
             | Black -> "b"
-        $"{Board.toFen game.board} "
+        $"{BoardParser.toFen game.board} "
         + $"{playerTurn} "
         + $"{castling} "
         + $"{enpassant} "
@@ -58,7 +58,7 @@ module GameState =
     let toString (game: gameState) : string =
         $"{Board.print game.board}\n" +
         $"\nPlayer Turn: {game.playerTurn}" +
-        $"\nCastling Allowed: \n{CastlingAllowance.print game.castlingAllowance}" +
+        $"\nCastling Allowed: \n{CastlingAllowance.toString game.castlingAllowance}" +
         (
             Option.map (fun enpasSqr -> $"\nEnpassantSquare: {enpasSqr}") game.enpassantCoordinates
             |> Option.defaultValue ""
@@ -95,9 +95,11 @@ module GameState =
                     | White -> gameState.fullMoveClock + 1
                     | Black -> gameState.fullMoveClock
             }
-        let makeMoveFromNotation (move: string) (game: gameState) : gameState =
-            let parsedMove = MoveParser.parse game.playerTurn game.board move
-            makeMove parsedMove game
+        let makeMoveFromNotation (move: string) (game: gameState) : gameState result =
+            MoveParser.tryParse game.playerTurn game.board move
+            |> Result.map (fun parsedMove ->
+                makeMove parsedMove game
+            )
 
     let checkmateOrStatemate (game: gameState) : bool =
         getMovesAsync game |> List.isEmpty

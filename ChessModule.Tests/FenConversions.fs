@@ -4,11 +4,12 @@ open Xunit
 open Chess
 open ChessTest.Helpers.Functions
 open Checkerboard
+open FSharp.Extensions
 
 module FromFen =
     [<Fact>]
     let ``Board from Fen contains correctly placed pieces`` () =
-        let board = Board.Create.fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+        let board = BoardParser.fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
         let pieceAt_0_0 =
             Board.getSquareFromCoordinates board (0,0)
             |> Square.getPieceType
@@ -43,7 +44,8 @@ module SetEnpassantSquare =
     [<Fact>]
     let ``Sets Enpassant square for White`` () =
         let game = GameState.Create.newGame ()
-        MoveParser.parse game.playerTurn game.board "a4"
+        MoveParser.tryParse game.playerTurn game.board "a4"
+        |> Result.failOnError
         |> fun move -> GameState.Update.makeMove move game
         |> GameState.toFen
         |> fun fen ->
@@ -54,7 +56,8 @@ module SetEnpassantSquare =
         let game = 
             "rnbqkbnr/p1pppppp/6p1/1P6/8/8/P1PPPPPP/RNBQKBNR b KQkq - 3 2"
             |> GameState.Create.fromFen
-        MoveParser.parse game.playerTurn game.board "a5"
+        MoveParser.tryParse game.playerTurn game.board "a5"
+        |> Result.failOnError
         |> fun move -> GameState.Update.makeMove move game
         |> GameState.toFen
         |> fun fen ->

@@ -18,21 +18,18 @@ module Square =
             | None ->
                 [false; false; false; false; false]
 
-    let toString (square: square) =
-        match square with
-        | Some piece -> Piece.getLetter piece
-        | None -> '.'
-
-    let getDescription (coords: coordinates) (square: squareBitMap) =
+    let toString (coords: coordinates) (square: squareBitMap) =
         let pieceTypeLetter = 
             match Parser.fromBitMaps square with
             | None -> ""
             | Some piece -> $"{Piece.getLetter piece}"
         $"{pieceTypeLetter}{(Coordinates.getName coords)}"
+
     let getPieceType (square: squareBitMap) : pieceType option =
         square
         |> Parser.fromBitMaps
         |> Option.map (fun piece -> piece.pieceType)
+
     let getPieceColour (square: squareBitMap) : colour option =
         match square with
         | [isSomePiece; colourBool; _; _; _] ->
