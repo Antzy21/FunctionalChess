@@ -65,23 +65,23 @@ module Move =
                 [struct (-1,direction); struct (1,direction)]
                 |> List.map (Coordinates.getAfterShift start)
                 |> List.filter (fun coords ->
-                    match Board.getSquareFromCoordinatesOption board coords with
-                    | None -> false
-                    | Some bitmap -> PieceBitMap.containsPiece bitmap
+                    match Board.getSquareFromCoordinatesResult board coords with
+                    | Error _ -> false
+                    | Ok bitmap -> PieceBitMap.containsPiece bitmap
                 )
                 
             let forwardMoves = 
                 let coords = Coordinates.getAfterShift (0,direction) start
-                match Board.getSquareFromCoordinatesOption board coords with
-                | Some squareBitMap ->
+                Board.getSquareFromCoordinatesResult board coords
+                |> Result.map (fun squareBitMap ->
                     if PieceBitMap.containsPiece squareBitMap then
                         []
                     else
                         if (start |> fun (struct (x,y)) -> y = startingRow) then
                             getPawnVisionFromStartingRow direction start board
                         else [coords]
-                    |> Ok
-                | None -> Error "Pawn shouldn't be at the end of the board"
+                )
+                |> Result.mapError (fun er -> $"{er}\nPawn shouldn't be at the end of the board")
 
             forwardMoves
             |> Result.map (List.append diagonalMoves)
@@ -102,11 +102,11 @@ module Move =
                     [(0, -direction); (0,-direction*2)]
                 else
                     Coordinates.getAfterShift (0, -direction) destination
-                    |> Board.getSquareFromCoordinatesOption board
-                    |> Option.map (fun square ->
+                    |> Board.getSquareFromCoordinatesResult board
+                    |> Result.map (fun square ->
                         if PieceBitMap.containsPieceOfColour pieceColour square then
                             [struct (0, -direction)]
                         else
                             [struct (-1, -direction); struct (1, -direction)]
                     )
-                    |> Option.get
+                    |> Result.failOnError
