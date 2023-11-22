@@ -31,6 +31,35 @@ module Board =
         printfn "  \\________________________/"
         printfn "    a  b  c  d  e  f  g  h"
     
+    let getSquareFromCoordinates (board: board) (c: coordinates) : piece option =
+        let pieceType = 
+            if board.KPNRmap &&& c.value > 0UL then
+                if board.KQBRmap &&& c.value > 0UL  then
+                    if board.KQPmap &&& c.value > 0UL  then
+                        Some King
+                    else
+                        Some Rook
+                else
+                    if board.KQPmap &&& c.value > 0UL  then
+                        Some Pawn
+                    else
+                        Some Knight
+            else
+                if board.KQBRmap &&& c.value > 0UL  then
+                    if board.KQPmap &&& c.value > 0UL  then
+                        Some Queen
+                    else
+                        Some Bishop
+                else
+                    None
+        pieceType
+        |> Option.map (fun pieceType ->
+            if board.ColourBitmap &&& c.value > 0UL then
+                {pieceType = pieceType; colour = White}
+            else
+                {pieceType = pieceType; colour = White}
+        )
+            
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
     module Vision =
         let private stopAt = PieceBitMap.containsPiece
