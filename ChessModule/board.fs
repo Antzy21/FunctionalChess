@@ -62,7 +62,72 @@ module Board =
             
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
     module Vision =
-        let private stopAt = PieceBitMap.containsPiece
+        let private ranks_1_8 = 18374686479671623935UL
+        let private ranks_1_2_7_8 = 18446462598732906495UL
+        let private files_a_h = 9331882296111890817UL
+        let private files_a_b_g_h = 14106333703424951235UL
+        
+        let private getPawnMovementDirection (pieceColour: colour) =
+            match pieceColour with
+            | White -> 1
+            | Black -> -1
+        let private getPawnStartingRow (pieceColour: colour) =
+            match pieceColour with
+            | White -> 1
+            | Black -> 6
+
+        let private ofPawn (start: coordinates) (board: board) (pieceColour: colour) : coordinates list =
+            let direction = getPawnMovementDirection pieceColour
+            let startingRow = getPawnStartingRow pieceColour
+            let diagonalMoves =
+                [-1; 1]
+                |> List.map (fun i -> Coordinates.shift start i direction)
+                |> List.filterResults
+                // Filter for the squares that contain a piece of the opposite colour.
+                |> List.filter (fun c ->
+                    match getSquareFromCoordinates board c with
+                    | Some piece -> piece.colour = Colour.opposite pieceColour
+                    | None -> false
+                )
+            let forwardMoves = 
+                // Pawns will never be at the end of the board so this should not fail
+                let pawn1ForwardCoords = Coordinates.shift start 0 direction |> Result.failOnError
+                // These should not error as they are on the starting row
+                let pawn2ForwardCoords = Coordinates.shift start 0 (direction*2) |> Result.failOnError
+                // If square in front is occupied, no moves forward are possible
+                if BitMap.isOnAtCoordinates pawn1ForwardCoords board.pieceMap then
+                    []
+                // Else, if at the starting square, and the second square is empty, two moves forward are possible
+                elif (startingRow = Coordinates.getRow start) && BitMap.isOnAtCoordinates pawn2ForwardCoords board.pieceMap then
+                    [pawn1ForwardCoords; pawn2ForwardCoords]
+                // Otherwise just the one space forward is possible.
+                else
+                    [pawn1ForwardCoords]
+            List.append diagonalMoves forwardMoves
+
+        // Get Pawn origin possibilities from destination
+        let private reverseOfPawn (destination: coordinates) (pieceColour: colour) (board: board): coordinates list =
+            let direction = getPawnMovementDirection pieceColour
+            let rowIfMovedTwo = getPawnStartingRow pieceColour + direction*2
+            // If a piece was taken, the pawn must have come from the diagonals
+            if BitMap.isOnAtCoordinates destination board.pieceMap then
+                [-1; 1]
+                |> List.map (fun i -> Coordinates.construct i (-direction))
+                |> List.filterResults
+            else
+                // Pawns will never be at the end of the board so this should not fail
+                let pawn1BackwardsCoords = Coordinates.shift destination 0 -direction |> Result.failOnError
+                // If square in front is occupied, no moves forward are possible
+                if BitMap.isOnAtCoordinates pawn1BackwardsCoords board.pieceMap then
+                    []
+                // Else, if two spaces ahead of the starting row, and the second square is empty, two moves forward are possible
+                elif (rowIfMovedTwo = Coordinates.getRow destination) then
+                    [-direction; -direction*2]
+                else
+                    [-1; 1]
+                |> List.map (fun j -> Coordinates.construct 0 j)
+                |> List.filterResults
+
         let private ofKnight (coordinates: coordinates) (board: board): coordinates list =
             Board.getCoordinatesAfterShiftInAllDirections (1,2) coordinates board
         let private ofBishop (coordinates: coordinates) (board: board) : coordinates list =
