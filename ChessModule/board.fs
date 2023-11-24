@@ -10,27 +10,6 @@ module Board =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
         |> BoardParser.fromFen
 
-    /// Print an image of the board to the console
-    let internal print (board : board) : unit =
-        printfn "   ________________________"
-        printfn "  /                        \\"
-
-        Board.foldjiback (fun struct (i,j) acc sqr ->
-            if i = 0 then
-                printf $"{j+1} |"
-            match Square.Parser.fromBitMaps sqr with
-            | Some piece -> Piece.getLetter piece
-            | None -> '.'
-            |> printf " %c "
-            if i = 7 then
-                printfn "|"
-            acc
-        ) "" board
-        |> ignore
-
-        printfn "  \\________________________/"
-        printfn "    a  b  c  d  e  f  g  h"
-    
     let getSquareFromCoordinates (board: board) (c: coordinates) : piece option =
         let pieceType = 
             if BitMap.isOnAtCoordinates c board.KPNRmap then
@@ -60,6 +39,40 @@ module Board =
                 {pieceType = pieceType; colour = Black}
         )
             
+    /// Folds the array, starting in the top right and moving down.
+    let private foldjiback (folder: coordinates -> 'S -> square -> 'S) (state: 'S) (board: board)=
+        [0..7] |> List.rev
+        |> List.fold (fun accRow j ->
+            [0..7]
+            |> List.fold (fun acc i ->
+                let c = Coordinates.construct i j |> Result.failOnError
+                getSquareFromCoordinates board c
+                |> folder c acc
+            ) accRow
+        ) state
+        
+    /// Print an image of the board to the console
+    let internal print (board : board) : unit =
+        printfn "   ________________________"
+        printfn "  /                        \\"
+
+        foldjiback (fun c acc sqr ->
+            if Coordinates.getFile c = 0 then
+                printf $"{Coordinates.getRow c + 1} |"
+            match Square.Parser.fromBitMaps sqr with
+            | Some piece -> Piece.getLetter piece
+            | None -> '.'
+            |> printf " %c "
+            if Coordinates.getFile c = 7 then
+                printfn "|"
+            acc
+        ) "" board
+        |> ignore
+
+        printfn "  \\________________________/"
+        printfn "    a  b  c  d  e  f  g  h"
+    
+
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
     module Vision =
         let private ranks_1_8 = 18374686479671623935UL
