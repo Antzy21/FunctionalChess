@@ -33,20 +33,20 @@ module Board =
     
     let getSquareFromCoordinates (board: board) (c: coordinates) : piece option =
         let pieceType = 
-            if board.KPNRmap &&& c.value > 0UL then
-                if board.KQBRmap &&& c.value > 0UL  then
-                    if board.KQPmap &&& c.value > 0UL  then
+            if BitMap.isOnAtCoordinates c board.KPNRmap then
+                if BitMap.isOnAtCoordinates c board.KQBRmap then
+                    if BitMap.isOnAtCoordinates c board.KQPmap then
                         Some King
                     else
                         Some Rook
                 else
-                    if board.KQPmap &&& c.value > 0UL  then
+                    if BitMap.isOnAtCoordinates c board.KQPmap then
                         Some Pawn
                     else
                         Some Knight
             else
-                if board.KQBRmap &&& c.value > 0UL  then
-                    if board.KQPmap &&& c.value > 0UL  then
+                if BitMap.isOnAtCoordinates c board.KQBRmap then
+                    if BitMap.isOnAtCoordinates c board.KQPmap then
                         Some Queen
                     else
                         Some Bishop
@@ -54,10 +54,10 @@ module Board =
                     None
         pieceType
         |> Option.map (fun pieceType ->
-            if board.ColourBitmap &&& c.value > 0UL then
+            if BitMap.isOnAtCoordinates c board.ColourBitmap then
                 {pieceType = pieceType; colour = White}
             else
-                {pieceType = pieceType; colour = White}
+                {pieceType = pieceType; colour = Black}
         )
             
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
