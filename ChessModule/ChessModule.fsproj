@@ -7,12 +7,14 @@
     <Compile Include="Side.fs" />
     <Compile Include="PieceType.fs" />
     <Compile Include="Colour.fs" />
+    <Compile Include="Move.Type.fs" />
+    <Compile Include="Board.Type.fs" />
     <Compile Include="Piece.fs" />
     <Compile Include="Square.fs" />
-    <Compile Include="Move.fs" />
+    <Compile Include="CastlingAllowance.Type.fs" />
+    <Compile Include="Board.fs" />
     <Compile Include="CastlingAllowance.fs" />
     <Compile Include="Board.Parser.fs" />
-    <Compile Include="Board.fs" />
     <Compile Include="Move.Parser.fs" />
     <Compile Include="GameState.fs" />
     <Compile Include="Game.fs" />

@@ -12,7 +12,7 @@ module MoveParser =
             | Castling (Queenside, _) -> "0-0-0"
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
-                    if (Move.getShift move |> fun (struct (x,y)) -> x <> 0) then "x"
+                    if (Coordinates.getFile move.startingCoords <> Coordinates.getFile move.destinationCoords) then "x"
                     else ""
                 $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                 timesSignIfTaken +
@@ -22,13 +22,12 @@ module MoveParser =
             | EnPassant move ->
                 $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                 $"x" +
-                match Board.getSquareFromCoordinates board move.startingCoords |> Square.getPieceColour |> Option.get with 
-                | White -> "p"
-                | Black -> "P"
+                if BitMap.isOnAtCoordinates move.startingCoords board.ColourBitmap then "p"
+                else "P"
                 + $"{Coordinates.getName move.destinationCoords}"
                 + $" e.p."
             | NormalMove move ->
-                match Board.getSquareFromCoordinates board move.destinationCoords |> Square.Parser.fromBitMaps with
+                match Board.getSquareFromCoordinates board move.destinationCoords with
                 | Some takenPiece ->
                     $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
                     $"x{(Piece.getLetter takenPiece)}" +
@@ -71,8 +70,8 @@ module MoveParser =
                         Coordinates.getRow square = Coordinates.getRow move.destinationCoords
                     ) others
                 match piecesOnRow with
-                    | _ :: [] -> Coordinates.getRow move.startingCoords
-                    | _ -> Coordinates.getFile move.startingCoords 
+                    | _ :: [] -> Coordinates.getFileLetter move.startingCoords
+                    | _ -> $"{Coordinates.getFile move.startingCoords}"
             + Coordinates.getName move.destinationCoords
 
         let toString (move: move) (board: board) : string =
@@ -81,20 +80,17 @@ module MoveParser =
             | Castling (Queenside, _) -> "0-0-0"
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
-                    if (Move.getShift move |> fun (struct (x,y)) -> x <> 0) then
-                        Coordinates.getFile move.startingCoords
+                    if (Coordinates.getFile move.startingCoords <> Coordinates.getFile move.destinationCoords) then
+                        $"{Coordinates.getFile move.startingCoords}"
                         + "x"
                     else ""
                 timesSignIfTaken +
-                $"{Coordinates.getName move.destinationCoords}" +
-                "=" +
-                $"{(PieceType.getLetter promotedPieceType)}"
+                $"{Coordinates.getName move.destinationCoords}={(PieceType.getLetter promotedPieceType)}"
             | EnPassant move ->
-                Coordinates.getFile move.startingCoords
-                + $"x{Coordinates.getName move.destinationCoords}"
+                $"{Coordinates.getFile move.startingCoords}x{Coordinates.getName move.destinationCoords}"
             | NormalMove move ->
-                let taking = Board.getSquareFromCoordinates board move.destinationCoords |> Square.BitMap.containsPiece
-                let piece = Board.getSquareFromCoordinates board move.startingCoords |> Square.Parser.fromBitMaps |> Option.get
+                let taking = BitMap.isOnAtCoordinates move.destinationCoords board.pieceMap
+                let piece = Board.getSquareFromCoordinates board move.startingCoords |> Option.get
                 match piece.pieceType with
                 | Pawn -> 
                     if taking then
@@ -109,26 +105,25 @@ module MoveParser =
                     +
                     getNewSquareNotationForPiece piece move board
 
-        let private matchReverseEngineerPieceLocation (piece: piece) ((i, j): coordinates) (board: board) : coordinates result =
-            match Board.Vision.reverseEngineerPieceLocations piece (i,j) board with
+        let private matchReverseEngineerPieceLocation (piece: piece) (c: coordinates) (board: board) : coordinates result =
+            match Board.Vision.reverseEngineerPieceLocations piece c board with
             | oldCoordinates :: [] ->
                 Ok oldCoordinates
             | [] ->
-                Error $"No {piece.pieceType} avaiable to move to {i}, {j}"
+                Error $"No {piece.pieceType} avaiable to move to {Coordinates.getName c}"
             | squares ->
                 squares
                 |> List.map Coordinates.getName
                 |> List.fold (fun c1 c2 ->
                     $"{c1}\n{c2}"
-                ) $"Too many {piece.pieceType}s are able to move to {i}, {j}."
+                ) $"Too many {piece.pieceType}s are able to move to {Coordinates.getName c}."
                 |> Error 
 
         let private parsePawnMove colour board pawnFile coords : normalMove result =
-            Move.PawnMoves.getPawnOriginPossibilitiesFromDestination coords colour board
-            |> Board.getCoordinatesAfterShifts coords board
+            Board.Vision.reverseOfPawn coords colour board
             |> List.tryFind (fun square ->
-                Coordinates.getFile square = pawnFile.ToString()
-                && Board.getSquareFromCoordinates board square |> Square.Parser.fromBitMaps |> (=) <| Some {pieceType = Pawn; colour = colour}
+                $"{Coordinates.getFile square}" = pawnFile.ToString()
+                && Board.getSquareFromCoordinates board square |> (=) <| Some {pieceType = Pawn; colour = colour}
             )
             |> Result.fromOption "No possible pawn origin found."
             |> Result.map (fun oldCoords -> {startingCoords = oldCoords; destinationCoords = coords})
@@ -168,7 +163,7 @@ module MoveParser =
                     fun coords -> 
                         parsePawnMove colour board fstLetter coords
                         |> Result.map (fun move ->
-                            if Board.getSquareFromCoordinates board move.destinationCoords |> Square.BitMap.containsPiece then
+                            if BitMap.isOnAtCoordinates move.destinationCoords board.pieceMap then
                                 NormalMove move
                             else
                                 EnPassant move

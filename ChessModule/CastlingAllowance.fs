@@ -1,9 +1,7 @@
 ﻿namespace Chess
 
 open Checkerboard
-
-[<Struct>]
-type castlingAllowance = {whiteKingside: bool; whiteQueenside: bool; blackKingside: bool; blackQueenside: bool;}
+open FSharp.Extensions
 
 module internal CastlingAllowance =
 
@@ -61,7 +59,6 @@ module internal CastlingAllowance =
         | NormalMove normalMove ->
             let movedPieceType =
                 Board.getSquareFromCoordinates board normalMove.startingCoords
-                |> Square.Parser.fromBitMaps
                 |> fun sqr -> sqr.Value.pieceType
             match movedPieceType with
             | King ->
@@ -69,14 +66,16 @@ module internal CastlingAllowance =
                 |> removeRights Kingside colour
                 |> removeRights Queenside colour
             | Rook ->
-                let rank =
-                    match colour with
-                    | White -> 0
-                    | Black -> 7
-                match normalMove.startingCoords with
-                | (0, r) when r = rank -> removeRights Queenside colour ca
-                | (7, r) when r = rank -> removeRights Kingside colour ca
-                | _ -> ca
+                match colour with
+                | White -> 0
+                | Black -> 7
+                |> fun rank ->
+                if Coordinates.construct rank 0 |> Result.failOnError = normalMove.startingCoords then
+                    removeRights Queenside colour ca
+                elif Coordinates.construct rank 7 |> Result.failOnError = normalMove.startingCoords then
+                    removeRights Kingside colour ca
+                else
+                    ca
             | _ -> ca
         | _ -> ca
 
