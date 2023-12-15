@@ -355,7 +355,7 @@ module Board =
                 KQBRmap = BitMap.setValueAtCoordinates false coords board.KQBRmap;
                 KQPmap = BitMap.setValueAtCoordinates false coords board.KQPmap;
             }
-        let internal updateSquare (piece: piece) (c: coordinates) (board: board) : board =
+        let updateSquare (piece: piece) (c: coordinates) (board: board) : board =
             let boardOfNewSquare = constructForPieceAtCoords c piece 
             board 
             |> removePiece c

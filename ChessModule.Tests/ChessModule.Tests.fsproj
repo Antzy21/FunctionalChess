@@ -8,14 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Helpers\Data.fs" />
     <Compile Include="Helpers\Functions.fs" />
+    <Compile Include="Helpers\Data.fs" />
   </ItemGroup>
 	
   <ItemGroup>
     <Compile Include="FenConversions.fs" />
     <Compile Include="Moves.fs" />
-    <Compile Include="Square.fs" />
     <Compile Include="Board.fs" />
     <Compile Include="GetMoves.fs" />
     <Compile Include="Check.fs" />

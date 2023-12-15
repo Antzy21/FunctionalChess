@@ -37,7 +37,7 @@ module ParseFull =
 module ParseAlgebraic =
     [<Fact>]
     let ``e4`` () =
-        let board = Board.createStarting ()
+        let board = Board.constructStarting ()
         let result = 
             MoveParser.AlgebraicNotation.tryParse White board "e4"
             |> Result.failOnError

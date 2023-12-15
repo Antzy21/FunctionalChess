@@ -1,88 +1,86 @@
 ﻿module internal ChessTest.Helpers.Data
 
 open Chess
-open Checkerboard
+open ChessTest.Helpers.Functions
 
 module Pieces =
     
-    let WhiteBishop =
-        Some {pieceType = Bishop; colour = White}
-        |> Square.Parser.toBitMaps
+    let WhiteBishop = {pieceType = Bishop; colour = White}
     
 module Moves =
 
     module EnPassant =
         let PreWhite : move =
             ({
-                startingCoords = (0,6); destinationCoords = (0,4)
+                startingCoords = coordCntr 0 6; destinationCoords = coordCntr 0 4
             })
             |> NormalMove
         let PostWhite : move =
             ({
-                startingCoords = (1, 4); destinationCoords = (0, 5);
+                startingCoords = coordCntr 1 4; destinationCoords = coordCntr 0 5;
             })
             |> EnPassant
         let PreBlack : move =
             ({
-                startingCoords = (0, 1); destinationCoords = (0,3)
+                startingCoords = coordCntr 0 1; destinationCoords = coordCntr 0 3
             })
             |> NormalMove
         let PostBlack : move =
             ({
-                startingCoords = (1, 3); destinationCoords = (0, 2);
+                startingCoords = coordCntr 1 3; destinationCoords = coordCntr 0 2;
             })
             |> EnPassant
     
     module Promotion =
         let White1 : move =
             ({
-                startingCoords = (0, 6); destinationCoords = (0, 7);
+                startingCoords = coordCntr 0 6; destinationCoords = coordCntr 0 7;
             })
             |> fun move -> Promotion (move, Queen)
         let White2 : move =
             ({
-                startingCoords = (0, 6); destinationCoords = (1, 7);
+                startingCoords = coordCntr 0 6; destinationCoords = coordCntr 1 7;
             })
             |> fun move -> Promotion (move, Rook)
 
     let e4 : move = 
         ({
-            startingCoords = (4, 1); destinationCoords = (4, 3);
+            startingCoords = coordCntr 4 1; destinationCoords = coordCntr 4 3;
         })
         |> NormalMove
     let d5 : move = 
         ({
-            startingCoords = (3, 6); destinationCoords = (3, 4);
+            startingCoords = coordCntr 3 6; destinationCoords = coordCntr 3 4;
         })
         |> NormalMove
     let e5 : move = 
         ({
-            startingCoords = (4, 6); destinationCoords = (4, 4);
+            startingCoords = coordCntr 4 6; destinationCoords = coordCntr 4 4;
         })
         |> NormalMove
     let xd5 : move =
         ({
-            startingCoords = (4, 3); destinationCoords = (3, 4);
+            startingCoords = coordCntr 4 3; destinationCoords = coordCntr 3 4;
         })
         |> NormalMove
     let Nf6 : move = 
         ({
-            startingCoords = (6, 7); destinationCoords = (5, 5);
+            startingCoords = coordCntr 6 7; destinationCoords = coordCntr 5 5;
         })
         |> NormalMove
     let Nc3 : move = 
         ({
-            startingCoords = (1, 0); destinationCoords = (2, 2);
+            startingCoords = coordCntr 1 0; destinationCoords = coordCntr 2 2;
         })
         |> NormalMove
     let Nf3 : move = 
         ({
-            startingCoords = (6, 0); destinationCoords = (5, 2);
+            startingCoords = coordCntr 6 0; destinationCoords = coordCntr 5 2;
         })
         |> NormalMove
     let Nge2 : move = 
         ({
-            startingCoords = (6, 0); destinationCoords = (4, 1);
+            startingCoords = coordCntr 6 0; destinationCoords = coordCntr 4 1;
         })
         |> NormalMove
 
