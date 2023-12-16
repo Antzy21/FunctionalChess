@@ -195,6 +195,17 @@ module Board =
                 |> List.map (fun j -> Coordinates.construct 0 j)
                 |> List.filterResults
 
+        /// Get all coordinates after repeating a shift, up to and including when a piece is on the next coordinates.
+        let rec private afterRepeatedShift (xShift: int) (yShift: int) (start: coordinates) (board: board) : coordinates list =
+            Coordinates.shift start xShift yShift 
+            |> Result.map (fun coords ->
+                if BitMap.isOnAtCoordinates coords board.pieceMap then
+                    [coords]
+                else
+                    coords :: afterRepeatedShift xShift yShift coords board
+            )
+            |> Result.defaultValue [start]
+
         let private ofKnight (c: coordinates) (board: board) : coordinates list =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
@@ -209,26 +220,33 @@ module Board =
                 Coordinates.construct (i+2) (j-1);
             ]
             |> List.filterResults
-        let private ofBishop (coordinates: coordinates) (board: board) : coordinates list =
-            failwith "Not implemented"
-            //Board.getCoordinatesAfterRepeatedShiftWithStopper (1,1) coordinates stopAt board
-            //|> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (1,-1) coordinates stopAt board
-            //|> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (-1,1) coordinates stopAt board
-            //|> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (-1,-1) coordinates stopAt board
-        let private ofRook (coordinates: coordinates) (board: board) : coordinates list =
-            failwith "Not implemented"
-            //Board.getCoordinatesAfterRepeatedShiftWithStopper (1,0) coordinates stopAt board
-            //|> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (-1,0) coordinates stopAt board
-            //|> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (0,1) coordinates stopAt board
-            //|> List.append <| Board.getCoordinatesAfterRepeatedShiftWithStopper (0,-1) coordinates stopAt board
-        let private ofQueen (coordinates: coordinates) (board: board) : coordinates list =
-            failwith "Not implemented"
-            //ofRook coordinates board
-            //|> List.append <| ofBishop coordinates board
-        let private ofKing (coordinates: coordinates) (board: board) : coordinates list =
-            failwith "Not implemented"
-            //Board.getCoordinatesAfterShiftInAllDirections (1,1) coordinates board
-            //|> List.append <| Board.getCoordinatesAfterShiftInAllDirections (1,0) coordinates board
+        let private ofBishop (c: coordinates) (board: board) : coordinates list =
+            afterRepeatedShift 1 1 c board
+            |> List.append <| afterRepeatedShift 1 -1 c board
+            |> List.append <| afterRepeatedShift -1  1 c board
+            |> List.append <| afterRepeatedShift -1 -1 c board
+        let private ofRook (c: coordinates) (board: board) : coordinates list =
+            afterRepeatedShift 1 0 c board
+            |> List.append <| afterRepeatedShift -1 0 c board
+            |> List.append <| afterRepeatedShift 0 1 c board
+            |> List.append <| afterRepeatedShift 0 -1 c board
+        let private ofQueen (c: coordinates) (board: board) : coordinates list =
+            ofRook c board
+            |> List.append <| ofBishop c board
+        let private ofKing (c: coordinates) (board: board) : coordinates list =
+            let i = Coordinates.getFile c
+            let j = Coordinates.getRow c
+            [
+                Coordinates.construct (i+1) (j+1);
+                Coordinates.construct (i+1) (j+0);
+                Coordinates.construct (i+1) (j-1);
+                Coordinates.construct (i+0) (j+1);
+                Coordinates.construct (i+0) (j-1);
+                Coordinates.construct (i-1) (j+1);
+                Coordinates.construct (i-1) (j+0);
+                Coordinates.construct (i-1) (j-1);
+            ]
+            |> List.filterResults
         /// Get a list of coordinates visible from a given coordinates on a board.
         let ofPieceAtCoords (board: board) (c: coordinates) : coordinates list result =
             match getSquareFromCoordinates board c with
