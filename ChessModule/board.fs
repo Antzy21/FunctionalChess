@@ -379,10 +379,10 @@ module Board =
             |> removePiece c
             |> fun b ->
                 {
-                    ColourBitmap = boardOfNewSquare.KPNRmap &&& b.ColourBitmap;
-                    KPNRmap = boardOfNewSquare.KPNRmap &&& b.KPNRmap;
-                    KQBRmap = boardOfNewSquare.KQBRmap &&& b.KQBRmap;
-                    KQPmap = boardOfNewSquare.KQPmap &&& b.KQPmap;
+                    ColourBitmap = boardOfNewSquare.ColourBitmap ||| b.ColourBitmap;
+                    KPNRmap = boardOfNewSquare.KPNRmap ||| b.KPNRmap;
+                    KQBRmap = boardOfNewSquare.KQBRmap ||| b.KQBRmap;
+                    KQPmap = boardOfNewSquare.KQPmap ||| b.KQPmap;
                 }
         let internal applyNormalMove (move: normalMove) (board: board) : board result =
             getSquareFromCoordinates board move.startingCoords
