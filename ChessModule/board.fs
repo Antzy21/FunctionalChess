@@ -179,7 +179,7 @@ module Board =
             // If a piece was taken, the pawn must have come from the diagonals
             if BitMap.isOnAtCoordinates destination board.pieceMap then
                 [-1; 1]
-                |> List.map (fun i -> Coordinates.construct i (-direction))
+                |> List.map (fun i -> Coordinates.shift destination i (-direction))
                 |> List.filterResults
             else
                 // Pawns will never be at the end of the board so this should not fail
@@ -192,7 +192,7 @@ module Board =
                     [-direction; -direction*2]
                 else
                     [-1; 1]
-                |> List.map (fun j -> Coordinates.construct 0 j)
+                |> List.map (fun j -> Coordinates.shift destination 0 j)
                 |> List.filterResults
 
         /// Get all coordinates after repeating a shift, up to and including when a piece is on the next coordinates.
