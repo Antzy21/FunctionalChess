@@ -81,20 +81,20 @@ module MoveParser =
             | Promotion (move, promotedPieceType) ->
                 let timesSignIfTaken =
                     if (Coordinates.getFile move.startingCoords <> Coordinates.getFile move.destinationCoords) then
-                        $"{Coordinates.getFile move.startingCoords}"
+                        $"{Coordinates.getFileLetter move.startingCoords}"
                         + "x"
                     else ""
                 timesSignIfTaken +
                 $"{Coordinates.getName move.destinationCoords}={(PieceType.getLetter promotedPieceType)}"
             | EnPassant move ->
-                $"{Coordinates.getFile move.startingCoords}x{Coordinates.getName move.destinationCoords}"
+                $"{Coordinates.getFileLetter move.startingCoords}x{Coordinates.getName move.destinationCoords}"
             | NormalMove move ->
                 let taking = BitMap.isOnAtCoordinates move.destinationCoords board.pieceMap
                 let piece = Board.getSquareFromCoordinates board move.startingCoords |> Option.get
                 match piece.pieceType with
                 | Pawn -> 
                     if taking then
-                        $"{Coordinates.getFile move.startingCoords}x"
+                        $"{Coordinates.getFileLetter move.startingCoords}x"
                     else ""
                     + (Coordinates.getName move.destinationCoords)            
                 | pieceType -> 
@@ -122,7 +122,7 @@ module MoveParser =
         let private parsePawnMove colour board pawnFile coords : normalMove result =
             Board.Vision.reverseOfPawn coords colour board
             |> List.tryFind (fun square ->
-                $"{Coordinates.getFile square}" = pawnFile.ToString()
+                Coordinates.getFileLetter square = pawnFile
                 && Board.getSquareFromCoordinates board square |> (=) <| Some {pieceType = Pawn; colour = colour}
             )
             |> Result.fromOption "No possible pawn origin found."
@@ -145,14 +145,14 @@ module MoveParser =
             let (getMoveFunc: coordinates -> move result), file, rank =
                 match List.ofSeq move with
                 | [fstLetter; 'x'; file; rank; '='; promotionPiece] when System.Char.IsLower(fstLetter) ->
-                    parsePawnMove colour board fstLetter >> 
+                    parsePawnMove colour board $"{fstLetter}" >> 
                         Result.map (fun parsedMove -> 
                             Promotion (parsedMove, PieceType.fromLetter promotionPiece)
                         )
                     , file, rank
                 | [file; rank; '='; promotionPiece] ->
                     fun newCoords ->
-                        parsePawnMove colour board (Coordinates.getFile newCoords) newCoords
+                        parsePawnMove colour board (Coordinates.getFileLetter newCoords) newCoords
                         |> Result.map (fun parsedMove -> 
                             Promotion (parsedMove, PieceType.fromLetter promotionPiece)
                         )
@@ -161,7 +161,7 @@ module MoveParser =
                     parseNonPawnMove fstLetter colour board, file, rank
                 | [fstLetter; 'x'; file; rank] when System.Char.IsLower(fstLetter) ->
                     fun coords -> 
-                        parsePawnMove colour board fstLetter coords
+                        parsePawnMove colour board $"{fstLetter}" coords
                         |> Result.map (fun move ->
                             if BitMap.isOnAtCoordinates move.destinationCoords board.pieceMap then
                                 NormalMove move
@@ -173,7 +173,7 @@ module MoveParser =
                     parseNonPawnMove pieceLetter colour board, file, rank
                 | [file; rank] -> 
                     fun newCoords ->
-                        parsePawnMove colour board (Coordinates.getFile newCoords) newCoords
+                        parsePawnMove colour board (Coordinates.getFileLetter newCoords) newCoords
                     >> Result.map NormalMove
                     , file, rank
                 | _ -> failwith "Error parsing normal move"

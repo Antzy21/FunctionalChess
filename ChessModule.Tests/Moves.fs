@@ -81,8 +81,6 @@ module MovesFromPositions =
             "Ph2 -> h4";
             "Pg2 -> g3";
             "Pg2 -> g4";
-            "Ng1 -> h3";
-            "Ng1 -> f3";
             "Pf2 -> f3";
             "Pf2 -> f4";
             "Pe2 -> e3";
@@ -93,10 +91,12 @@ module MovesFromPositions =
             "Pc2 -> c4";
             "Pb2 -> b3";
             "Pb2 -> b4";
-            "Nb1 -> c3";
-            "Nb1 -> a3";
             "Pa2 -> a3";
             "Pa2 -> a4";
+            "Ng1 -> h3";
+            "Ng1 -> f3";
+            "Nb1 -> c3";
+            "Nb1 -> a3";
         ], moves)
     
     [<Fact>]
@@ -105,28 +105,28 @@ module MovesFromPositions =
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
             |> GetPossibleMoves.all
         Assert.Equal<string list>([
+            "ng8 -> f6";
+            "ng8 -> h6";
+            "qd8 -> c7";
+            "qd8 -> b6";
+            "qd8 -> a5";
+            "nb8 -> a6";
+            "nb8 -> c6";
             "ph7 -> h6";
             "ph7 -> h5";
-            "ng8 -> h6";
-            "ng8 -> f6";
             "pg7 -> g6";
             "pg7 -> g5";
             "pf7 -> f6";
             "pf7 -> f5";
             "pe7 -> e6";
             "pe7 -> e5";
-            "qd8 -> c7";
-            "qd8 -> b6";
-            "qd8 -> a5";
             "pd7 -> d6";
             "pd7 -> d5";
-            "pc5 -> c4";
-            "nb8 -> c6";
-            "nb8 -> a6";
             "pb7 -> b6";
             "pb7 -> b5";
             "pa7 -> a6";
             "pa7 -> a5";
+            "pc5 -> c4";
         ], moves)
 
     [<Fact>]

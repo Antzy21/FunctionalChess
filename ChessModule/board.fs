@@ -7,9 +7,7 @@ module Board =
 
     /// Initialise a chess board with the starting position
     let constructStarting () : board =
-        //"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
-        //|> BoardParser.fromFen
-        failwith "Not yet implemeneted"
+        { ColourBitmap = 65535UL; KQPmap = 1801158375971553048UL; KQBRmap = 13618885273168380093UL; KPNRmap = 15275928461064077267UL }
 
     let construct () : board =
         {ColourBitmap = 0UL; KPNRmap = 0UL; KQBRmap = 0UL; KQPmap = 0UL }
@@ -94,7 +92,7 @@ module Board =
             }
 
     /// Folds the array, starting in the top right and moving down.
-    let internal foldjiback (folder: coordinates -> 'S -> square -> 'S) (state: 'S) (board: board)=
+    let foldjiback (folder: coordinates -> 'S -> square -> 'S) (state: 'S) (board: board)=
         [0..7] |> List.rev
         |> List.fold (fun accRow j ->
             [0..7]
@@ -128,11 +126,7 @@ module Board =
     
 
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
-    module internal Vision =
-        let private rank_1 = 9259542123273814144UL
-        let private rank_2 = 4629771061636907072UL
-        let private rank_7 = 144680345676153346UL
-        let private rank_8 = 72340172838076673UL
+    module Vision =
         
         let private getPawnMovementDirection (pieceColour: colour) =
             match pieceColour with
@@ -159,14 +153,18 @@ module Board =
             let forwardMoves = 
                 // Pawns will never be at the end of the board so this should not fail
                 let pawn1ForwardCoords = Coordinates.shift start 0 direction |> Result.failOnError
-                // These should not error as they are on the starting row
-                let pawn2ForwardCoords = Coordinates.shift start 0 (direction*2) |> Result.failOnError
                 // If square in front is occupied, no moves forward are possible
                 if BitMap.isOnAtCoordinates pawn1ForwardCoords board.pieceMap then
                     []
-                // Else, if at the starting square, and the second square is empty, two moves forward are possible
-                elif (startingRow = Coordinates.getRow start) && BitMap.isOnAtCoordinates pawn2ForwardCoords board.pieceMap then
-                    [pawn1ForwardCoords; pawn2ForwardCoords]
+                // Else, if at the starting square then two moves forward are possible
+                elif (startingRow = Coordinates.getRow start) then
+                    // This should not error as coordinates are on the starting row
+                    let pawn2ForwardCoords = Coordinates.shift start 0 (direction*2) |> Result.failOnError
+                    // Check the second square is empty, and possible to move to
+                    if BitMap.isOnAtCoordinates pawn2ForwardCoords board.pieceMap |> not then
+                        [pawn1ForwardCoords; pawn2ForwardCoords]
+                    else
+                        [pawn1ForwardCoords]                        
                 // Otherwise just the one space forward is possible.
                 else
                     [pawn1ForwardCoords]
@@ -175,25 +173,13 @@ module Board =
         // Get Pawn origin possibilities from destination
         let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) (board: board): coordinates list =
             let direction = getPawnMovementDirection pieceColour
-            let rowIfMovedTwo = getPawnStartingRow pieceColour + direction*2
-            // If a piece was taken, the pawn must have come from the diagonals
-            if BitMap.isOnAtCoordinates destination board.pieceMap then
-                [-1; 1]
-                |> List.map (fun i -> Coordinates.shift destination i (-direction))
-                |> List.filterResults
-            else
-                // Pawns will never be at the end of the board so this should not fail
-                let pawn1BackwardsCoords = Coordinates.shift destination 0 -direction |> Result.failOnError
-                // If square in front is occupied, no moves forward are possible
-                if BitMap.isOnAtCoordinates pawn1BackwardsCoords board.pieceMap then
-                    []
-                // Else, if two spaces ahead of the starting row, and the second square is empty, two moves forward are possible
-                elif (rowIfMovedTwo = Coordinates.getRow destination) then
-                    [-direction; -direction*2]
-                else
-                    [-1; 1]
-                |> List.map (fun j -> Coordinates.shift destination 0 j)
-                |> List.filterResults
+            [
+                Coordinates.shift destination -1 (-direction)
+                Coordinates.shift destination  1 (-direction)
+                Coordinates.shift destination  0 (-direction)
+                Coordinates.shift destination  0 (-direction*2)
+            ]
+            |> List.filterResults
 
         /// Get all coordinates after repeating a shift, up to and including when a piece is on the next coordinates.
         let rec private afterRepeatedShift (xShift: int) (yShift: int) (start: coordinates) (board: board) : coordinates list =
@@ -204,7 +190,7 @@ module Board =
                 else
                     coords :: afterRepeatedShift xShift yShift coords board
             )
-            |> Result.defaultValue [start]
+            |> Result.defaultValue []
 
         let private ofKnight (c: coordinates) (board: board) : coordinates list =
             let i = Coordinates.getFile c
@@ -221,18 +207,27 @@ module Board =
             ]
             |> List.filterResults
         let private ofBishop (c: coordinates) (board: board) : coordinates list =
-            afterRepeatedShift 1 1 c board
-            |> List.append <| afterRepeatedShift 1 -1 c board
-            |> List.append <| afterRepeatedShift -1  1 c board
-            |> List.append <| afterRepeatedShift -1 -1 c board
+            [
+                afterRepeatedShift 1 1 c board;
+                afterRepeatedShift 1 -1 c board;
+                afterRepeatedShift -1  1 c board;
+                afterRepeatedShift -1 -1 c board
+            ]
+            |> List.concat
         let private ofRook (c: coordinates) (board: board) : coordinates list =
-            afterRepeatedShift 1 0 c board
-            |> List.append <| afterRepeatedShift -1 0 c board
-            |> List.append <| afterRepeatedShift 0 1 c board
-            |> List.append <| afterRepeatedShift 0 -1 c board
+            [
+                afterRepeatedShift 1 0 c board;
+                afterRepeatedShift -1 0 c board;
+                afterRepeatedShift 0 1 c board;
+                afterRepeatedShift 0 -1 c board
+            ]
+            |> List.concat
         let private ofQueen (c: coordinates) (board: board) : coordinates list =
-            ofRook c board
-            |> List.append <| ofBishop c board
+            [ 
+                ofRook c board;
+                ofBishop c board
+            ]
+            |> List.concat
         let private ofKing (c: coordinates) (board: board) : coordinates list =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
@@ -316,18 +311,18 @@ module Board =
         match colour with
         | White ->
             board.whitePawnMap
-            |> (&&&) board.whiteKnightMap
-            |> (&&&) board.whiteBishopMap
-            |> (&&&) board.whiteRookMap
-            |> (&&&) board.whiteKingMap
-            |> (&&&) board.whiteQueenMap
+            |> (|||) board.whiteKnightMap
+            |> (|||) board.whiteBishopMap
+            |> (|||) board.whiteRookMap
+            |> (|||) board.whiteKingMap
+            |> (|||) board.whiteQueenMap
         | Black -> 
             board.blackPawnMap
-            |> (&&&) board.blackBishopMap
-            |> (&&&) board.blackKingMap
-            |> (&&&) board.blackKnightMap
-            |> (&&&) board.blackQueenMap
-            |> (&&&) board.blackRookMap
+            |> (|||) board.blackBishopMap
+            |> (|||) board.blackKingMap
+            |> (|||) board.blackKnightMap
+            |> (|||) board.blackQueenMap
+            |> (|||) board.blackRookMap
         |> BitMap.IsolateValues
         // IsolateValues returns a bitMap, not coordinates explicitely. So a quick conversion is required.
         |> List.map (fun c ->
@@ -486,6 +481,7 @@ module Board =
                 match colour with
                 | White -> 1, castlingOptions.whiteKingside, castlingOptions.whiteQueenside
                 | Black -> 8, castlingOptions.blackKingside, castlingOptions.blackQueenside
+
             let castlingChecks
                 squaresToInspectForCastlingThroughCheck
                 squaresThatMustBeEmpty
@@ -495,10 +491,9 @@ module Board =
                 let castlingThroughCheck =
                     squaresToInspectForCastlingThroughCheck
                     |> List.map (fun name -> (Coordinates.tryParse name).Value)
-                    |> List.fold (fun passingThroughCheck coords ->
-                        passingThroughCheck || 
+                    |> List.exists (fun coords ->
                         isVisibleByPlayer (Colour.opposite colour) board coords
-                    ) false
+                    )
                 let squaresAreEmpty =
                     squaresThatMustBeEmpty
                     |> List.forall (fun name -> 

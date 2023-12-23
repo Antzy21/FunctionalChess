@@ -4,8 +4,16 @@ open Xunit
 open Checkerboard
 open Chess
 open ChessTest.Helpers.Data
-open FSharp.Extensions
 open ChessTest.Helpers.Functions
+
+module Construct =
+    
+    [<Fact>]
+    let ``Starting position is correct`` () =
+        let board = Board.constructStarting ()
+        let fen = BoardParser.toFen board
+        Assert.Equal("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", fen)
+
 
 module ContainsPiece =
 

@@ -55,7 +55,7 @@ module BoardParser =
             str + "1"
 
     let private addSlashIfEndOfLine (c : coordinates) (fen: string) : string =
-        if Coordinates.getFile c = 7 && Coordinates.getRow c <> 1 then
+        if Coordinates.getFile c = 7 && Coordinates.getRow c <> 0 then
             fen + "/"
         else
             fen
