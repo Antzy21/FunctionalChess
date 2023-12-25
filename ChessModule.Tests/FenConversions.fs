@@ -11,20 +11,23 @@ module FromFen =
     let ``Board from Fen contains correctly placed pieces`` () =
         let board = BoardParser.fromFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
         let pieceAt_0_0 =
-            Board.getSquareFromCoordinates board (0,0)
-            |> Square.getPieceType
+            Coordinates.construct 0 0 |> Result.failOnError
+            |> Board.getSquareFromCoordinates board
+            |> Option.map (fun p -> p.pieceType)
         Assert.Equal(Some Rook, pieceAt_0_0)
         let pieceAt_4_0 =
-            Board.getSquareFromCoordinates board (4,0)
-            |> Square.getPieceType
+            Coordinates.construct 4 0 |> Result.failOnError
+            |> Board.getSquareFromCoordinates board
+            |> Option.map (fun p -> p.pieceType)
         Assert.Equal(Some King, pieceAt_4_0)
         let pieceAt_0_2 =
-            Board.getSquareFromCoordinates board (0,2)
-            |> Square.getPieceType
+            Coordinates.construct 0 2 |> Result.failOnError
+            |> Board.getSquareFromCoordinates board
         Assert.Equal(None, pieceAt_0_2)
         let colour_0_0 =
-            Board.getSquareFromCoordinates board (0,0)
-            |> Square.getPieceColour
+            Coordinates.construct 0 0 |> Result.failOnError
+            |> Board.getSquareFromCoordinates board
+            |> Option.map (fun p -> p.colour)
         Assert.Equal(Some White, colour_0_0)
 
 module Inverses =

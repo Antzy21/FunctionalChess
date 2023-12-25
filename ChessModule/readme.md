@@ -4,7 +4,7 @@ WIP
 
 ## Board
 
-`createStarting`
+`constructStarting`
 `isInCheck`
 `containsPiece`
 

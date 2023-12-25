@@ -1,9 +1,10 @@
 ﻿namespace Chess
 
 open FSharp.Extensions
+open Checkerboard
 
 type gameState = {
-    board: Checkerboard.board;
+    board: board;
     playerTurn: colour;
     castlingAllowance: castlingAllowance;
     enpassantCoordinates: coordinates option;
@@ -82,12 +83,12 @@ module GameState =
     module Update = 
         let makeMove (move: move) (gameState: gameState) : gameState =
             {
-                board = Board.Update.applyMove move gameState.board
+                board = Board.Update.applyMove move gameState.board |> Result.failOnError
                 playerTurn = Colour.opposite gameState.playerTurn
                 castlingAllowance = CastlingAllowance.removeBasedOnMove gameState.playerTurn gameState.castlingAllowance gameState.board move
                 enpassantCoordinates = 
                     match move with
-                    | NormalMove move -> Move.Enpassant.getEnPassantCoordinates gameState.board move
+                    | NormalMove move -> Board.getEnPassantCoordinates gameState.board move
                     | _ -> None
                 halfMoveClock = gameState.halfMoveClock + 1
                 fullMoveClock = 

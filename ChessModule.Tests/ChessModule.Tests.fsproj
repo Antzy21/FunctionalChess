@@ -1,21 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Helpers\Data.fs" />
     <Compile Include="Helpers\Functions.fs" />
+    <Compile Include="Helpers\Data.fs" />
   </ItemGroup>
 	
   <ItemGroup>
     <Compile Include="FenConversions.fs" />
     <Compile Include="Moves.fs" />
-    <Compile Include="Square.fs" />
     <Compile Include="Board.fs" />
     <Compile Include="GetMoves.fs" />
     <Compile Include="Check.fs" />

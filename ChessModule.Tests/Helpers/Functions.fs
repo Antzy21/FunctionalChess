@@ -5,6 +5,8 @@ open Checkerboard
 open Xunit
 open FSharp.Extensions
 
+let coordCntr i j = Coordinates.construct i j |> Result.failOnError
+
 module GetPossibleMoves = 
 
     let private getPossibleMovesWithFilter (filter: board -> move -> bool) (fen: string) : string list =
@@ -24,7 +26,10 @@ module GetPossibleMoves =
             | EnPassant move -> Some move
             | Promotion (move, _) -> Some move
             | Castling _ -> None
-            |> Option.map (fun move -> Board.getSquareFromCoordinates board move.startingCoords |> Square.BitMap.containsPieceOfType pieceType)
+            |> Option.map (fun move -> 
+                Board.getSquareFromCoordinates board move.startingCoords
+                |> Option.get
+                |> fun p -> p.pieceType = pieceType)
             |> Option.defaultValue false
         ) fen
     

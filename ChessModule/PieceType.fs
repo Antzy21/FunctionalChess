@@ -1,5 +1,6 @@
 ﻿namespace Chess
 
+[<Struct>]
 type pieceType =
     | Pawn
     | Rook
@@ -9,6 +10,7 @@ type pieceType =
     | Queen
 
 module PieceType =
+
     let private pieceTypeLetterMap : Map<pieceType, char> =
         [
             (Pawn, 'P');
@@ -19,7 +21,9 @@ module PieceType =
             (Queen, 'Q');
         ]
         |> Map.ofList
+
     module Parser =
+
         let fromBitMaps (bitmap: bool list) =
             if bitmap.Length <> 3 then
                 failwith "bitmaps for Chess piece should have length 3"
@@ -31,6 +35,7 @@ module PieceType =
                 | false, true, false -> Bishop
                 | false, false, true -> Queen
                 | false, false, false -> Rook
+
         let toBitMaps (pieceType: pieceType) =
             match pieceType with
             | Pawn -> [true; true; true]
@@ -39,6 +44,8 @@ module PieceType =
             | Bishop -> [false; true; false]
             | Queen -> [false; false; true]
             | Rook -> [false; false; false]
+
+
     let getValue (piece: pieceType) : int option =
         match piece with
         | Pawn -> Some 1
@@ -47,8 +54,11 @@ module PieceType =
         | Bishop -> Some 3
         | King -> None
         | Queen -> Some 9
+
     let getLetter (piece: pieceType) : char =
         Map.find piece pieceTypeLetterMap
+
     let tryParse (letter: char) : pieceType option =
         Map.tryFindKey (fun _ l -> System.Char.ToUpper letter = l) pieceTypeLetterMap
+
     let fromLetter : char -> pieceType = tryParse >> Option.get 
