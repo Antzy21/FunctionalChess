@@ -102,27 +102,29 @@ module Board =
                 |> folder c acc
             ) accRow
         ) state
-        
+
     /// Print an image of the board to the console
-    let internal print (board : board) : unit =
-        printfn "   ________________________"
-        printfn "  /                        \\"
+    let internal toString (board : board) : string =
+        "   ________________________" +
+        "  /                        \\" +
 
         foldjiback (fun c acc sqr ->
+            acc +
             if Coordinates.getFile c = 0 then
-                printf $"{Coordinates.getRow c + 1} |"
+                $"{Coordinates.getRow c + 1} |"
+            else ""
+            +
             match sqr with
-            | Some piece -> Piece.getLetter piece
-            | None -> '.'
-            |> printf " %c "
+            | Some piece -> $" {Piece.getLetter piece} "
+            | None -> " . "
+            +
             if Coordinates.getFile c = 7 then
-                printfn "|"
-            acc
+                "|"
+            else ""
         ) "" board
-        |> ignore
-
-        printfn "  \\________________________/"
-        printfn "    a  b  c  d  e  f  g  h"
+        +
+        "  \\________________________/" +
+        "    a  b  c  d  e  f  g  h"
     
 
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
