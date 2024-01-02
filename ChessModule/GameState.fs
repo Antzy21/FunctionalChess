@@ -57,7 +57,7 @@ module GameState =
         + $"{enpassant} "
         + $"{game.halfMoveClock} {game.fullMoveClock}"
     let toString (game: gameState) : string =
-        $"{Board.print game.board}\n" +
+        $"{Board.toString game.board}\n" +
         $"\nPlayer Turn: {game.playerTurn}" +
         $"\nCastling Allowed: \n{CastlingAllowance.toString game.castlingAllowance}" +
         (
