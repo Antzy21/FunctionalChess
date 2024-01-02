@@ -105,9 +105,8 @@ module Board =
 
     /// Print an image of the board to the console
     let internal toString (board : board) : string =
-        "   ________________________" +
-        "  /                        \\" +
-
+        "   ________________________\n" +
+        "  /                        \\\n" +
         foldjiback (fun c acc sqr ->
             acc +
             if Coordinates.getFile c = 0 then
@@ -119,12 +118,12 @@ module Board =
             | None -> " . "
             +
             if Coordinates.getFile c = 7 then
-                "|"
+                "|\n"
             else ""
         ) "" board
         +
         "  \\________________________/" +
-        "    a  b  c  d  e  f  g  h"
+        "\n    a  b  c  d  e  f  g  h"
     
 
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
