@@ -112,7 +112,7 @@ module Board =
             if Coordinates.getFile c = 0 then
                 printf $"{Coordinates.getRow c + 1} |"
             match sqr with
-            | Some piece -> Piece.getLetter piece
+            | Some piece -> Piece.getUnicodeChar piece
             | None -> '.'
             |> printf " %c "
             if Coordinates.getFile c = 7 then
