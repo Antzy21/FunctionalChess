@@ -115,7 +115,7 @@ module Board =
             else ""
             +
             match sqr with
-            | Some piece -> $" {Piece.getLetter piece} "
+            | Some piece -> $" {Piece.getUnicodeChar piece} "
             | None -> " . "
             +
             if Coordinates.getFile c = 7 then

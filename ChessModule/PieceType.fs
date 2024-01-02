@@ -22,30 +22,6 @@ module PieceType =
         ]
         |> Map.ofList
 
-    module Parser =
-
-        let fromBitMaps (bitmap: bool list) =
-            if bitmap.Length <> 3 then
-                failwith "bitmaps for Chess piece should have length 3"
-            else
-                match bitmap[0], bitmap[1], bitmap[2] with
-                | true, true, _ -> Pawn
-                | true, false, _ -> King
-                | false, true, true -> Knight
-                | false, true, false -> Bishop
-                | false, false, true -> Queen
-                | false, false, false -> Rook
-
-        let toBitMaps (pieceType: pieceType) =
-            match pieceType with
-            | Pawn -> [true; true; true]
-            | King -> [true; false; false]
-            | Knight -> [false; true; true]
-            | Bishop -> [false; true; false]
-            | Queen -> [false; false; true]
-            | Rook -> [false; false; false]
-
-
     let getValue (piece: pieceType) : int option =
         match piece with
         | Pawn -> Some 1
