@@ -62,16 +62,20 @@ module MoveParser =
 
     module AlgebraicNotation =
         let private getNewSquareNotationForPiece (piece: piece) (move: normalMove) (board: board) =
-            match Board.Vision.reverseEngineerPieceLocations piece move.destinationCoords board with
-            | _ :: [] -> ""
-            | others ->
-                let piecesOnRow = 
-                    List.filter (fun square ->
-                        Coordinates.getRow square = Coordinates.getRow move.destinationCoords
-                    ) others
-                match piecesOnRow with
-                    | _ :: [] -> Coordinates.getFileLetter move.startingCoords
-                    | _ -> $"{Coordinates.getFile move.startingCoords}"
+            let pieceVisions =
+                Board.Vision.reverseEngineerPieceLocations piece move.destinationCoords board
+                |> BitMap.IsolateValues
+                |> List.map (fun c -> {value = c})
+            match pieceVisions with
+                | _ :: [] -> ""
+                | others ->
+                    let piecesOnRow = 
+                        List.filter (fun square ->
+                            Coordinates.getRow square = Coordinates.getRow move.destinationCoords
+                        ) others
+                    match piecesOnRow with
+                        | _ :: [] -> Coordinates.getFileLetter move.startingCoords
+                        | _ -> $"{Coordinates.getFile move.startingCoords}"
             + Coordinates.getName move.destinationCoords
 
         let toString (move: move) (board: board) : string =
@@ -106,14 +110,17 @@ module MoveParser =
                     getNewSquareNotationForPiece piece move board
 
         let private matchReverseEngineerPieceLocation (piece: piece) (c: coordinates) (board: board) : coordinates result =
-            match Board.Vision.reverseEngineerPieceLocations piece c board with
+            Board.Vision.reverseEngineerPieceLocations piece c board
+            |> BitMap.IsolateValues
+            |> List.map (fun c -> {value = c})
+            |> function
             | oldCoordinates :: [] ->
                 Ok oldCoordinates
             | [] ->
                 Error $"No {piece.pieceType} avaiable to move to {Coordinates.getName c}"
             | squares ->
                 squares
-                |> List.map Coordinates.getName
+                |> List.map (fun c -> Coordinates.getName c)
                 |> List.fold (fun c1 c2 ->
                     $"{c1}\n{c2}"
                 ) $"Too many {piece.pieceType}s are able to move to {Coordinates.getName c}."
@@ -121,6 +128,8 @@ module MoveParser =
 
         let private parsePawnMove colour board pawnFile coords : normalMove result =
             Board.Vision.reverseOfPawn coords colour board
+            |> BitMap.IsolateValues
+            |> List.map (fun c -> {value = c})
             |> List.tryFind (fun square ->
                 Coordinates.getFileLetter square = pawnFile
                 && Board.getSquareFromCoordinates board square |> (=) <| Some {pieceType = Pawn; colour = colour}
