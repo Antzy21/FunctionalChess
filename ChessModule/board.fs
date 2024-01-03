@@ -310,20 +310,8 @@ module Board =
 
     let private playerVision (colour: colour) (board: board) : coordinates list =
         match colour with
-        | White ->
-            board.whitePawnMap
-            |> (|||) board.whiteKnightMap
-            |> (|||) board.whiteBishopMap
-            |> (|||) board.whiteRookMap
-            |> (|||) board.whiteKingMap
-            |> (|||) board.whiteQueenMap
-        | Black -> 
-            board.blackPawnMap
-            |> (|||) board.blackBishopMap
-            |> (|||) board.blackKingMap
-            |> (|||) board.blackKnightMap
-            |> (|||) board.blackQueenMap
-            |> (|||) board.blackRookMap
+        | White -> board.whitePieces
+        | Black -> board.blackPieces
         |> BitMap.IsolateValues
         // IsolateValues returns a bitMap, not coordinates explicitely. So a quick conversion is required.
         |> List.map (fun c ->
