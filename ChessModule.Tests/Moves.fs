@@ -77,22 +77,22 @@ module MovesFromPositions =
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
             |> GetPossibleMoves.all
         Assert.Equal<string list>([
-            "Ph2 -> h3";
             "Ph2 -> h4";
-            "Pg2 -> g3";
+            "Ph2 -> h3";
             "Pg2 -> g4";
-            "Pf2 -> f3";
+            "Pg2 -> g3";
             "Pf2 -> f4";
-            "Pe2 -> e3";
+            "Pf2 -> f3";
             "Pe2 -> e4";
-            "Pd2 -> d3";
+            "Pe2 -> e3";
             "Pd2 -> d4";
-            "Pc2 -> c3";
+            "Pd2 -> d3";
             "Pc2 -> c4";
-            "Pb2 -> b3";
+            "Pc2 -> c3";
             "Pb2 -> b4";
-            "Pa2 -> a3";
+            "Pb2 -> b3";
             "Pa2 -> a4";
+            "Pa2 -> a3";
             "Ng1 -> h3";
             "Ng1 -> f3";
             "Nb1 -> c3";
@@ -105,13 +105,13 @@ module MovesFromPositions =
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
             |> GetPossibleMoves.all
         Assert.Equal<string list>([
-            "ng8 -> f6";
             "ng8 -> h6";
+            "ng8 -> f6";
             "qd8 -> c7";
             "qd8 -> b6";
             "qd8 -> a5";
-            "nb8 -> a6";
             "nb8 -> c6";
+            "nb8 -> a6";
             "ph7 -> h6";
             "ph7 -> h5";
             "pg7 -> g6";
