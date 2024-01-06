@@ -22,9 +22,9 @@ module ContainsPiece =
         let board : board = 
             (Games.ExampleGame.getWhite1 ()).gameState.board
             |> Board.Update.updateSquare Pieces.WhiteBishop (coordCntr 2 0)
-        Assert.True(BitMap.isOnAtCoordinates (coordCntr 2 0) board.pieceMap)
+        Assert.True(BitMap.getValueAtCoordinates (coordCntr 2 0) board.pieceMap)
 
     [<Fact>]
     let ``Piece does not exist`` () =
-        let result = BitMap.isOnAtCoordinates (coordCntr 0 2) (Games.ExampleGame.getWhite1 ()).gameState.board.pieceMap
+        let result = BitMap.getValueAtCoordinates (coordCntr 0 2) (Games.ExampleGame.getWhite1 ()).gameState.board.pieceMap
         Assert.False(result)

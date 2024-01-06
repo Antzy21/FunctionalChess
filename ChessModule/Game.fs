@@ -55,7 +55,7 @@ module Game =
 
     let private threeMovesRepeated (game: game) : bool =
         game.fens
-        |> Map.exists (fun fen count ->
+        |> Map.exists (fun _ count ->
             count >= 3
         )
 
@@ -74,4 +74,4 @@ module Game =
                 + $"{move} "
             (i+1, pgn)
         ) (0, "")
-        |> fun (i, pgn) -> pgn.Trim()
+        |> fun (_, pgn) -> pgn.Trim()
