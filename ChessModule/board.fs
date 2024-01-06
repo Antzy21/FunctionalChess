@@ -125,12 +125,6 @@ module Board =
         +
         "  \\________________________/" +
         "\n    a  b  c  d  e  f  g  h"
-
-    // TODO Move to coordinatesCollection
-    let private coordinatesCollectionFold (coordsResult: coordinates result) (coordinatesCollection: coordinatesCollection) : coordinatesCollection =
-        coordsResult |> Result.defaultValue {value = 0UL}
-        |> fun coords ->
-            coords.value ||| coordinatesCollection
         
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
     module Vision =
@@ -147,9 +141,9 @@ module Board =
             let direction = getPawnMovementDirection pieceColour
             let startingRow = getPawnStartingRow pieceColour
             let diagonalMoves =
-                0UL
-                |> coordinatesCollectionFold (Coordinates.shift start 1 direction)
-                |> coordinatesCollectionFold (Coordinates.shift start -1 direction)
+                CoordinatesCollection.construct ()
+                |> CoordinatesCollection.appendResult (Coordinates.shift start 1 direction)
+                |> CoordinatesCollection.appendResult (Coordinates.shift start -1 direction)
                 |> fun coordinatesCollection ->
                     match pieceColour with
                     | White -> coordinatesCollection &&& board.blackPieces
@@ -159,7 +153,7 @@ module Board =
                 let pawn1ForwardCoords = Coordinates.shift start 0 direction |> Result.failOnError
                 // If square in front is occupied, no moves forward are possible
                 if BitMap.isOnAtCoordinates pawn1ForwardCoords board.pieceMap then
-                    0UL
+                    CoordinatesCollection.construct ()
                 // Else, if at the starting square then two moves forward are possible
                 elif (startingRow = Coordinates.getRow start) then
                     // This should not error as coordinates are on the starting row
@@ -177,11 +171,11 @@ module Board =
         // Get Pawn origin possibilities from destination
         let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) (board: board): coordinatesCollection =
             let direction = getPawnMovementDirection pieceColour
-            0UL
-            |> coordinatesCollectionFold (Coordinates.shift destination -1 (-direction))
-            |> coordinatesCollectionFold (Coordinates.shift destination  1 (-direction))
-            |> coordinatesCollectionFold (Coordinates.shift destination  0 (-direction))
-            |> coordinatesCollectionFold (Coordinates.shift destination  0 (-direction*2))
+            CoordinatesCollection.construct ()
+            |> CoordinatesCollection.appendResult (Coordinates.shift destination -1 (-direction))
+            |> CoordinatesCollection.appendResult (Coordinates.shift destination  1 (-direction))
+            |> CoordinatesCollection.appendResult (Coordinates.shift destination  0 (-direction))
+            |> CoordinatesCollection.appendResult (Coordinates.shift destination  0 (-direction*2))
 
         /// Get all coordinates after repeating a shift, up to and including when a piece is on the next coordinates.
         let rec private afterRepeatedShift (xShift: int) (yShift: int) (start: coordinates) (board: board) : coordinatesCollection =
@@ -192,20 +186,20 @@ module Board =
                 else
                     coords.value ||| afterRepeatedShift xShift yShift coords board
             )
-            |> Result.defaultValue 0UL
+            |> Result.defaultValue (CoordinatesCollection.construct ())
 
         let private ofKnight (c: coordinates) (board: board) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
-            0UL
-            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j+2))
-            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j-2))
-            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j+2))
-            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j-2))
-            |> coordinatesCollectionFold (Coordinates.construct (i+2) (j+1))
-            |> coordinatesCollectionFold (Coordinates.construct (i-2) (j-1))
-            |> coordinatesCollectionFold (Coordinates.construct (i-2) (j+1))
-            |> coordinatesCollectionFold (Coordinates.construct (i+2) (j-1))
+            CoordinatesCollection.construct ()
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+1) (j+2))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i-1) (j-2))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i-1) (j+2))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+1) (j-2))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+2) (j+1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i-2) (j-1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i-2) (j+1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+2) (j-1))
         let private ofBishop (c: coordinates) (board: board) : coordinatesCollection =
             afterRepeatedShift 1 1 c board |||
             afterRepeatedShift 1 -1 c board |||
@@ -221,15 +215,15 @@ module Board =
         let private ofKing (c: coordinates) (board: board) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
-            0UL
-            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j+1))
-            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j+0))
-            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j-1))
-            |> coordinatesCollectionFold (Coordinates.construct (i+0) (j+1))
-            |> coordinatesCollectionFold (Coordinates.construct (i+0) (j-1))
-            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j+1))
-            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j+0))
-            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j-1))
+            CoordinatesCollection.construct ()
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+1) (j+1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+1) (j+0))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+1) (j-1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+0) (j+1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i+0) (j-1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i-1) (j+1))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i-1) (j+0))
+            |> CoordinatesCollection.appendResult (Coordinates.construct (i-1) (j-1))
         /// Get a list of coordinates visible from a given coordinates on a board.
         let ofPieceAtCoords (board: board) (c: coordinates) : coordinatesCollection result =
             match getSquareFromCoordinates board c with
@@ -271,9 +265,9 @@ module Board =
             
             let pawnPieceCanSeeKing =
                 let direction = getPawnMovementDirection (Colour.opposite oppColour)
-                0UL
-                |> coordinatesCollectionFold (Coordinates.shift coordsOfKing -1 (-direction))
-                |> coordinatesCollectionFold (Coordinates.shift coordsOfKing  1 (-direction))
+                CoordinatesCollection.construct ()
+                |> CoordinatesCollection.appendResult (Coordinates.shift coordsOfKing -1 (-direction))
+                |> CoordinatesCollection.appendResult (Coordinates.shift coordsOfKing  1 (-direction))
                 |> (&&&) <|
                     match oppColour with
                     | White -> board.whitePawnMap
@@ -289,12 +283,12 @@ module Board =
         | White -> board.whitePieces
         | Black -> board.blackPieces
         |> BitMap.IsolateValues
-        // IsolateValues returns a bitMap, not coordinates explicitely. So a quick conversion is required.
+        // IsolateValues returns a bitMap, not coordinates explicitly. So a quick conversion is required.
         |> List.fold (fun acc c ->
             Vision.ofPieceAtCoords board {value = c} 
             |> Result.failOnError
             ||| acc
-        ) 0UL
+        ) (CoordinatesCollection.construct ())
     let internal isVisibleByPlayer (colour: colour) (board: board) (coords: coordinates) : bool =
         playerVision colour board &&& coords.value > 0UL
 
@@ -431,9 +425,9 @@ module Board =
                     match colour with
                     | White -> -1
                     | Black -> 1
-                0UL
-                |> coordinatesCollectionFold (Coordinates.shift enpassantCoordinates -1 direction)
-                |> coordinatesCollectionFold (Coordinates.shift enpassantCoordinates  1 direction)
+                CoordinatesCollection.construct ()
+                |> CoordinatesCollection.appendResult (Coordinates.shift enpassantCoordinates -1 direction)
+                |> CoordinatesCollection.appendResult (Coordinates.shift enpassantCoordinates  1 direction)
                 |> (&&&) <|
                     match colour with
                     | White -> board.whitePawnMap
