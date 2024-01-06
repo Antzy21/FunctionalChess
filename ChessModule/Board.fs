@@ -241,14 +241,18 @@ module Board =
         /// Gets the locations that a piece could have come from given some destination coordinates.
         /// Filters the coordinates list based on if the piece type is on the board at the calculated starting coordinates.
         let internal reverseEngineerPieceLocations (piece: piece) (coordinates: coordinates) (board: board) =
+            let colouredPieceMap =
+                match piece.colour with
+                | White -> board.whitePieces
+                | Black -> board.blackPieces
             match piece.pieceType with
-                | Knight -> ofKnight coordinates board
-                | Bishop -> ofBishop coordinates board
-                | Rook -> ofRook coordinates board
-                | Queen -> ofQueen coordinates board
-                | King -> ofKing coordinates board
-                | Pawn -> reverseOfPawn coordinates piece.colour board
-            &&& board.pieceMap
+                | Knight -> ofKnight coordinates board |> (&&&) board.knightMap
+                | Bishop -> ofBishop coordinates board |> (&&&) board.bishopMap
+                | Rook -> ofRook coordinates board |> (&&&) board.rookMap
+                | Queen -> ofQueen coordinates board |> (&&&) board.queenMap
+                | King -> ofKing coordinates board |> (&&&) board.kingMap
+                | Pawn -> reverseOfPawn coordinates piece.colour board |> (&&&) board.pawnMap
+            &&& colouredPieceMap
 
         /// Is the King visible from the opponent? 
         let internal existsOfKing (oppColour: colour) (board: board) (coordsOfKing: coordinates) : bool =
