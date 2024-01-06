@@ -3,14 +3,13 @@ namespace Chess
 open Checkerboard
 open FSharp.Extensions
 
-type coordsList = uint64
-
 module Board =
 
     /// Initialise a chess board with the starting position
     let constructStarting () : board =
         { ColourBitmap = 65535UL; KQPmap = 1801158375971553048UL; KQBRmap = 13618885273168380093UL; KPNRmap = 15275928461064077267UL }
 
+    /// Initialise an empty chess board
     let construct () : board =
         {ColourBitmap = 0UL; KPNRmap = 0UL; KQBRmap = 0UL; KQPmap = 0UL }
 
@@ -126,12 +125,12 @@ module Board =
         +
         "  \\________________________/" +
         "\n    a  b  c  d  e  f  g  h"
-    
 
-    let private CoordsListFold (coordsResult: coordinates result) (coordsList: coordsList) : coordsList =
+    // TODO Move to coordinatesCollection
+    let private coordinatesCollectionFold (coordsResult: coordinates result) (coordinatesCollection: coordinatesCollection) : coordinatesCollection =
         coordsResult |> Result.defaultValue {value = 0UL}
         |> fun coords ->
-            coords.value ||| coordsList
+            coords.value ||| coordinatesCollection
         
     /// Functions for getting the list of coordinates on the board that are visible to the piece on some given coordinates.
     module Vision =
@@ -144,17 +143,17 @@ module Board =
             | White -> 1
             | Black -> 6
 
-        let private ofPawn (start: coordinates) (board: board) (pieceColour: colour) : coordsList =
+        let private ofPawn (start: coordinates) (board: board) (pieceColour: colour) : coordinatesCollection =
             let direction = getPawnMovementDirection pieceColour
             let startingRow = getPawnStartingRow pieceColour
             let diagonalMoves =
                 0UL
-                |> CoordsListFold (Coordinates.shift start 1 direction)
-                |> CoordsListFold (Coordinates.shift start -1 direction)
-                |> fun coordsList ->
+                |> coordinatesCollectionFold (Coordinates.shift start 1 direction)
+                |> coordinatesCollectionFold (Coordinates.shift start -1 direction)
+                |> fun coordinatesCollection ->
                     match pieceColour with
-                    | White -> coordsList &&& board.blackPieces
-                    | Black -> coordsList &&& board.whitePieces
+                    | White -> coordinatesCollection &&& board.blackPieces
+                    | Black -> coordinatesCollection &&& board.whitePieces
             let forwardMoves = 
                 // Pawns will never be at the end of the board so this should not fail
                 let pawn1ForwardCoords = Coordinates.shift start 0 direction |> Result.failOnError
@@ -176,16 +175,16 @@ module Board =
             diagonalMoves ||| forwardMoves
 
         // Get Pawn origin possibilities from destination
-        let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) (board: board): coordsList =
+        let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) (board: board): coordinatesCollection =
             let direction = getPawnMovementDirection pieceColour
             0UL
-            |> CoordsListFold (Coordinates.shift destination -1 (-direction))
-            |> CoordsListFold (Coordinates.shift destination  1 (-direction))
-            |> CoordsListFold (Coordinates.shift destination  0 (-direction))
-            |> CoordsListFold (Coordinates.shift destination  0 (-direction*2))
+            |> coordinatesCollectionFold (Coordinates.shift destination -1 (-direction))
+            |> coordinatesCollectionFold (Coordinates.shift destination  1 (-direction))
+            |> coordinatesCollectionFold (Coordinates.shift destination  0 (-direction))
+            |> coordinatesCollectionFold (Coordinates.shift destination  0 (-direction*2))
 
         /// Get all coordinates after repeating a shift, up to and including when a piece is on the next coordinates.
-        let rec private afterRepeatedShift (xShift: int) (yShift: int) (start: coordinates) (board: board) : coordsList =
+        let rec private afterRepeatedShift (xShift: int) (yShift: int) (start: coordinates) (board: board) : coordinatesCollection =
             Coordinates.shift start xShift yShift 
             |> Result.map (fun coords ->
                 if BitMap.isOnAtCoordinates coords board.pieceMap then
@@ -195,44 +194,44 @@ module Board =
             )
             |> Result.defaultValue 0UL
 
-        let private ofKnight (c: coordinates) (board: board) : coordsList =
+        let private ofKnight (c: coordinates) (board: board) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
             0UL
-            |> CoordsListFold (Coordinates.construct (i+1) (j+2))
-            |> CoordsListFold (Coordinates.construct (i-1) (j-2))
-            |> CoordsListFold (Coordinates.construct (i-1) (j+2))
-            |> CoordsListFold (Coordinates.construct (i+1) (j-2))
-            |> CoordsListFold (Coordinates.construct (i+2) (j+1))
-            |> CoordsListFold (Coordinates.construct (i-2) (j-1))
-            |> CoordsListFold (Coordinates.construct (i-2) (j+1))
-            |> CoordsListFold (Coordinates.construct (i+2) (j-1))
-        let private ofBishop (c: coordinates) (board: board) : coordsList =
+            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j+2))
+            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j-2))
+            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j+2))
+            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j-2))
+            |> coordinatesCollectionFold (Coordinates.construct (i+2) (j+1))
+            |> coordinatesCollectionFold (Coordinates.construct (i-2) (j-1))
+            |> coordinatesCollectionFold (Coordinates.construct (i-2) (j+1))
+            |> coordinatesCollectionFold (Coordinates.construct (i+2) (j-1))
+        let private ofBishop (c: coordinates) (board: board) : coordinatesCollection =
             afterRepeatedShift 1 1 c board |||
             afterRepeatedShift 1 -1 c board |||
             afterRepeatedShift -1  1 c board |||
             afterRepeatedShift -1 -1 c board
-        let private ofRook (c: coordinates) (board: board) : coordsList =
+        let private ofRook (c: coordinates) (board: board) : coordinatesCollection =
             afterRepeatedShift 1 0 c board |||
             afterRepeatedShift -1 0 c board |||
             afterRepeatedShift 0 1 c board |||
             afterRepeatedShift 0 -1 c board
-        let private ofQueen (c: coordinates) (board: board) : coordsList =
+        let private ofQueen (c: coordinates) (board: board) : coordinatesCollection =
             ofRook c board ||| ofBishop c board
-        let private ofKing (c: coordinates) (board: board) : coordsList =
+        let private ofKing (c: coordinates) (board: board) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
             0UL
-            |> CoordsListFold (Coordinates.construct (i+1) (j+1))
-            |> CoordsListFold (Coordinates.construct (i+1) (j+0))
-            |> CoordsListFold (Coordinates.construct (i+1) (j-1))
-            |> CoordsListFold (Coordinates.construct (i+0) (j+1))
-            |> CoordsListFold (Coordinates.construct (i+0) (j-1))
-            |> CoordsListFold (Coordinates.construct (i-1) (j+1))
-            |> CoordsListFold (Coordinates.construct (i-1) (j+0))
-            |> CoordsListFold (Coordinates.construct (i-1) (j-1))
+            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j+1))
+            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j+0))
+            |> coordinatesCollectionFold (Coordinates.construct (i+1) (j-1))
+            |> coordinatesCollectionFold (Coordinates.construct (i+0) (j+1))
+            |> coordinatesCollectionFold (Coordinates.construct (i+0) (j-1))
+            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j+1))
+            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j+0))
+            |> coordinatesCollectionFold (Coordinates.construct (i-1) (j-1))
         /// Get a list of coordinates visible from a given coordinates on a board.
-        let ofPieceAtCoords (board: board) (c: coordinates) : coordsList result =
+        let ofPieceAtCoords (board: board) (c: coordinates) : coordinatesCollection result =
             match getSquareFromCoordinates board c with
             | None -> Error $"No piece at position {Coordinates.getName c}"
             | Some piece ->
@@ -259,34 +258,33 @@ module Board =
 
         /// Is the King visible from the opponent? 
         let internal existsOfKing (oppColour: colour) (board: board) (coordsOfKing: coordinates) : bool =
-            match oppColour with
-            | White -> 
-                ofRook coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteRookMap) > 0UL ||
-                ofBishop coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteBishopMap) > 0UL ||
-                ofKnight coordsOfKing board &&& board.whiteKnightMap > 0UL
-            | Black -> 
-                ofRook coordsOfKing board &&& (board.blackQueenMap ||| board.blackRookMap) > 0UL ||
-                ofBishop coordsOfKing board &&& (board.blackQueenMap ||| board.blackBishopMap) > 0UL ||
-                ofKnight coordsOfKing board &&& board.blackKnightMap > 0UL
-            ||
-            // We only care if a pawn has diagonal visibility of the king
-            [-1; 1]
-            |> List.map (fun i ->
-                // reverse the shift away from the king to get the right direction of an attack from a pawn
-                Colour.opposite oppColour
-                |> getPawnMovementDirection
-                |> Coordinates.shift coordsOfKing i
-            )
-            |> List.filterResults
-            |> List.exists (fun c ->
-                let pawnBitMap = 
+            let normalPieceCanSeeKing =
+                match oppColour with
+                | White -> 
+                    ofRook coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteRookMap) > 0UL ||
+                    ofBishop coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteBishopMap) > 0UL ||
+                    ofKnight coordsOfKing board &&& board.whiteKnightMap > 0UL
+                | Black -> 
+                    ofRook coordsOfKing board &&& (board.blackQueenMap ||| board.blackRookMap) > 0UL ||
+                    ofBishop coordsOfKing board &&& (board.blackQueenMap ||| board.blackBishopMap) > 0UL ||
+                    ofKnight coordsOfKing board &&& board.blackKnightMap > 0UL
+            
+            let pawnPieceCanSeeKing =
+                let direction = getPawnMovementDirection (Colour.opposite oppColour)
+                0UL
+                |> coordinatesCollectionFold (Coordinates.shift coordsOfKing -1 (-direction))
+                |> coordinatesCollectionFold (Coordinates.shift coordsOfKing  1 (-direction))
+                |> (&&&) <|
                     match oppColour with
                     | White -> board.whitePawnMap
                     | Black -> board.blackPawnMap
-                BitMap.isOnAtCoordinates c pawnBitMap
-            )
+                |> (>) 0UL
+            
+            normalPieceCanSeeKing
+            ||
+            pawnPieceCanSeeKing
 
-    let private playerVision (colour: colour) (board: board) : coordsList =
+    let private playerVision (colour: colour) (board: board) : coordinatesCollection =
         match colour with
         | White -> board.whitePieces
         | Black -> board.blackPieces
@@ -403,12 +401,12 @@ module Board =
                 applyNormalMove move board
     
     module GetMoves =
-        let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (coordsList: coordsList) : coordsList =
+        let private filterOutSameColouredPieces (pieceColour: colour) (board: board) (coordinatesCollection: coordinatesCollection) : coordinatesCollection =
             match pieceColour with
             | White -> board.whitePieces
             | Black -> board.blackPieces
             |> (~~~)
-            |> (&&&) coordsList
+            |> (&&&) coordinatesCollection
         let private pseudoLegal (colour: colour) (board: board) : normalMove list =
             match colour with
             | White -> board.ColourBitmap
@@ -433,13 +431,15 @@ module Board =
                     match colour with
                     | White -> -1
                     | Black -> 1
-                [(-1, direction); (+1, direction)]
-                |> List.map (fun (i,j) -> Coordinates.shift enpassantCoordinates i j)
-                |> List.filterResults
-                |> List.filter (fun coords ->
-                    getSquareFromCoordinates board coords
-                    |> Option.map(fun p -> p.pieceType = Pawn) |> Option.defaultValue false
-                )
+                0UL
+                |> coordinatesCollectionFold (Coordinates.shift enpassantCoordinates -1 direction)
+                |> coordinatesCollectionFold (Coordinates.shift enpassantCoordinates  1 direction)
+                |> (&&&) <|
+                    match colour with
+                    | White -> board.whitePawnMap
+                    | Black -> board.blackPawnMap
+                |> BitMap.IsolateValues
+                |> List.map (fun c -> {value = c})
                 |> List.map (fun coordsOfPawnDoingEnPassant ->
                     EnPassant {startingCoords = coordsOfPawnDoingEnPassant; destinationCoords = enpassantCoordinates}
                 )
