@@ -1,6 +1,5 @@
 namespace Chess
 
-open System.ComponentModel
 open Checkerboard
 open FSharp.Extensions
 
@@ -94,7 +93,7 @@ module Board =
             }
 
     /// Folds the array, starting in the top right and moving down.
-    let foldjiback (folder: coordinates -> 'S -> square -> 'S) (state: 'S) (board: board)=
+    let fold (folder: coordinates -> 'S -> square -> 'S) (state: 'S) (board: board)=
         [0..7] |> List.rev
         |> List.fold (fun accRow j ->
             [0..7]
@@ -109,7 +108,7 @@ module Board =
     let internal toString (board : board) : string =
         "   ________________________\n" +
         "  /                        \\\n" +
-        foldjiback (fun c acc sqr ->
+        fold (fun c acc sqr ->
             acc +
             if Coordinates.getFile c = 0 then
                 $"{Coordinates.getRow c + 1} |"
@@ -138,7 +137,7 @@ module Board =
             | White -> 1
             | Black -> 6
 
-        let internal ofPawnDiagonal (start: coordinates) (board: board) (pieceColour: colour) (direction: int) =
+        let internal ofPawnDiagonal (start: coordinates) (direction: int) =
             CoordinatesCollection.construct ()
             |> CoordinatesCollection.appendResult (Coordinates.shift start 1 direction)
             |> CoordinatesCollection.appendResult (Coordinates.shift start -1 direction)
@@ -146,7 +145,7 @@ module Board =
             let direction = getPawnMovementDirection pieceColour
             let startingRow = getPawnStartingRow pieceColour
             let diagonalMoves =
-                ofPawnDiagonal start board pieceColour direction
+                ofPawnDiagonal start direction
                 |> fun coordinatesCollection ->
                     match pieceColour with
                     | White -> coordinatesCollection &&& board.blackPieces
@@ -172,7 +171,7 @@ module Board =
             diagonalMoves ||| forwardMoves
 
         // Get Pawn origin possibilities from destination
-        let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) (board: board): coordinatesCollection =
+        let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) : coordinatesCollection =
             let direction = getPawnMovementDirection pieceColour
             CoordinatesCollection.construct ()
             |> CoordinatesCollection.appendResult (Coordinates.shift destination -1 (-direction))
@@ -191,7 +190,7 @@ module Board =
             )
             |> Result.defaultValue (CoordinatesCollection.construct ())
 
-        let private ofKnight (c: coordinates) (board: board) : coordinatesCollection =
+        let private ofKnight (c: coordinates) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
             CoordinatesCollection.construct ()
@@ -215,7 +214,7 @@ module Board =
             afterRepeatedShift 0 -1 c board
         let private ofQueen (c: coordinates) (board: board) : coordinatesCollection =
             ofRook c board ||| ofBishop c board
-        let private ofKing (c: coordinates) (board: board) : coordinatesCollection =
+        let private ofKing (c: coordinates) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
             CoordinatesCollection.construct ()
@@ -233,11 +232,11 @@ module Board =
             | None -> Error $"No piece at position {Coordinates.getName c}"
             | Some piece ->
                 match piece.pieceType with
-                | Knight -> ofKnight c board
+                | Knight -> ofKnight c
                 | Bishop -> ofBishop c board
                 | Rook -> ofRook c board
                 | Queen -> ofQueen c board
-                | King -> ofKing c board
+                | King -> ofKing c
                 | Pawn -> ofPawn c board piece.colour
                 |> Ok
 
@@ -249,12 +248,12 @@ module Board =
                 | White -> board.whitePieces
                 | Black -> board.blackPieces
             match piece.pieceType with
-                | Knight -> ofKnight coordinates board |> (&&&) board.knightMap
+                | Knight -> ofKnight coordinates |> (&&&) board.knightMap
                 | Bishop -> ofBishop coordinates board |> (&&&) board.bishopMap
                 | Rook -> ofRook coordinates board |> (&&&) board.rookMap
                 | Queen -> ofQueen coordinates board |> (&&&) board.queenMap
-                | King -> ofKing coordinates board |> (&&&) board.kingMap
-                | Pawn -> reverseOfPawn coordinates piece.colour board |> (&&&) board.pawnMap
+                | King -> ofKing coordinates |> (&&&) board.kingMap
+                | Pawn -> reverseOfPawn coordinates piece.colour |> (&&&) board.pawnMap
             &&& colouredPieceMap
 
         /// Is the King visible from the opponent? 
@@ -264,17 +263,17 @@ module Board =
                 | White -> 
                     ofRook coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteRookMap) > 0UL ||
                     ofBishop coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteBishopMap) > 0UL ||
-                    ofKnight coordsOfKing board &&& board.whiteKnightMap > 0UL ||
-                    ofKing coordsOfKing  board &&& board.whiteKingMap > 0UL
+                    ofKnight coordsOfKing &&& board.whiteKnightMap > 0UL ||
+                    ofKing coordsOfKing  &&& board.whiteKingMap > 0UL
                 | Black -> 
                     ofRook coordsOfKing board &&& (board.blackQueenMap ||| board.blackRookMap) > 0UL ||
                     ofBishop coordsOfKing board &&& (board.blackQueenMap ||| board.blackBishopMap) > 0UL ||
-                    ofKnight coordsOfKing board &&& board.blackKnightMap > 0UL ||
-                    ofKing coordsOfKing  board &&& board.blackKingMap > 0UL
+                    ofKnight coordsOfKing &&& board.blackKnightMap > 0UL ||
+                    ofKing coordsOfKing &&& board.blackKingMap > 0UL
             
             let pawnPieceCanSeeKing =
                 let direction = getPawnMovementDirection player
-                ofPawnDiagonal coordsOfKing board player -direction
+                ofPawnDiagonal coordsOfKing -direction
                 |> fun coordinatesCollection ->
                     match player with
                     | White -> coordinatesCollection &&& board.whitePawnMap
@@ -296,8 +295,6 @@ module Board =
             |> Result.failOnError
             ||| acc
         ) (CoordinatesCollection.construct ())
-    let internal isVisibleByPlayer (colour: colour) (board: board) (coords: coordinates) : bool =
-        playerVision colour board &&& coords > 0UL
 
     /// See if the coloured player is in check on the board
     let isInCheck (colour: colour) (board: board) : bool =
@@ -363,12 +360,12 @@ module Board =
             let colour = 
                 getSquareFromCoordinates board move.startingCoords
                 |> Option.get
-                |> fun piece -> piece.colour
+                |> _.colour
             let promotedPiece = {pieceType = promotedPieceType; colour = colour}
             applyNormalMove move board
             |> Result.map (updateSquare promotedPiece move.destinationCoords)
         let private getMovesForCastling (side: side) (colour: colour) : normalMove * normalMove =
-            let (kingStart, kingEnd, rookStart, rookEnd) = 
+            let kingStart, kingEnd, rookStart, rookEnd = 
                 match colour with
                 | White ->
                     match side with

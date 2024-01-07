@@ -21,11 +21,11 @@ module MoveParser =
                 $"{(PieceType.getLetter promotedPieceType)}"
             | EnPassant move ->
                 $"{Square.toString move.startingCoords (Board.getSquareFromCoordinates board move.startingCoords)} -> " +
-                $"x" +
+                "x" +
                 if BitMap.getValueAtCoordinates move.startingCoords board.ColourBitmap then "p"
                 else "P"
                 + $"{Coordinates.getName move.destinationCoords}"
-                + $" e.p."
+                + " e.p."
             | NormalMove move ->
                 match Board.getSquareFromCoordinates board move.destinationCoords with
                 | Some takenPiece ->
@@ -126,7 +126,7 @@ module MoveParser =
                 |> Error 
 
         let private parsePawnMove colour board pawnFile coords : normalMove result =
-            Board.Vision.reverseOfPawn coords colour board
+            Board.Vision.reverseOfPawn coords colour
             |> BitMap.isolateValues
             |> List.tryFind (fun square ->
                 Coordinates.getFileLetter square = pawnFile

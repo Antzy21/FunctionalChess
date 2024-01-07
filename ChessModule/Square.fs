@@ -1,7 +1,6 @@
 namespace Chess
 
 open Checkerboard
-open FSharp.Extensions
 
 type square = piece option
 

@@ -21,9 +21,9 @@ type board =
     member this.pieceMap =
         this.KQBRmap ||| this.KPNRmap
     member this.whitePieces =
-        (this.pieceMap) &&& (this.ColourBitmap)
+        this.pieceMap &&& this.ColourBitmap
     member this.blackPieces =
-        (this.pieceMap) &&& (~~~this.ColourBitmap)
+        this.pieceMap &&& (~~~this.ColourBitmap)
     member this.queenMap =
         this.KQBRmap &&& this.KQPmap &&& (~~~ this.KPNRmap) 
     member this.whiteQueenMap =

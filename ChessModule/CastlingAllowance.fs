@@ -59,7 +59,7 @@ module internal CastlingAllowance =
         | NormalMove normalMove ->
             let movedPieceType =
                 Board.getSquareFromCoordinates board normalMove.startingCoords
-                |> fun sqr -> sqr.Value.pieceType
+                |> _.Value.pieceType
             match movedPieceType with
             | King ->
                 ca

@@ -27,7 +27,7 @@ module GameState =
             let enpassantCoordinates = 
                 match parts[3] with
                 | "-" -> None
-                | name -> Some (Checkerboard.Coordinates.parse name |> Result.failOnError)
+                | name -> Some (Coordinates.parse name |> Result.failOnError)
             let halfMoveClock = int(parts[4])
             let fullMoveClock = int(parts[5])
             {
@@ -44,7 +44,7 @@ module GameState =
     let toFen (game: gameState) : string =
         let enpassant =
             game.enpassantCoordinates
-            |> Option.map (Checkerboard.Coordinates.getName)
+            |> Option.map Coordinates.getName
             |> Option.defaultValue "-"
         let castling = CastlingAllowance.toFenPart game.castlingAllowance
         let playerTurn = 
@@ -61,7 +61,7 @@ module GameState =
         $"\nPlayer Turn: {game.playerTurn}" +
         $"\nCastling Allowed: \n{CastlingAllowance.toString game.castlingAllowance}" +
         (
-            Option.map (fun enpasSqr -> $"\nEnpassantSquare: {enpasSqr}") game.enpassantCoordinates
+            Option.map (fun enpassantSqr -> $"\nEnpassantSquare: {enpassantSqr}") game.enpassantCoordinates
             |> Option.defaultValue ""
         ) +
         $"\nTurn: {game.fullMoveClock}, Half Turn: {game.halfMoveClock}"
