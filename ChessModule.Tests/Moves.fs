@@ -158,3 +158,13 @@ module MovesFromPositions =
             "Kh6 -> h5"
             "Ne2 -> f4"
         ], moves)
+        
+    [<Fact>]
+    let ``King can't move next to King`` () =
+        let moves = 
+            "8/8/8/8/8/8/8/K1k5 w - - 1 2"
+            |> GetPossibleMoves.all
+        Assert.StrictEqual<string list>([
+            "Ka1 -> a2"
+        ], moves)
+        
