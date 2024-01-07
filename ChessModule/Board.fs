@@ -263,11 +263,13 @@ module Board =
                 | White -> 
                     ofRook coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteRookMap) > 0UL ||
                     ofBishop coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteBishopMap) > 0UL ||
-                    ofKnight coordsOfKing board &&& board.whiteKnightMap > 0UL
+                    ofKnight coordsOfKing board &&& board.whiteKnightMap > 0UL ||
+                    ofKing coordsOfKing  board &&& board.whiteKingMap > 0UL
                 | Black -> 
                     ofRook coordsOfKing board &&& (board.blackQueenMap ||| board.blackRookMap) > 0UL ||
                     ofBishop coordsOfKing board &&& (board.blackQueenMap ||| board.blackBishopMap) > 0UL ||
-                    ofKnight coordsOfKing board &&& board.blackKnightMap > 0UL
+                    ofKnight coordsOfKing board &&& board.blackKnightMap > 0UL ||
+                    ofKing coordsOfKing  board &&& board.blackKingMap > 0UL
             
             let pawnPieceCanSeeKing =
                 let direction = getPawnMovementDirection player
