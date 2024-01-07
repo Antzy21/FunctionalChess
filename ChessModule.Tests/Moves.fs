@@ -137,3 +137,13 @@ module MovesFromPositions =
         Assert.StrictEqual<string list>([
             "pd5 -> xPe4";
         ], moves)
+        
+    [<Fact>]
+    let ``King can't move into check`` () =
+        let moves = 
+            "2k5/8/8/8/8/1pb5/8/K7 w - - 1 2"
+            |> GetPossibleMoves.all
+        Assert.StrictEqual<string list>([
+            "Ka1 -> b1"
+        ], moves)
+        

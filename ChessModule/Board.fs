@@ -137,13 +137,15 @@ module Board =
             | White -> 1
             | Black -> 6
 
+        let internal ofPawnDiagonal (start: coordinates) (board: board) (pieceColour: colour) (direction: int) =
+            CoordinatesCollection.construct ()
+            |> CoordinatesCollection.appendResult (Coordinates.shift start 1 direction)
+            |> CoordinatesCollection.appendResult (Coordinates.shift start -1 direction)
         let private ofPawn (start: coordinates) (board: board) (pieceColour: colour) : coordinatesCollection =
             let direction = getPawnMovementDirection pieceColour
             let startingRow = getPawnStartingRow pieceColour
             let diagonalMoves =
-                CoordinatesCollection.construct ()
-                |> CoordinatesCollection.appendResult (Coordinates.shift start 1 direction)
-                |> CoordinatesCollection.appendResult (Coordinates.shift start -1 direction)
+                ofPawnDiagonal start board pieceColour direction
                 |> fun coordinatesCollection ->
                     match pieceColour with
                     | White -> coordinatesCollection &&& board.blackPieces
@@ -255,9 +257,9 @@ module Board =
             &&& colouredPieceMap
 
         /// Is the King visible from the opponent? 
-        let internal existsOfKing (oppColour: colour) (board: board) (coordsOfKing: coordinates) : bool =
+        let internal playerHasVisionOfKing (player: colour) (board: board) (coordsOfKing: coordinates) : bool =
             let normalPieceCanSeeKing =
-                match oppColour with
+                match player with
                 | White -> 
                     ofRook coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteRookMap) > 0UL ||
                     ofBishop coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteBishopMap) > 0UL ||
@@ -268,15 +270,13 @@ module Board =
                     ofKnight coordsOfKing board &&& board.blackKnightMap > 0UL
             
             let pawnPieceCanSeeKing =
-                let direction = getPawnMovementDirection (Colour.opposite oppColour)
-                CoordinatesCollection.construct ()
-                |> CoordinatesCollection.appendResult (Coordinates.shift coordsOfKing -1 (-direction))
-                |> CoordinatesCollection.appendResult (Coordinates.shift coordsOfKing  1 (-direction))
-                |> (&&&) <|
-                    match oppColour with
-                    | White -> board.whitePawnMap
-                    | Black -> board.blackPawnMap
-                |> (>) 0UL
+                let direction = getPawnMovementDirection player
+                ofPawnDiagonal coordsOfKing board player -direction
+                |> fun coordinatesCollection ->
+                    match player with
+                    | White -> coordinatesCollection &&& board.whitePawnMap
+                    | Black -> coordinatesCollection &&& board.blackPawnMap
+                > 0UL
             
             normalPieceCanSeeKing
             ||
@@ -301,7 +301,7 @@ module Board =
         match colour with
         | White -> board.whiteKingMap
         | Black-> board.blackKingMap
-        |> Vision.existsOfKing (Colour.opposite colour) board
+        |> Vision.playerHasVisionOfKing (Colour.opposite colour) board
 
     /// Gets the optional coordinates that a pawn could be taken through an "en passant" move, that only comes by the previous move being a pawn moving two squares.
     let internal getEnPassantCoordinates (board: board) (move: normalMove) : coordinates option = 
