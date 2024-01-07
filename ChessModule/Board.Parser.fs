@@ -38,19 +38,15 @@ module BoardParser =
         ) (0, board)
         |> snd
 
-    let private incrementIntegerAtEndOfString (str : string) : string =
-        let revStr = Seq.rev str
-        let addOne = 
-            Seq.head revStr
-            |> Char.GetNumericValue
-            |> int |> (+) 1 |> string
-        (Seq.tail revStr |> Seq.rev |> String.Concat) + addOne
-
     let private addOrIncrementIntegerAtEndOfString (str: string) =
         if str = "" then
             "1"
         else if Seq.last str |> Char.IsNumber then
-            incrementIntegerAtEndOfString str
+            let addOne =
+                Seq.last str
+                |> Char.GetNumericValue
+                |> (+) 1. |> string
+            str[..str.Length-2] + addOne
         else
             str + "1"
 
