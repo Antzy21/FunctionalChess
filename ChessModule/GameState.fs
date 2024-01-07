@@ -101,6 +101,3 @@ module GameState =
             |> Result.map (fun parsedMove ->
                 makeMove parsedMove game
             )
-
-    let checkmateOrStatemate (game: gameState) : bool =
-        getMovesAsync game |> List.isEmpty

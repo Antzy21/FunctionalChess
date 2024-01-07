@@ -1,5 +1,6 @@
 namespace Chess
 
+open System.ComponentModel
 open Checkerboard
 open FSharp.Extensions
 
@@ -441,54 +442,127 @@ module Board =
                 |> List.map (fun coordsOfPawnDoingEnPassant ->
                     EnPassant {startingCoords = coordsOfPawnDoingEnPassant; destinationCoords = enpassantCoordinates}
                 )
-        let internal castling (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
-            let row, kingSide, queenSide = 
-                match colour with
-                | White -> 1, castlingOptions.whiteKingside, castlingOptions.whiteQueenside
-                | Black -> 8, castlingOptions.blackKingside, castlingOptions.blackQueenside
-
-            let castlingChecks
-                squaresToInspectForCastlingThroughCheck
-                squaresThatMustBeEmpty
-                squareThatNeedsRook
-                squareThatNeedsKing
-                : bool =
-                let castlingThroughCheck =
-                    squaresToInspectForCastlingThroughCheck
-                    |> List.map (fun name -> Coordinates.parse name |> Result.failOnError)
-                    |> List.exists (fun coords ->
-                        isVisibleByPlayer (Colour.opposite colour) board coords
-                    )
-                let squaresAreEmpty =
-                    squaresThatMustBeEmpty
-                    |> List.forall (fun name -> 
-                        let coords = Coordinates.parse name |> Result.failOnError
-                        getSquareFromCoordinates board coords
-                        |> Option.isNone
-                    )
-                let rookInPosition =
-                    Coordinates.parse squareThatNeedsRook
-                    |> Result.map (getSquareFromCoordinates board)
-                    |> Result.failOnError
-                    |> (=) (Some {pieceType = Rook; colour = colour})
-                let kingInPosition =
-                    Coordinates.parse squareThatNeedsKing
-                    |> Result.map (getSquareFromCoordinates board)
-                    |> Result.failOnError
-                    |> (=) (Some {pieceType = King; colour = colour})
+        let private canCastleOnSide (colour: colour) (castlingSide: side) (board: board) : bool =
+            //      ________________________
+            //     /                        \
+            //   8 | r  e  e  e  k  e  e  r |
+            //   7 | .  .  .  .  .  .  .  . |
+            //   6 | .  .  .  .  .  .  .  . |
+            //   5 | .  .  .  .  .  .  .  . |
+            //   4 | .  .  .  .  .  .  .  . |
+            //   3 | .  .  .  .  .  .  .  . |
+            //   2 | .  .  .  .  .  .  .  . |
+            //   1 | R  e  e  e  K  e  e  R |
+            //     \________________________/
+            //       a  b  c  d  e  f  g  h
+            
+            // Legend:
+            // R, r -> Rooks
+            // K, k -> Kings
+            // e    -> squares that must be empty
+            
+            // e1, f1, g1
+            let whiteKingSideRequiredNoCheckSquares = 112UL
+            // f1, g1
+            let whiteKingSideRequiredEmptySquares = 96UL
+            
+            // b1, c1, d1, e1
+            let whiteQueenSideRequiredNoCheckSquares = 30UL
+            // b1, c1, d1
+            let whiteQueenSideRequiredEmptySquares = 14UL
+            
+            // e1
+            let whiteRequiredKingPosition = 16UL
+            // h1
+            let whiteKingSideRequiredRookPosition = 128UL
+            // a1
+            let whiteQueenSideRequiredRookPosition = 1UL
+            
+            // e8, f8, g8
+            let blackKingSideRequiredNoCheckSquares = 8070450532247928832UL
+            // f8, g8
+            let blackKingSideRequiredEmptySquares = 6917529027641081856UL
+            
+            // b8, c8, d8, e8
+            let blackQueenSideRequiredNoCheckSquares = 2161727821137838080UL
+            // b8, c8, d8
+            let blackQueenSideRequiredEmptySquares = 1008806316530991104UL
+            
+            // e8
+            let blackRequiredKingPosition = 1152921504606846976UL
+            // h8
+            let blackKingSideRequiredRookPosition = 9223372036854775808UL
+            // a8
+            let blackQueenSideRequiredRookPosition = 72057594037927936UL
+            
+            let kingSideRequiredNoCheckSquares,
+                kingSideRequiredEmptySquares,
+                queenSideRequiredNoCheckSquares,
+                queenSideRequiredEmptySquares,
+                requiredKingPosition,
+                kingSideRequiredRookPosition,
+                queenSideRequiredRookPosition =
+                    match colour with
+                    | White ->
+                        whiteKingSideRequiredNoCheckSquares,
+                        whiteKingSideRequiredEmptySquares,
+                        whiteQueenSideRequiredNoCheckSquares,
+                        whiteQueenSideRequiredEmptySquares,
+                        whiteRequiredKingPosition,
+                        whiteKingSideRequiredRookPosition,
+                        whiteQueenSideRequiredRookPosition
+                    | Black ->
+                        blackKingSideRequiredNoCheckSquares,
+                        blackKingSideRequiredEmptySquares,
+                        blackQueenSideRequiredNoCheckSquares,
+                        blackQueenSideRequiredEmptySquares,
+                        blackRequiredKingPosition,
+                        blackKingSideRequiredRookPosition,
+                        blackQueenSideRequiredRookPosition
                 
-                //let squareKingShouldBeOn =
-                //    Board.GetSquare.fromCoordinatesName $"e{row}" board
-                //let squareKingShouldBeOn =
-                //    Board.GetSquare.fromCoordinatesName $"e{row}" board
-                (not castlingThroughCheck) && squaresAreEmpty && rookInPosition && kingInPosition
+            let requiredNoCheckSquares,
+                requiredEmptySquares,
+                requiredRookPosition =
+                    match castlingSide with
+                    | Kingside ->
+                        kingSideRequiredNoCheckSquares,
+                        kingSideRequiredEmptySquares,
+                        kingSideRequiredRookPosition
+                    | Queenside ->
+                        queenSideRequiredNoCheckSquares,
+                        queenSideRequiredEmptySquares,
+                        queenSideRequiredRookPosition
+            
+            let castlingThroughCheck =
+                requiredNoCheckSquares
+                |> CoordinatesCollection.filter (playerVision (Colour.opposite colour) board)
+                    > 0UL
+            let squaresAreEmpty =
+                requiredEmptySquares
+                |> CoordinatesCollection.filter board.pieceMap
+                    = 0UL
+            let rookIsInPosition =
+                requiredRookPosition
+                |> CoordinatesCollection.filter board.rookMap
+                    > 0UL
+            let kingIsInPosition =
+                requiredKingPosition
+                |> CoordinatesCollection.filter board.kingMap
+                    > 0UL
+                
+            (not castlingThroughCheck) && squaresAreEmpty && rookIsInPosition && kingIsInPosition
+        let internal castling (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
+            let kingSide, queenSide = 
+                match colour with
+                | White -> castlingOptions.whiteKingside, castlingOptions.whiteQueenside
+                | Black -> castlingOptions.blackKingside, castlingOptions.blackQueenside
             let kingSideCastling : move option = 
-                if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"] ($"h{row}") ($"e{row}")) then
+                if kingSide && (canCastleOnSide colour Kingside board) then
                     Some <| Castling (Kingside, colour)
                 else
                     None
             let queenSideCastling : move option =
-                if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"] ($"a{row}") ($"e{row}")) then
+                if queenSide && (canCastleOnSide colour Queenside board) then
                     Some <| Castling (Queenside, colour)
                 else
                     None
@@ -496,6 +570,7 @@ module Board =
             [kingSideCastling; queenSideCastling]
             |> List.filter Option.isSome
             |> List.map Option.get
+        
         let internal promotion (board: board) =
             List.map (fun normalMove ->
                 let movedPieceIsPawn =

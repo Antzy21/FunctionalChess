@@ -74,7 +74,7 @@ module Castling =
         |> Assert.Empty
         
     [<Fact>]
-    let ``Black castling blocked by moving through check`` () =
+    let ``Castling blocked by moving through check for Black`` () =
         GetPossibleMoves.castling "r3k2r/8/8/8/8/8/8/3RKR2 b KQkq - 1 2"
         |> Assert.Empty
 
