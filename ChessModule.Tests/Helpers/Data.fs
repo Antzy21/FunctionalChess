@@ -11,77 +11,77 @@ module Moves =
 
     module EnPassant =
         let PreWhite : move =
-            ({
-                startingCoords = coordCntr 0 6; destinationCoords = coordCntr 0 4
-            })
+            {
+               startingCoords = coordCntr 0 6; destinationCoords = coordCntr 0 4
+            }
             |> NormalMove
         let PostWhite : move =
-            ({
-                startingCoords = coordCntr 1 4; destinationCoords = coordCntr 0 5;
-            })
+            {
+               startingCoords = coordCntr 1 4; destinationCoords = coordCntr 0 5;
+            }
             |> EnPassant
         let PreBlack : move =
-            ({
-                startingCoords = coordCntr 0 1; destinationCoords = coordCntr 0 3
-            })
+            {
+               startingCoords = coordCntr 0 1; destinationCoords = coordCntr 0 3
+            }
             |> NormalMove
         let PostBlack : move =
-            ({
-                startingCoords = coordCntr 1 3; destinationCoords = coordCntr 0 2;
-            })
+            {
+               startingCoords = coordCntr 1 3; destinationCoords = coordCntr 0 2;
+            }
             |> EnPassant
     
     module Promotion =
         let White1 : move =
-            ({
-                startingCoords = coordCntr 0 6; destinationCoords = coordCntr 0 7;
-            })
+            {
+               startingCoords = coordCntr 0 6; destinationCoords = coordCntr 0 7;
+            }
             |> fun move -> Promotion (move, Queen)
         let White2 : move =
-            ({
-                startingCoords = coordCntr 0 6; destinationCoords = coordCntr 1 7;
-            })
+            {
+               startingCoords = coordCntr 0 6; destinationCoords = coordCntr 1 7;
+            }
             |> fun move -> Promotion (move, Rook)
 
     let e4 : move = 
-        ({
-            startingCoords = coordCntr 4 1; destinationCoords = coordCntr 4 3;
-        })
+        {
+           startingCoords = coordCntr 4 1; destinationCoords = coordCntr 4 3;
+        }
         |> NormalMove
     let d5 : move = 
-        ({
-            startingCoords = coordCntr 3 6; destinationCoords = coordCntr 3 4;
-        })
+        {
+           startingCoords = coordCntr 3 6; destinationCoords = coordCntr 3 4;
+        }
         |> NormalMove
     let e5 : move = 
-        ({
-            startingCoords = coordCntr 4 6; destinationCoords = coordCntr 4 4;
-        })
+        {
+           startingCoords = coordCntr 4 6; destinationCoords = coordCntr 4 4;
+        }
         |> NormalMove
     let xd5 : move =
-        ({
-            startingCoords = coordCntr 4 3; destinationCoords = coordCntr 3 4;
-        })
+        {
+           startingCoords = coordCntr 4 3; destinationCoords = coordCntr 3 4;
+        }
         |> NormalMove
     let Nf6 : move = 
-        ({
-            startingCoords = coordCntr 6 7; destinationCoords = coordCntr 5 5;
-        })
+        {
+           startingCoords = coordCntr 6 7; destinationCoords = coordCntr 5 5;
+        }
         |> NormalMove
     let Nc3 : move = 
-        ({
-            startingCoords = coordCntr 1 0; destinationCoords = coordCntr 2 2;
-        })
+        {
+           startingCoords = coordCntr 1 0; destinationCoords = coordCntr 2 2;
+        }
         |> NormalMove
     let Nf3 : move = 
-        ({
-            startingCoords = coordCntr 6 0; destinationCoords = coordCntr 5 2;
-        })
+        {
+           startingCoords = coordCntr 6 0; destinationCoords = coordCntr 5 2;
+        }
         |> NormalMove
     let Nge2 : move = 
-        ({
-            startingCoords = coordCntr 6 0; destinationCoords = coordCntr 4 1;
-        })
+        {
+           startingCoords = coordCntr 6 0; destinationCoords = coordCntr 4 1;
+        }
         |> NormalMove
 
 module Games =
