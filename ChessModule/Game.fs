@@ -60,7 +60,9 @@ module Game =
         )
 
     let isGameOver (game: game) : bool =
-        GameState.checkmateOrStatemate game.gameState || threeMovesRepeated game
+        // No moves mean no legal moves, either checkmate or stalemate 
+        GameState.getMoves game.gameState |> List.isEmpty
+        || threeMovesRepeated game
 
     let pgn (game: game) : string =
         game.moves

@@ -1,6 +1,5 @@
 namespace Chess
 
-open Checkerboard
 open FSharp.Extensions
 
 [<Struct>]

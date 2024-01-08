@@ -15,7 +15,7 @@ module BoardParser =
 
     let private replaceNumbersWithReplicatedOnes =
         Seq.fold (fun acc (c: char) ->
-            if (System.Char.IsNumber c) then
+            if (Char.IsNumber c) then
                 acc + (String.replicate (int $"{c}") "1")
             else
                 acc + $"{c}"
@@ -26,7 +26,7 @@ module BoardParser =
         let board = Board.construct ()
         fen
         |> replaceNumbersWithReplicatedOnes
-        |> fun fen -> fen.Split('/')
+        |> _.Split('/')
         |> Array.rev
         |> Array.fold (fun (j, board) (row: string) ->
             row
@@ -38,19 +38,15 @@ module BoardParser =
         ) (0, board)
         |> snd
 
-    let private incrementIntegerAtEndOfString (str : string) : string =
-        let revStr = Seq.rev str
-        let addOne = 
-            Seq.head revStr
-            |> Char.GetNumericValue
-            |> int |> (+) 1 |> string
-        (Seq.tail revStr |> Seq.rev |> String.Concat) + addOne
-
     let private addOrIncrementIntegerAtEndOfString (str: string) =
         if str = "" then
             "1"
         else if Seq.last str |> Char.IsNumber then
-            incrementIntegerAtEndOfString str
+            let addOne =
+                Seq.last str
+                |> Char.GetNumericValue
+                |> (+) 1. |> string
+            str[..str.Length-2] + addOne
         else
             str + "1"
 
@@ -63,7 +59,7 @@ module BoardParser =
     /// Converts a chess board object into a FEN notation string
     let toFen (board: board) : string =
         board
-        |> Board.foldjiback (fun coords fen square ->
+        |> Board.fold (fun coords fen square ->
             match square with
             | Some piece ->
                 fen + (Piece.getLetter piece |> string)

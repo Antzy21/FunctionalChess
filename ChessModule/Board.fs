@@ -93,7 +93,7 @@ module Board =
             }
 
     /// Folds the array, starting in the top right and moving down.
-    let foldjiback (folder: coordinates -> 'S -> square -> 'S) (state: 'S) (board: board)=
+    let fold (folder: coordinates -> 'S -> square -> 'S) (state: 'S) (board: board)=
         [0..7] |> List.rev
         |> List.fold (fun accRow j ->
             [0..7]
@@ -108,7 +108,7 @@ module Board =
     let internal toString (board : board) : string =
         "   ________________________\n" +
         "  /                        \\\n" +
-        foldjiback (fun c acc sqr ->
+        fold (fun c acc sqr ->
             acc +
             if Coordinates.getFile c = 0 then
                 $"{Coordinates.getRow c + 1} |"
@@ -137,7 +137,7 @@ module Board =
             | White -> 1
             | Black -> 6
 
-        let internal ofPawnDiagonal (start: coordinates) (board: board) (pieceColour: colour) (direction: int) =
+        let internal ofPawnDiagonal (start: coordinates) (direction: int) =
             CoordinatesCollection.construct ()
             |> CoordinatesCollection.appendResult (Coordinates.shift start 1 direction)
             |> CoordinatesCollection.appendResult (Coordinates.shift start -1 direction)
@@ -145,7 +145,7 @@ module Board =
             let direction = getPawnMovementDirection pieceColour
             let startingRow = getPawnStartingRow pieceColour
             let diagonalMoves =
-                ofPawnDiagonal start board pieceColour direction
+                ofPawnDiagonal start direction
                 |> fun coordinatesCollection ->
                     match pieceColour with
                     | White -> coordinatesCollection &&& board.blackPieces
@@ -171,7 +171,7 @@ module Board =
             diagonalMoves ||| forwardMoves
 
         // Get Pawn origin possibilities from destination
-        let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) (board: board): coordinatesCollection =
+        let internal reverseOfPawn (destination: coordinates) (pieceColour: colour) : coordinatesCollection =
             let direction = getPawnMovementDirection pieceColour
             CoordinatesCollection.construct ()
             |> CoordinatesCollection.appendResult (Coordinates.shift destination -1 (-direction))
@@ -190,7 +190,7 @@ module Board =
             )
             |> Result.defaultValue (CoordinatesCollection.construct ())
 
-        let private ofKnight (c: coordinates) (board: board) : coordinatesCollection =
+        let private ofKnight (c: coordinates) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
             CoordinatesCollection.construct ()
@@ -214,7 +214,7 @@ module Board =
             afterRepeatedShift 0 -1 c board
         let private ofQueen (c: coordinates) (board: board) : coordinatesCollection =
             ofRook c board ||| ofBishop c board
-        let private ofKing (c: coordinates) (board: board) : coordinatesCollection =
+        let private ofKing (c: coordinates) : coordinatesCollection =
             let i = Coordinates.getFile c
             let j = Coordinates.getRow c
             CoordinatesCollection.construct ()
@@ -232,11 +232,11 @@ module Board =
             | None -> Error $"No piece at position {Coordinates.getName c}"
             | Some piece ->
                 match piece.pieceType with
-                | Knight -> ofKnight c board
+                | Knight -> ofKnight c
                 | Bishop -> ofBishop c board
                 | Rook -> ofRook c board
                 | Queen -> ofQueen c board
-                | King -> ofKing c board
+                | King -> ofKing c
                 | Pawn -> ofPawn c board piece.colour
                 |> Ok
 
@@ -248,12 +248,12 @@ module Board =
                 | White -> board.whitePieces
                 | Black -> board.blackPieces
             match piece.pieceType with
-                | Knight -> ofKnight coordinates board |> (&&&) board.knightMap
+                | Knight -> ofKnight coordinates |> (&&&) board.knightMap
                 | Bishop -> ofBishop coordinates board |> (&&&) board.bishopMap
                 | Rook -> ofRook coordinates board |> (&&&) board.rookMap
                 | Queen -> ofQueen coordinates board |> (&&&) board.queenMap
-                | King -> ofKing coordinates board |> (&&&) board.kingMap
-                | Pawn -> reverseOfPawn coordinates piece.colour board |> (&&&) board.pawnMap
+                | King -> ofKing coordinates |> (&&&) board.kingMap
+                | Pawn -> reverseOfPawn coordinates piece.colour |> (&&&) board.pawnMap
             &&& colouredPieceMap
 
         /// Is the King visible from the opponent? 
@@ -263,17 +263,17 @@ module Board =
                 | White -> 
                     ofRook coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteRookMap) > 0UL ||
                     ofBishop coordsOfKing board &&& (board.whiteQueenMap ||| board.whiteBishopMap) > 0UL ||
-                    ofKnight coordsOfKing board &&& board.whiteKnightMap > 0UL ||
-                    ofKing coordsOfKing  board &&& board.whiteKingMap > 0UL
+                    ofKnight coordsOfKing &&& board.whiteKnightMap > 0UL ||
+                    ofKing coordsOfKing  &&& board.whiteKingMap > 0UL
                 | Black -> 
                     ofRook coordsOfKing board &&& (board.blackQueenMap ||| board.blackRookMap) > 0UL ||
                     ofBishop coordsOfKing board &&& (board.blackQueenMap ||| board.blackBishopMap) > 0UL ||
-                    ofKnight coordsOfKing board &&& board.blackKnightMap > 0UL ||
-                    ofKing coordsOfKing  board &&& board.blackKingMap > 0UL
+                    ofKnight coordsOfKing &&& board.blackKnightMap > 0UL ||
+                    ofKing coordsOfKing &&& board.blackKingMap > 0UL
             
             let pawnPieceCanSeeKing =
                 let direction = getPawnMovementDirection player
-                ofPawnDiagonal coordsOfKing board player -direction
+                ofPawnDiagonal coordsOfKing -direction
                 |> fun coordinatesCollection ->
                     match player with
                     | White -> coordinatesCollection &&& board.whitePawnMap
@@ -295,8 +295,6 @@ module Board =
             |> Result.failOnError
             ||| acc
         ) (CoordinatesCollection.construct ())
-    let internal isVisibleByPlayer (colour: colour) (board: board) (coords: coordinates) : bool =
-        playerVision colour board &&& coords > 0UL
 
     /// See if the coloured player is in check on the board
     let isInCheck (colour: colour) (board: board) : bool =
@@ -362,12 +360,12 @@ module Board =
             let colour = 
                 getSquareFromCoordinates board move.startingCoords
                 |> Option.get
-                |> fun piece -> piece.colour
+                |> _.colour
             let promotedPiece = {pieceType = promotedPieceType; colour = colour}
             applyNormalMove move board
             |> Result.map (updateSquare promotedPiece move.destinationCoords)
         let private getMovesForCastling (side: side) (colour: colour) : normalMove * normalMove =
-            let (kingStart, kingEnd, rookStart, rookEnd) = 
+            let kingStart, kingEnd, rookStart, rookEnd = 
                 match colour with
                 | White ->
                     match side with
@@ -441,54 +439,127 @@ module Board =
                 |> List.map (fun coordsOfPawnDoingEnPassant ->
                     EnPassant {startingCoords = coordsOfPawnDoingEnPassant; destinationCoords = enpassantCoordinates}
                 )
-        let internal castling (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
-            let row, kingSide, queenSide = 
-                match colour with
-                | White -> 1, castlingOptions.whiteKingside, castlingOptions.whiteQueenside
-                | Black -> 8, castlingOptions.blackKingside, castlingOptions.blackQueenside
-
-            let castlingChecks
-                squaresToInspectForCastlingThroughCheck
-                squaresThatMustBeEmpty
-                squareThatNeedsRook
-                squareThatNeedsKing
-                : bool =
-                let castlingThroughCheck =
-                    squaresToInspectForCastlingThroughCheck
-                    |> List.map (fun name -> Coordinates.parse name |> Result.failOnError)
-                    |> List.exists (fun coords ->
-                        isVisibleByPlayer (Colour.opposite colour) board coords
-                    )
-                let squaresAreEmpty =
-                    squaresThatMustBeEmpty
-                    |> List.forall (fun name -> 
-                        let coords = Coordinates.parse name |> Result.failOnError
-                        getSquareFromCoordinates board coords
-                        |> Option.isNone
-                    )
-                let rookInPosition =
-                    Coordinates.parse squareThatNeedsRook
-                    |> Result.map (getSquareFromCoordinates board)
-                    |> Result.failOnError
-                    |> (=) (Some {pieceType = Rook; colour = colour})
-                let kingInPosition =
-                    Coordinates.parse squareThatNeedsKing
-                    |> Result.map (getSquareFromCoordinates board)
-                    |> Result.failOnError
-                    |> (=) (Some {pieceType = King; colour = colour})
+        let private canCastleOnSide (colour: colour) (castlingSide: side) (board: board) : bool =
+            //      ________________________
+            //     /                        \
+            //   8 | r  e  e  e  k  e  e  r |
+            //   7 | .  .  .  .  .  .  .  . |
+            //   6 | .  .  .  .  .  .  .  . |
+            //   5 | .  .  .  .  .  .  .  . |
+            //   4 | .  .  .  .  .  .  .  . |
+            //   3 | .  .  .  .  .  .  .  . |
+            //   2 | .  .  .  .  .  .  .  . |
+            //   1 | R  e  e  e  K  e  e  R |
+            //     \________________________/
+            //       a  b  c  d  e  f  g  h
+            
+            // Legend:
+            // R, r -> Rooks
+            // K, k -> Kings
+            // e    -> squares that must be empty
+            
+            // e1, f1, g1
+            let whiteKingSideRequiredNoCheckSquares = 112UL
+            // f1, g1
+            let whiteKingSideRequiredEmptySquares = 96UL
+            
+            // b1, c1, d1, e1
+            let whiteQueenSideRequiredNoCheckSquares = 30UL
+            // b1, c1, d1
+            let whiteQueenSideRequiredEmptySquares = 14UL
+            
+            // e1
+            let whiteRequiredKingPosition = 16UL
+            // h1
+            let whiteKingSideRequiredRookPosition = 128UL
+            // a1
+            let whiteQueenSideRequiredRookPosition = 1UL
+            
+            // e8, f8, g8
+            let blackKingSideRequiredNoCheckSquares = 8070450532247928832UL
+            // f8, g8
+            let blackKingSideRequiredEmptySquares = 6917529027641081856UL
+            
+            // b8, c8, d8, e8
+            let blackQueenSideRequiredNoCheckSquares = 2161727821137838080UL
+            // b8, c8, d8
+            let blackQueenSideRequiredEmptySquares = 1008806316530991104UL
+            
+            // e8
+            let blackRequiredKingPosition = 1152921504606846976UL
+            // h8
+            let blackKingSideRequiredRookPosition = 9223372036854775808UL
+            // a8
+            let blackQueenSideRequiredRookPosition = 72057594037927936UL
+            
+            let kingSideRequiredNoCheckSquares,
+                kingSideRequiredEmptySquares,
+                queenSideRequiredNoCheckSquares,
+                queenSideRequiredEmptySquares,
+                requiredKingPosition,
+                kingSideRequiredRookPosition,
+                queenSideRequiredRookPosition =
+                    match colour with
+                    | White ->
+                        whiteKingSideRequiredNoCheckSquares,
+                        whiteKingSideRequiredEmptySquares,
+                        whiteQueenSideRequiredNoCheckSquares,
+                        whiteQueenSideRequiredEmptySquares,
+                        whiteRequiredKingPosition,
+                        whiteKingSideRequiredRookPosition,
+                        whiteQueenSideRequiredRookPosition
+                    | Black ->
+                        blackKingSideRequiredNoCheckSquares,
+                        blackKingSideRequiredEmptySquares,
+                        blackQueenSideRequiredNoCheckSquares,
+                        blackQueenSideRequiredEmptySquares,
+                        blackRequiredKingPosition,
+                        blackKingSideRequiredRookPosition,
+                        blackQueenSideRequiredRookPosition
                 
-                //let squareKingShouldBeOn =
-                //    Board.GetSquare.fromCoordinatesName $"e{row}" board
-                //let squareKingShouldBeOn =
-                //    Board.GetSquare.fromCoordinatesName $"e{row}" board
-                (not castlingThroughCheck) && squaresAreEmpty && rookInPosition && kingInPosition
+            let requiredNoCheckSquares,
+                requiredEmptySquares,
+                requiredRookPosition =
+                    match castlingSide with
+                    | Kingside ->
+                        kingSideRequiredNoCheckSquares,
+                        kingSideRequiredEmptySquares,
+                        kingSideRequiredRookPosition
+                    | Queenside ->
+                        queenSideRequiredNoCheckSquares,
+                        queenSideRequiredEmptySquares,
+                        queenSideRequiredRookPosition
+            
+            let castlingThroughCheck =
+                requiredNoCheckSquares
+                |> CoordinatesCollection.filter (playerVision (Colour.opposite colour) board)
+                    > 0UL
+            let squaresAreEmpty =
+                requiredEmptySquares
+                |> CoordinatesCollection.filter board.pieceMap
+                    = 0UL
+            let rookIsInPosition =
+                requiredRookPosition
+                |> CoordinatesCollection.filter board.rookMap
+                    > 0UL
+            let kingIsInPosition =
+                requiredKingPosition
+                |> CoordinatesCollection.filter board.kingMap
+                    > 0UL
+                
+            (not castlingThroughCheck) && squaresAreEmpty && rookIsInPosition && kingIsInPosition
+        let internal castling (colour: colour) (castlingOptions: castlingAllowance) (board: board) : move list =
+            let kingSide, queenSide = 
+                match colour with
+                | White -> castlingOptions.whiteKingside, castlingOptions.whiteQueenside
+                | Black -> castlingOptions.blackKingside, castlingOptions.blackQueenside
             let kingSideCastling : move option = 
-                if kingSide && (castlingChecks [$"e{row}"; $"f{row}"; $"g{row}"] [$"f{row}"; $"g{row}"] ($"h{row}") ($"e{row}")) then
+                if kingSide && (canCastleOnSide colour Kingside board) then
                     Some <| Castling (Kingside, colour)
                 else
                     None
             let queenSideCastling : move option =
-                if queenSide && (castlingChecks [$"e{row}"; $"d{row}"; $"c{row}"] [$"d{row}"; $"c{row}"; $"b{row}"] ($"a{row}") ($"e{row}")) then
+                if queenSide && (canCastleOnSide colour Queenside board) then
                     Some <| Castling (Queenside, colour)
                 else
                     None
@@ -496,6 +567,7 @@ module Board =
             [kingSideCastling; queenSideCastling]
             |> List.filter Option.isSome
             |> List.map Option.get
+        
         let internal promotion (board: board) =
             List.map (fun normalMove ->
                 let movedPieceIsPawn =
