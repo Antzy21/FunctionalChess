@@ -2,11 +2,11 @@ namespace Chess
 
 open FSharp.Extensions
 
-type gameStateOccurenceCounter = Map<gameState, int>
+type boardOccurenceCounter = Map<board, int>
 
 type game = {
     gameState: gameState;
-    previousGameStates: gameStateOccurenceCounter ;
+    previousBoardOccurrences: boardOccurenceCounter ;
     moves: string list
 }
 
@@ -17,13 +17,13 @@ module Game =
             let newGameState = GameState.Create.newGame ()
             {
                 moves = [];
-                previousGameStates = gameStateOccurenceCounter[];
+                previousBoardOccurrences = boardOccurenceCounter[];
                 gameState = newGameState
             }
         let fromFen (fen: string) : game =
             {
                 moves = [];
-                previousGameStates = gameStateOccurenceCounter[];
+                previousBoardOccurrences = boardOccurenceCounter[];
                 gameState = GameState.Create.fromFen fen
             }
 
@@ -33,7 +33,7 @@ module Game =
     let print = toString >> printfn "%s"
 
     module Update = 
-        let private updatePreviousGameStates (gameStateOccurenceCounter: gameStateOccurenceCounter) (newGameState) =
+        let private updatePreviousGameStates (gameStateOccurenceCounter: boardOccurenceCounter) newGameState =
             match Map.tryFind newGameState gameStateOccurenceCounter with
             | Some count ->
                 count + 1
@@ -44,7 +44,7 @@ module Game =
             let newGameState = GameState.Update.makeMove move game.gameState
             {
                 moves = MoveParser.AlgebraicNotation.toString move game.gameState.board :: game.moves;
-                previousGameStates = updatePreviousGameStates game.previousGameStates newGameState
+                previousBoardOccurrences = updatePreviousGameStates game.previousBoardOccurrences newGameState.board
                 gameState = newGameState
             }
         let makeMoveFromNotation (move: string) (game: game) : game result =
@@ -54,7 +54,7 @@ module Game =
             )
 
     let private threeMovesRepeated (game: game) : bool =
-        game.previousGameStates
+        game.previousBoardOccurrences
         |> Map.exists (fun _ count ->
             count >= 3
         )
