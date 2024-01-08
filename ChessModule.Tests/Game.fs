@@ -10,7 +10,7 @@ module ThreeMoveRepetition =
             let newGameState = GameState.Create.newGame ()
             {
                 moves = [];
-                previousGameStates = gameStateOccurenceCounter[(newGameState, 3)];
+                previousBoardOccurrences = boardOccurenceCounter[(newGameState.board, 3)];
                 gameState = newGameState
             }
         Game.isGameOver gameWithThreeRepeatedFens
@@ -22,7 +22,7 @@ module ThreeMoveRepetition =
             let newGameState = GameState.Create.newGame ()
             {
                 moves = [];
-                previousGameStates = gameStateOccurenceCounter[(newGameState, 2)];
+                previousBoardOccurrences = boardOccurenceCounter[(newGameState.board, 2)];
                 gameState = newGameState
             }
         Game.isGameOver gameWithThreeRepeatedFens
