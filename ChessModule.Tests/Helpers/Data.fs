@@ -96,7 +96,7 @@ module Games =
         let PostWhite() : game = 
             {
                 gameState = GameState.Create.fromFen "4k3/8/P7/8/8/8/8/4K3 b - - 1 1"
-                previousBoardOccurrences = Map[(BoardParser.fromFen "4k3/8/P7/8/8/8/8/4K3 b - - 1 1", 1)];
+                previousBoardOccurrences = Map[(BoardParser.fromFen "4k3/8/P7/8/8/8/8/4K3", 1)];
                 moves = ["bxa6"; "a5"]
             }
         let PreBlack() : game = 
@@ -108,7 +108,7 @@ module Games =
         let PostBlack() : game =
             {
                 gameState = GameState.Create.fromFen "4k3/8/8/8/8/p7/8/4K3 w - - 1 0";
-                previousBoardOccurrences = Map[(BoardParser.fromFen "4k3/8/8/8/8/p7/8/4K3 w - - 1 0", 1)];
+                previousBoardOccurrences = Map[(BoardParser.fromFen "4k3/8/8/8/8/p7/8/4K3", 1)];
                 moves = ["bxa3"; "a4"]
             }
 
@@ -122,7 +122,7 @@ module Games =
         let PostWhite1() : game =
             {
                 gameState = GameState.Create.fromFen "Q7/8/8/8/8/8/8/4K2k b - - 1 1";
-                previousBoardOccurrences = Map[(BoardParser.fromFen "Q7/8/8/8/8/8/8/4K2k b - - 1 1", 1)];
+                previousBoardOccurrences = Map[(BoardParser.fromFen "Q7/8/8/8/8/8/8/4K2k", 1)];
                 moves = ["a8=Q"]
             }
         let PreWhite2() : game =
@@ -134,7 +134,7 @@ module Games =
         let PostWhite2() : game =
             {
                 gameState = GameState.Create.fromFen "bR6/8/8/8/8/8/8/4K2k b - - 1 1";
-                previousBoardOccurrences = Map[(BoardParser.fromFen "bR6/8/8/8/8/8/8/4K2k b - - 1 1", 1)];
+                previousBoardOccurrences = Map[(BoardParser.fromFen "bR6/8/8/8/8/8/8/4K2k", 1)];
                 moves = ["axb8=R"]
             }
     
