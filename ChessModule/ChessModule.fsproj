@@ -22,10 +22,11 @@
   <ItemGroup>
     <PackageReference Include="Antzy21.FSharp.Extensions" Version="1.1.4" />
   </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <ProjectReference Include="..\..\Checkerboard\Checkerboard\Checkerboard.fsproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+  <ItemGroup>
     <PackageReference Include="Antzy21.Games.Checkerboard" Version="5.0.0" />
+<!--    This does not work for `dotnet restore` in the github workflow. -->
+<!--    <ProjectReference-->
+<!--            Condition="'$(Configuration)' == 'Debug'"-->
+<!--            Include="..\Checkerboard\Checkerboard\Checkerboard.fsproj" />-->
   </ItemGroup>
 </Project>
