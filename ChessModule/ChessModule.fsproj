@@ -21,8 +21,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Antzy21.FSharp.Extensions" Version="1.1.4" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Checkerboard\Checkerboard\Checkerboard.fsproj" />
+    <PackageReference
+            Condition="'$(Configuration)' == 'Release'"
+            Include="Antzy21.Games.Checkerboard" Version="5.0.0" />
+    <ProjectReference
+            Condition="'$(Configuration)' == 'Debug'"
+            Include="..\Checkerboard\Checkerboard\Checkerboard.fsproj" />
   </ItemGroup>
 </Project>
